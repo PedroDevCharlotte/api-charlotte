@@ -3,6 +3,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { join } from 'path';
 import { AuthModule } from './Modules/Core/auth/auth.module';
 import { UsersModule } from './Modules/Core/users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Global()
 @Module({
@@ -10,6 +11,16 @@ import { UsersModule } from './Modules/Core/users/users.module';
     ConfigModule.forRoot({
       envFilePath: join(__dirname, `../src/Configuration/.env`),
       isGlobal: true,
+    }),
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: 'localhost',
+      port: 3306,
+      username: 'CharlotteAdmin',
+      password: '1234567',
+      database: 'charlottecore',
+      entities: [__dirname + '/**/*.entity{.ts,.js}'],
+      synchronize: true,
     }),
     AuthModule,
     UsersModule,

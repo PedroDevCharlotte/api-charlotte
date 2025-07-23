@@ -11,39 +11,39 @@ import {
   Request,
   UseGuards,
 } from '@nestjs/common';
-import { AuthGuard } from './../../../Common/Auth/auth.guard';
+import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { UsersService } from './users.service';
 
-@Controller('auth')
-export class AuthController {
+@Controller('user')
+export class UserController {
   constructor(private usersService: UsersService) {}
 
   @HttpCode(HttpStatus.OK)
-  @Post('getAllUsers')
+  @Post('list')
   getAllUsers() {
     return this.usersService.findAll();
   }
 
   @HttpCode(HttpStatus.OK)
-  @Get('user/:id')
+  @Get(':id')
   getUserById(@Param('id') id: number) {
     return this.usersService.findById(id);
   }
 
   @HttpCode(HttpStatus.CREATED)
-  @Post('user')
+  @Post('insert')
   createUser(@Body() createUserDto: any) {
     return this.usersService.create(createUserDto);
   }
 
   @HttpCode(HttpStatus.OK)
-  @Put('user/:id')
+  @Put('update/:id')
   updateUser(@Param('id') id: number, @Body() updateUserDto: any) {
     return this.usersService.update(id, updateUserDto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete('user/:id')
+  @Delete('delete/:id')
   deleteUser(@Param('id') id: number) {
     return this.usersService.delete(id);
   }
