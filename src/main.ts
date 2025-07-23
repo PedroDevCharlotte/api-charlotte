@@ -6,10 +6,10 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   const config = new DocumentBuilder()
-    .setTitle('API Integration ANIQ')
+    .setTitle('API Charlotte Core')
     .setDescription('The API description')
     .setVersion('1.0')
-    .addTag('ANIQ')
+    .addTag('Charlotte')
     .addBearerAuth(
       {
         description: `Integration API Token <JWT>`,
