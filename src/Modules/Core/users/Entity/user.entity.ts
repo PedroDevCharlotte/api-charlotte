@@ -1,6 +1,12 @@
-import { Entity, Column, PrimaryGeneratedColumn, UpdateDateColumn, CreateDateColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  CreateDateColumn,
+} from 'typeorm';
 
-@Entity({name: 'users'})
+@Entity({ name: 'users' })
 export class User {
   @PrimaryGeneratedColumn()
   id: number;
@@ -11,7 +17,7 @@ export class User {
   @Column()
   lastName: string;
 
-  @Column()
+  @Column({ unique: true })
   email: string;
 
   @Column()
@@ -20,7 +26,19 @@ export class User {
   @Column()
   role: string;
 
-  
+  // 🔐 Secreto para 2FA (TOTP)
+  @Column({ nullable: true })
+  twoFactorSecret?: string;
+
+  // ✅ Estado de activación del 2FA
+  @Column({ default: false })
+  isTwoFactorEnabled: boolean;
+  @Column({ type: 'timestamp', nullable: true })
+  last2FAVerifiedAt?: Date;
+
+  @Column('simple-array', { nullable: true })
+  trustedDevices?: string[]; // Lista de fingerprints o tokens de dispositivos confiables
+
   @UpdateDateColumn({ name: 'UpdateAt' })
   UpdateAt: Date;
 
