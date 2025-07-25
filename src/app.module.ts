@@ -4,6 +4,7 @@ import { join } from 'path';
 import { AuthModule } from './Modules/Core/auth/auth.module';
 import { UsersModule } from './Modules/Core/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DatabaseModule } from './Modules/Database/Database.Module';
 
 @Global()
 @Module({
@@ -12,16 +13,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
       envFilePath: join(__dirname, `../src/Configuration/.env`),
       isGlobal: true,
     }),
-    TypeOrmModule.forRoot({
-      type: 'mysql',
-      host: 'localhost',
-      port: 3306,
-      username: 'CharlotteAdmin',
-      password: '1234567',
-      database: 'charlottecore',
-      entities: [__dirname + '/**/*.entity{.ts,.js}'],
-      synchronize: true,
-    }),
+    DatabaseModule,
     AuthModule,
     UsersModule,
   ],

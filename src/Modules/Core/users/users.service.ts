@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './Entity/user.entity';
 import { Repository } from 'typeorm';
+import { isError } from 'util';
 
 // This should be a real class/interface representing a user entity
 // export type User = {
@@ -25,27 +26,43 @@ export class UsersService {
   //   },
   // ];
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.userRepository.find((user) => user.username === username);
+  async findOne(username: string): Promise<any | undefined> {
+    let user: any | undefined;
+    try {
+      user = await this.userRepository.findOne({ where: { email: username } });
+    } catch (error) {
+      throw new NotFoundException(`User with username ${username} not found`);
+    }
+    return user;
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.;
+    return this.userRepository.find();
   }
 
-  async findById(userId: number): Promise<User | undefined> {
-    return this.users.find((user) => user.userId === userId);
+  async findById(userId: number): Promise<any | undefined> {
+    return this.userRepository.findOne({ where: { id: userId } });
   }
 
-  async create(user: Omit<User, 'userId'>): Promise<User> {
-    const newUser: User = {
-      userId: this.users.length
-        ? Math.max(...this.users.map((u) => u.userId)) + 1
-        : 1,
-      ...user,
-    };
-    this.users.push(newUser);
-    return newUser;
+  async create(user: Omit<User, 'userId'>): Promise<any> {
+    const resp = { isError: false, message: '', data: {} };
+    try {
+      const UserToAdd = new User();
+      UserToAdd.firstName = user.firstName;
+      UserToAdd.lastName = user.lastName;
+      UserToAdd.email = user.email;
+      UserToAdd.password = user.password;
+      UserToAdd.role = user.role;
+      // Assuming the user entity has a role field
+      resp.data = await this.userRepository.save(UserToAdd);
+    } catch (error) {
+      resp.isError = true;
+      resp.message = error.message;
+      
+    }
+
+
+    return resp;
   }
 
   async update(
@@ -58,13 +75,18 @@ export class UsersService {
     }
     Object.assign(user, updateData);
     return user;
-  }
+  } 
 
   async delete(userId: number): Promise<void> {
-    const index = this.users.findIndex((user) => user.userId === userId);
-    if (index === -1) {
+    
+    const user = await this.findById(userId);
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    this.users.splice(index, 1);
+    try {
+      await this.userRepository.remove(user);
+    } catch (error) {
+      throw new NotFoundException(`Error deleting user with id ${userId}`);
+    }
   }
 }
