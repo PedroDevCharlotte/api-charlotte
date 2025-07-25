@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './Entity/user.entity';
 import { Repository } from 'typeorm';
-import { isError } from 'util';
+import * as bcrypt from 'bcrypt';
 
 // This should be a real class/interface representing a user entity
 // export type User = {
@@ -51,34 +51,51 @@ export class UsersService {
       UserToAdd.firstName = user.firstName;
       UserToAdd.lastName = user.lastName;
       UserToAdd.email = user.email;
-      UserToAdd.password = user.password;
+
+      // 🔐 Hashear la contraseña antes de guardarla
+      const saltRounds = 10;
+      UserToAdd.password = await bcrypt.hash(user.password, saltRounds);
+
       UserToAdd.role = user.role;
-      // Assuming the user entity has a role field
+
       resp.data = await this.userRepository.save(UserToAdd);
     } catch (error) {
       resp.isError = true;
       resp.message = error.message;
-      
     }
-
 
     return resp;
   }
 
-  async update(
-    userId: number,
-    updateData: Partial<Omit<User, 'userId'>>,
-  ): Promise<User> {
-    const user = await this.findById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
+  
+async update(updateData: Partial<Omit<User, 'userId'>>): Promise<User> {
+  const userId = updateData.id;
+  if (!userId) {
+    throw new NotFoundException('User ID is required for update');
+  }
+
+  const user = await this.findById(userId);
+  if (!user) {
+    throw new NotFoundException('User not found');
+  }
+
+  // Si se proporciona una nueva contraseña, verificar si cambió
+  if (updateData.password) {
+    const isSamePassword = await bcrypt.compare(updateData.password, user.password);
+    if (!isSamePassword) {
+      const saltRounds = 10;
+      updateData.password = await bcrypt.hash(updateData.password, saltRounds);
+    } else {
+      // Si es la misma, eliminamos del update para no rehashearla
+      delete updateData.password;
     }
-    Object.assign(user, updateData);
-    return user;
-  } 
+  }
+
+  Object.assign(user, updateData);
+  return this.userRepository.save(user);
+}
 
   async delete(userId: number): Promise<void> {
-    
     const user = await this.findById(userId);
     if (!user) {
       throw new NotFoundException('User not found');

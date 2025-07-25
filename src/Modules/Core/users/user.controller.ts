@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { UsersService } from './users.service';
+import { User } from './Dto/user.dto';
 
 @Controller('user')
 export class UserController {
@@ -37,9 +38,9 @@ export class UserController {
   }
 
   @HttpCode(HttpStatus.OK)
-  @Put('update/:id')
-  updateUser(@Param('id') id: number, @Body() updateUserDto: any) {
-    return this.usersService.update(id, updateUserDto);
+  @Put('update/')
+  updateUser(@Body() updateUserDto: User) {
+    return this.usersService.update(updateUserDto);
   }
 
   @HttpCode(HttpStatus.NO_CONTENT)
