@@ -2,13 +2,8 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './Entity/user.entity';
 import { Repository } from 'typeorm';
-
-// This should be a real class/interface representing a user entity
-// export type User = {
-//   userId: number;
-//   username: string;
-//   password: string;
-// };
+import { UserLoginDto } from '../auth/Dto/user-login.dto';
+import { UserDto } from './Dto/user.dto';
 
 @Injectable()
 export class UsersService {
@@ -17,35 +12,21 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  // private users: User[] = [
-  //   {
-  //     id: 1,
-  //     firstName: 'CharlotteInc',
-  //     password: 'Rx1k9So4q13k0V50k9VHG',
-  //   },
-  // ];
-
-  async findOne(username: string): Promise<User | undefined> {
-    return this.userRepository.find((user) => user.username === username);
+  async findOne(username: string): Promise<any | undefined> {
+    return this.userRepository.findOne({ where: { email: username } });
   }
 
   async findAll(): Promise<User[]> {
-    return this.userRepository.;
+    return this.userRepository.find();
   }
 
-  async findById(userId: number): Promise<User | undefined> {
-    return this.users.find((user) => user.userId === userId);
+  async findById(userId: number): Promise<any | undefined> {
+    return this.userRepository.findOne({ where: { id: userId } });
   }
 
-  async create(user: Omit<User, 'userId'>): Promise<User> {
-    const newUser: User = {
-      userId: this.users.length
-        ? Math.max(...this.users.map((u) => u.userId)) + 1
-        : 1,
-      ...user,
-    };
-    this.users.push(newUser);
-    return newUser;
+  async create(user: UserDto ): Promise<User> {
+    const newUser = this.userRepository.create(user);
+    return this.userRepository.save(newUser);
   }
 
   async update(
@@ -57,14 +38,60 @@ export class UsersService {
       throw new NotFoundException('User not found');
     }
     Object.assign(user, updateData);
-    return user;
+    return this.userRepository.save(user);
   }
 
   async delete(userId: number): Promise<void> {
-    const index = this.users.findIndex((user) => user.userId === userId);
-    if (index === -1) {
+    const result = await this.userRepository.delete({id: userId });
+    if (result.affected === 0) {
       throw new NotFoundException('User not found');
     }
-    this.users.splice(index, 1);
+  }
+
+  async updateTwoFactorSecret(
+    userId: number,
+    twoFactorSecret: string,
+    isTemp: boolean,
+  ): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (isTemp) {
+      user.temp2FASecret = twoFactorSecret;
+    } else {
+      user.temp2FASecret = '';
+      user.twoFactorSecret = twoFactorSecret;
+    }
+    return this.userRepository.save(user);
+  }
+
+  async updateLast2FAVerifiedAt(userId: number, date: Date): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.last2FAVerifiedAt = date;
+    return this.userRepository.save(user);
+  }
+
+  async enableTwoFactor(userId: number): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.isTwoFactorEnabled = true;
+    return this.userRepository.save(user);
+  }
+
+  async disableTwoFactor(userId: number): Promise<User> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.isTwoFactorEnabled = false;
+    user.twoFactorSecret = ''; // Clear the secret when disabling 2FA
+
+    return this.userRepository.save(user);
   }
 }

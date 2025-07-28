@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { UsersService } from './users.service';
+import { UserDto } from './Dto/user.dto';
 
 @Controller('user')
 export class UserController {
@@ -32,13 +33,13 @@ export class UserController {
 
   @HttpCode(HttpStatus.CREATED)
   @Post('insert')
-  createUser(@Body() createUserDto: any) {
+  createUser(@Body() createUserDto: UserDto) {
     return this.usersService.create(createUserDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Put('update/:id')
-  updateUser(@Param('id') id: number, @Body() updateUserDto: any) {
+  updateUser(@Param('id') id: number, @Body() updateUserDto: UserDto) {
     return this.usersService.update(id, updateUserDto);
   }
 

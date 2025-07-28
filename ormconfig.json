@@ -1,0 +1,21 @@
+{
+  "type": "mysql",
+  "host": "localhost",
+  "port": 3306,
+  "username": "CharlotteAdmin",
+  "password": "1234567",
+  "database": "charlottecore",
+  "autoLoadEntities": true,
+  "synchronize": true,
+  "migrations": [
+    "dist/Modules/Database/Migrations/*.js"
+  ],
+  "entities": [
+    "dist/**/*.Entity.js"
+  ],
+  "migrationsTableName": "",
+  "cli": {
+    "migrationsDir": "../../Modules/Database/Migrations"
+  },
+  "logging": "all"
+}
