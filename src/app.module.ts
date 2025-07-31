@@ -5,6 +5,7 @@ import { AuthModule } from './Modules/Core/auth/auth.module';
 import { UsersModule } from './Modules/Core/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from './Modules/Database/Database.Module';
+import { AccountModule } from './Modules/Core/Account/account.module';
 
 @Global()
 @Module({
@@ -16,6 +17,7 @@ import { DatabaseModule } from './Modules/Database/Database.Module';
     DatabaseModule,
     AuthModule,
     UsersModule,
+    AccountModule
   ],
   controllers: [],
   providers: [],

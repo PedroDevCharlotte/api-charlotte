@@ -23,10 +23,12 @@ export class AuthService {
 
   // Generación del token JWT
   async generateToken(
-    user: any,
+    userId: number,
     isTwoFactorAuthenticated = false,
   ): Promise<{ access_token: string; requires2FA?: boolean; user?: any; register2FA?: boolean }> {
     let requires2FA = false, register2FA = false;
+    const user = await this.findById(userId);
+    
     if (user.isTwoFactorEnabled) {
       const lastVerified = user.last2FAVerifiedAt ? new Date(user.last2FAVerifiedAt) : null;
       const now = new Date();
@@ -38,7 +40,7 @@ export class AuthService {
     }
 
     const payload = {
-      sub: user.userId,
+      sub: user.id,
       username: user.username,
       isTwoFactorAuthenticated,
     };

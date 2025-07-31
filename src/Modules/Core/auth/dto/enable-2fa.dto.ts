@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { ApiProperty } from "@nestjs/swagger";
 
 export class Enable2FADto {
@@ -10,8 +9,4 @@ export class Enable2FADto {
   twoFactorSecret: string;
   @ApiProperty()
   temp2FASecret: string;
-=======
-export class Enable2FADto {
-  userId: number;
->>>>>>> 6a72b2638daae878e189023d883fb42606cdd829
 }
