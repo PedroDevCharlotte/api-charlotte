@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer-text {
+            color: #6c757d;
+            font-size: 12px;
+            margin: 0;
+        }
+        .button {
+            display: inline-block;
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+            font-weight: bold;
+        }
+        .alert {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header con Logo -->
+        <div class="header">
+            <img src="{{logoUrl}}" alt="Charlotte Logo" class="logo" />
+            <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="content">
+            <h2 style="color: #333; margin-bottom: 20px;">¡Bienvenido a Charlotte Chemical!</h2>
+
+            <p>Hola <strong>{{userName}}</strong>,</p>
+
+            <p>Te damos la más cordial bienvenida al sistema Charlotte Chemical. Tu cuenta ha sido creada exitosamente y ya puedes comenzar a usar nuestros servicios.</p>
+
+            <div class="alert">
+                <p style="margin: 0;"><strong>✓ Tu cuenta está activa</strong> y lista para usar.</p>
+            </div>
+
+            <p>Para acceder al sistema, utiliza las credenciales que te fueron proporcionadas y haz clic en el siguiente botón:</p>
+
+            <div style="text-align: center;">
+                <a href="{{loginUrl}}" class="button">Acceder al Sistema</a>
+            </div>
+
+            <p>Si tienes alguna pregunta o necesitas asistencia, no dudes en contactar a nuestro equipo de soporte.</p>
+
+            <p>¡Esperamos que tengas una excelente experiencia con nuestro sistema!</p>
+
+            <p style="margin-top: 30px;">
+                Saludos cordiales,<br>
+                <strong>Equipo Charlotte Chemical</strong>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este es un correo automático generado por el sistema Charlotte Chemical.<br>
+                Por favor, no responder a este mensaje.<br>
+                © {{year}} Charlotte Chemical Internacional, S.A. de C.V. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

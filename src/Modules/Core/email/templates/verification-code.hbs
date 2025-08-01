@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            padding: 30px 20px;
+            text-align: center;
+        }
+        .logo {
+            max-width: 200px;
+            height: auto;
+            margin-bottom: 10px;
+        }
+        .company-name {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer-text {
+            color: #6c757d;
+            font-size: 12px;
+            margin: 0;
+        }
+        .code-box {
+            background: #f8f9fa;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .code {
+            color: #007bff;
+            font-size: 36px;
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header con Logo -->
+        <div class="header">
+            <img src="{{logoUrl}}" alt="Charlotte Logo" class="logo" />
+            <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="content">
+            <h2 style="color: #333; margin-bottom: 20px;">Código de Verificación</h2>
+
+            <p>Hola <strong>{{userName}}</strong>,</p>
+
+            <p>Has solicitado un código de verificación para acceder a tu cuenta. Tu código es:</p>
+
+            <div class="code-box">
+                <h1 class="code">{{verificationCode}}</h1>
+            </div>
+
+            <div class="warning">
+                <p style="margin: 0;"><strong>⚠️ Importante:</strong> Este código expira en <strong>{{expirationMinutes}} minutos</strong>.</p>
+            </div>
+
+            <p><strong>Instrucciones:</strong></p>
+            <ul>
+                <li>Ingresa este código en la aplicación para completar la verificación</li>
+                <li>No compartas este código con nadie</li>
+                <li>Si no solicitaste este código, puedes ignorar este mensaje</li>
+            </ul>
+
+            <p>Si tienes problemas para acceder, contacta a nuestro equipo de soporte.</p>
+
+            <p style="margin-top: 30px;">
+                Saludos,<br>
+                <strong>Equipo de Seguridad Charlotte Chemical</strong>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este es un correo automático generado por el sistema Charlotte Chemical.<br>
+                Por favor, no responder a este mensaje.<br>
+                © {{year}} Charlotte Chemical Internacional, S.A. de C.V. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>
