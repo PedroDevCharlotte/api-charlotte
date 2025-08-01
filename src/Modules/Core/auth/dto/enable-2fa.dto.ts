@@ -1,12 +1,22 @@
-import { ApiProperty } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { IsNumber, IsString, IsOptional } from "class-validator";
 
 export class Enable2FADto {
-  @ApiProperty()
+  @ApiProperty({ description: 'ID del usuario' })
+  @IsNumber()
   userId: number;
-  @ApiProperty()
+
+  @ApiProperty({ description: 'Token de 6 dígitos del autenticador' })
+  @IsString()
   token: string;
-  @ApiProperty()
-  twoFactorSecret: string;
-  @ApiProperty()
-  temp2FASecret: string;
+
+  @ApiPropertyOptional({ description: 'Secreto de 2FA (opcional)' })
+  @IsOptional()
+  @IsString()
+  twoFactorSecret?: string;
+
+  @ApiPropertyOptional({ description: 'Secreto temporal de 2FA (opcional)' })
+  @IsOptional()
+  @IsString()
+  temp2FASecret?: string;
 }

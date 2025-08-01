@@ -55,7 +55,10 @@ export class AuthService {
       user: {
         id: user.id,
         email: user.email,
-        role: user.role,
+        role: user.role?.name || 'Sin rol asignado',
+        department: user.department?.name || 'Sin departamento asignado',
+        roleId: user.roleId,
+        departmentId: user.departmentId,
       },
       register2FA: register2FA,
     };

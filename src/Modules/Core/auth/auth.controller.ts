@@ -11,10 +11,11 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserLoginDto } from './Dto/user-login.dto';
+import { LoginResponseDto } from './Dto/login-response.dto';
 import { setup2FADto, Verify2FADto } from './Dto/verify-2fa.dto';
 import { Enable2FADto } from './Dto/enable-2fa.dto';
 import { AuthGuard } from './../../../Common/Auth/auth.guard';
-import { ApiBearerAuth } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import * as qrcode from 'qrcode';
 import { resolve } from 'path';
 @ApiBearerAuth('Token')
@@ -24,7 +25,17 @@ export class AuthController {
 
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  async signIn(@Body() signInDto: UserLoginDto) {
+  @ApiOperation({ summary: 'Iniciar sesión de usuario' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Login exitoso', 
+    type: LoginResponseDto 
+  })
+  @ApiResponse({ 
+    status: 401, 
+    description: 'Credenciales inválidas' 
+  })
+  async signIn(@Body() signInDto: UserLoginDto): Promise<LoginResponseDto> {
 
     const user = await this.authService.validateUser(
       signInDto.email,
