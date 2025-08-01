@@ -1,21 +1,72 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { isNumber, IsString } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsArray } from 'class-validator';
 
 export class UserDto {
   @ApiPropertyOptional()
   id?: number;
+
   @ApiProperty()
   @IsString()
-  name: string;
+  firstName: string;
+
   @ApiProperty()
   @IsString()
-  lastname: string;
-  @ApiProperty()
-  rol: string[];
+  lastName: string;
+
   @ApiProperty()
   @IsString()
+  role: string;
+
+  @ApiProperty()
+  @IsString()
+  @IsEmail()
   email: string;
+
   @ApiProperty()
   @IsString()
   password?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  passwordResetCode?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  passwordResetCodeExpiresAt?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isBlocked?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  twoFactorSecret?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  temp2FASecret?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsBoolean()
+  isTwoFactorEnabled?: boolean;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  last2FAVerifiedAt?: Date;
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  trustedDevices?: string[];
 }

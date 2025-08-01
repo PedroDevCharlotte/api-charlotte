@@ -12,6 +12,8 @@ export class RespUserDto {
   @ApiProperty()
   role: string;
   @ApiProperty()
+  department: string;
+  @ApiProperty()
   isTwoFactorEnabled: boolean;
   @ApiProperty()
   last2FAVerifiedAt?: Date;

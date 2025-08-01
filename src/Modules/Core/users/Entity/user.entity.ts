@@ -4,7 +4,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   CreateDateColumn,
+  ManyToOne,
+  JoinColumn,
 } from 'typeorm';
+import { Role } from '../../roles/Entity/role.entity';
+import { Department } from '../../departments/Entity/department.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -16,6 +20,12 @@ export class User {
 
   @Column()
   lastName: string;
+  
+  @Column({ nullable: true })
+  passwordResetCode?: string;
+
+  @Column({ type: 'timestamp', nullable: true })
+  passwordResetCodeExpiresAt?: Date;
 
   @Column({ unique: true })
   email: string;
@@ -23,8 +33,13 @@ export class User {
   @Column()
   password: string;
 
+  // 🏢 Relación con rol - Foreign Key
   @Column()
-  role: string;
+  roleId: number;
+
+  // 🏬 Relación con departamento - Foreign Key
+  @Column()
+  departmentId: number;
 
   @Column({ nullable: true })
   isActive: boolean;
@@ -54,4 +69,13 @@ export class User {
 
   @CreateDateColumn({ name: 'CreatedAt' })
   CreatedAt: Date;
+
+  // 🔗 Relaciones
+  @ManyToOne(() => Role, (role) => role.users)
+  @JoinColumn({ name: 'roleId' })
+  role: Role;
+
+  @ManyToOne(() => Department, (department) => department.users)
+  @JoinColumn({ name: 'departmentId' })
+  department: Department;
 }

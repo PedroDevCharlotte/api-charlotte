@@ -14,10 +14,12 @@ import {
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { UsersService } from './users.service';
 import { UserDto } from './Dto/user.dto';
-import { ApiBearerAuth } from '@nestjs/swagger';
-import { ReqDeleteUserDto } from './Dto/RespUser.dto';
+import { CreateUserLegacyDto } from './Dto/create-user.dto';
+import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { RequestPasswordResetDto } from './Dto/request-password-reset.dto';
+import { VerifyPasswordResetDto } from './Dto/verify-password-reset.dto';
+@ApiTags('Users')
 @ApiBearerAuth('Token')
-
 @Controller('user')
 export class UserController {
   constructor(private usersService: UsersService) {}
@@ -39,21 +41,125 @@ export class UserController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('insert')
-  createUser(@Body() createUserDto: UserDto) {
-    return this.usersService.create(createUserDto);
+  @ApiOperation({ summary: 'Crear un nuevo usuario' })
+  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos.' })
+  createUser(@Body() createUserLegacyDto: CreateUserLegacyDto, @Request() req: any) {
+    const currentUserId = req.user?.id;
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    
+    // Convertir el DTO legacy al formato correcto
+    const userDto = createUserLegacyDto.toUserDto();
+    
+    return this.usersService.create(userDto, currentUserId, ipAddress, userAgent);
+  }
+
+  // ENDPOINT TEMPORAL PARA TESTING - REMOVER EN PRODUCCIÓN
+  @HttpCode(HttpStatus.CREATED)
+  @Post('test-insert')
+  @ApiOperation({ summary: 'Crear usuario (SOLO TESTING)' })
+  testCreateUser(@Body() createUserLegacyDto: CreateUserLegacyDto, @Request() req: any) {
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    
+    // Convertir el DTO legacy al formato correcto
+    const userDto = createUserLegacyDto.toUserDto();
+    
+    return this.usersService.create(userDto, undefined, ipAddress, userAgent);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
   @Put('update')
-  updateUser( @Body() updateUserDto: UserDto) {
-    return this.usersService.update(updateUserDto);
+  updateUser(@Body() updateUserDto: UserDto, @Request() req: any) {
+    const currentUserId = req.user?.id;
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    
+    return this.usersService.update(updateUserDto, currentUserId, ipAddress, userAgent);
   }
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.NO_CONTENT)
-  @Delete('delete')
-  deleteUser(@Body() DeleteUser: ReqDeleteUserDto) {
-    return this.usersService.delete(DeleteUser.id);
+  @Delete('delete/:id')
+  @ApiOperation({ 
+    summary: 'Eliminar usuario por ID',
+    description: 'Elimina un usuario del sistema usando su ID'
+  })
+  @ApiResponse({ 
+    status: 204, 
+    description: 'Usuario eliminado exitosamente' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuario no encontrado' 
+  })
+  deleteUser(@Param('id') id: number, @Request() req: any) {
+    const currentUserId = req.user?.id;
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    
+    return this.usersService.delete(id, currentUserId, ipAddress, userAgent);
+  }
+
+  // ========== ENDPOINTS PARA RESET DE CONTRASEÑA ==========
+
+  @HttpCode(HttpStatus.OK)
+  @Post('request-password-reset')
+  @ApiOperation({ 
+    summary: 'Solicitar restablecimiento de contraseña',
+    description: 'Envía un código de verificación al email del usuario para restablecer la contraseña'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Código enviado exitosamente (si el email existe)',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Código de verificación enviado a tu correo electrónico.' },
+        success: { type: 'boolean', example: true }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Error al enviar el código' 
+  })
+  async requestPasswordReset(@Body() requestDto: RequestPasswordResetDto) {
+    return this.usersService.requestPasswordReset(requestDto.email);
+  }
+
+  @HttpCode(HttpStatus.OK)
+  @Post('verify-password-reset')
+  @ApiOperation({ 
+    summary: 'Verificar código y restablecer contraseña',
+    description: 'Verifica el código de 6 dígitos y establece la nueva contraseña'
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Contraseña restablecida exitosamente',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Contraseña restablecida exitosamente.' },
+        success: { type: 'boolean', example: true }
+      }
+    }
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Código inválido o expirado' 
+  })
+  @ApiResponse({ 
+    status: 404, 
+    description: 'Usuario no encontrado' 
+  })
+  async verifyPasswordReset(@Body() verifyDto: VerifyPasswordResetDto) {
+    return this.usersService.verifyPasswordReset(
+      verifyDto.email,
+      verifyDto.code,
+      verifyDto.newPassword
+    );
   }
 }
