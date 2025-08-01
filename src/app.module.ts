@@ -6,6 +6,14 @@ import { UsersModule } from './Modules/Core/users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { DatabaseModule } from './Modules/Database/Database.Module';
 import { AccountModule } from './Modules/Core/Account/account.module';
+import { EmailModule } from './Modules/Core/email/email.module';
+import { AuditModule } from './Modules/Core/audit/audit.module';
+import { RolesModule } from './Modules/Core/roles/roles.module';
+import { DepartmentsModule } from './Modules/Core/departments/departments.module';
+import { DataSeederService } from './data-seeder.service';
+import { Role } from './Modules/Core/roles/Entity/role.entity';
+import { Department } from './Modules/Core/departments/Entity/department.entity';
+import { User } from './Modules/Core/users/Entity/user.entity';
 
 @Global()
 @Module({
@@ -14,13 +22,18 @@ import { AccountModule } from './Modules/Core/Account/account.module';
       envFilePath: join(__dirname, `../src/Configuration/.env`),
       isGlobal: true,
     }),
+    TypeOrmModule.forFeature([Role, Department, User]),
     DatabaseModule,
     AuthModule,
     UsersModule,
-    AccountModule
+    AccountModule,
+    EmailModule,
+    AuditModule,
+    RolesModule,
+    DepartmentsModule
   ],
   controllers: [],
-  providers: [],
+  providers: [DataSeederService],
 })
 export class AppModule {
   static Port: number;
