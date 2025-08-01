@@ -4,6 +4,7 @@ import { User } from './Entity/user.entity';
 import { Repository } from 'typeorm';
 import { UserLoginDto } from '../auth/Dto/user-login.dto';
 import { UserDto } from './Dto/user.dto';
+import { UpdateUserDto } from './Dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
 import { RespUserDto } from './Dto/RespUser.dto';
 import { isError } from 'util';
@@ -47,7 +48,7 @@ export class UsersService {
         respUser.isTwoFactorEnabled = user.isTwoFactorEnabled;
         respUser.last2FAVerifiedAt = user.last2FAVerifiedAt;
         respUser.isBlocked = user.isBlocked || false;
-        respUser.isActive = user.isActive || false;
+        respUser.active = user.active || false;
 
         return respUser;
       });
@@ -85,7 +86,7 @@ export class UsersService {
         email: savedUser.email,
         roleId: savedUser.roleId,
         departmentId: savedUser.departmentId,
-        isActive: savedUser.isActive,
+        active: savedUser.active,
         isBlocked: savedUser.isBlocked,
       };
 
@@ -126,7 +127,7 @@ export class UsersService {
     return savedUser;
   }
 
-  async update(updateData: UserDto, currentUserId?: number, ipAddress?: string, userAgent?: string): Promise<User> {
+  async update(updateData: UpdateUserDto & { id: number }, currentUserId?: number, ipAddress?: string, userAgent?: string): Promise<User> {
     const userId = updateData.id;
     if (!userId) {
       throw new NotFoundException('User ID is required for update');
@@ -145,7 +146,7 @@ export class UsersService {
       email: user.email,
       roleId: user.roleId,
       departmentId: user.departmentId,
-      isActive: user.isActive,
+      active: user.active,
       isBlocked: user.isBlocked,
     };
 
@@ -179,7 +180,7 @@ export class UsersService {
         email: updatedUser.email,
         roleId: updatedUser.roleId,
         departmentId: updatedUser.departmentId,
-        isActive: updatedUser.isActive,
+        active: updatedUser.active,
         isBlocked: updatedUser.isBlocked,
       };
 
@@ -224,7 +225,7 @@ export class UsersService {
       email: user.email,
       roleId: user.roleId,
       departmentId: user.departmentId,
-      isActive: user.isActive,
+      active: user.active,
       isBlocked: user.isBlocked,
     };
 

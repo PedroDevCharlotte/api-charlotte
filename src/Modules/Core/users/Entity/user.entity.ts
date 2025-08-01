@@ -41,8 +41,8 @@ export class User {
   @Column()
   departmentId: number;
 
-  @Column({ nullable: true })
-  isActive: boolean;
+  @Column({ default: true })
+  active: boolean;
 
   @Column({ nullable: true })
   isBlocked: boolean;

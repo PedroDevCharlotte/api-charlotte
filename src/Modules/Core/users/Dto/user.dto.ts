@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
 
 export class UserDto {
   @ApiPropertyOptional()
@@ -13,9 +13,18 @@ export class UserDto {
   @IsString()
   lastName: string;
 
-  @ApiProperty()
+  @ApiPropertyOptional({ description: 'Rol del usuario (campo legacy, usar roleId)' })
+  @IsOptional()
   @IsString()
-  role: string;
+  role?: string;
+
+  @ApiProperty({ description: 'ID del rol asignado al usuario' })
+  @IsNumber()
+  roleId: number;
+
+  @ApiProperty({ description: 'ID del departamento asignado al usuario' })
+  @IsNumber()
+  departmentId: number;
 
   @ApiProperty()
   @IsString()
@@ -38,7 +47,7 @@ export class UserDto {
   @ApiPropertyOptional()
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  active?: boolean;
 
   @ApiPropertyOptional()
   @IsOptional()

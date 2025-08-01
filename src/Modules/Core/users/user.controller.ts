@@ -14,7 +14,8 @@ import {
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { UsersService } from './users.service';
 import { UserDto } from './Dto/user.dto';
-import { CreateUserLegacyDto } from './Dto/create-user.dto';
+import { CreateUserLegacyDto, CreateUserDto } from './Dto/create-user.dto';
+import { UpdateUserDto } from './Dto/update-user.dto';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RequestPasswordResetDto } from './Dto/request-password-reset.dto';
 import { VerifyPasswordResetDto } from './Dto/verify-password-reset.dto';
@@ -41,10 +42,24 @@ export class UserController {
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('insert')
-  @ApiOperation({ summary: 'Crear un nuevo usuario' })
+  @ApiOperation({ summary: 'Crear un nuevo usuario (formato moderno)' })
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
-  createUser(@Body() createUserLegacyDto: CreateUserLegacyDto, @Request() req: any) {
+  createUser(@Body() createUserDto: CreateUserDto, @Request() req: any) {
+    const currentUserId = req.user?.id;
+    const ipAddress = req.ip || req.connection?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    
+    return this.usersService.create(createUserDto, currentUserId, ipAddress, userAgent);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @Post('insert-legacy')
+  @ApiOperation({ summary: 'Crear un nuevo usuario (formato legacy)' })
+  @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos.' })
+  createUserLegacy(@Body() createUserLegacyDto: CreateUserLegacyDto, @Request() req: any) {
     const currentUserId = req.user?.id;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
@@ -71,13 +86,20 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Put('update')
-  updateUser(@Body() updateUserDto: UserDto, @Request() req: any) {
+  @Put('update/:id')
+  @ApiOperation({ summary: 'Actualizar un usuario existente' })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente.' })
+  @ApiResponse({ status: 400, description: 'Datos inválidos.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  updateUser(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
     const currentUserId = req.user?.id;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     
-    return this.usersService.update(updateUserDto, currentUserId, ipAddress, userAgent);
+    // Agregar el ID al DTO de actualización
+    const updateDataWithId = { ...updateUserDto, id: Number(id) };
+    
+    return this.usersService.update(updateDataWithId, currentUserId, ipAddress, userAgent);
   }
 
   @UseGuards(AuthGuard)

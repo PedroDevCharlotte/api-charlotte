@@ -20,7 +20,7 @@ export class RespUserDto {
   @ApiPropertyOptional()
   isBlocked?: boolean;
   @ApiPropertyOptional()
-  isActive?: boolean;
+  active?: boolean;
 }
 
 export class ReqDeleteUserDto {

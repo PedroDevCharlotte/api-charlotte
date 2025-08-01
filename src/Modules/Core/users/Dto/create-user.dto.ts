@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, IsBoolean, IsArray } from 'class-validator';
+import { IsString, IsEmail, IsOptional, IsBoolean, IsNumber, IsArray } from 'class-validator';
 import { Transform } from 'class-transformer';
 
 export class CreateUserDto {
@@ -13,7 +13,8 @@ export class CreateUserDto {
   @Transform(({ obj }) => obj.lastName || obj.lastname)
   lastName: string;
 
-  @ApiProperty({ description: 'Rol del usuario' })
+  @ApiPropertyOptional({ description: 'Rol del usuario (campo legacy, usar roleId)' })
+  @IsOptional()
   @IsString()
   @Transform(({ obj }) => {
     if (Array.isArray(obj.rol)) {
@@ -21,7 +22,15 @@ export class CreateUserDto {
     }
     return obj.role || obj.rol || 'user';
   })
-  role: string;
+  role?: string;
+
+  @ApiProperty({ description: 'ID del rol asignado al usuario' })
+  @IsNumber()
+  roleId: number;
+
+  @ApiProperty({ description: 'ID del departamento asignado al usuario' })
+  @IsNumber()
+  departmentId: number;
 
   @ApiProperty({ description: 'Email único del usuario' })
   @IsString()
@@ -35,7 +44,7 @@ export class CreateUserDto {
   @ApiPropertyOptional({ description: 'Si el usuario está activo' })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean = true; // Por defecto activo
+  active?: boolean = true; // Por defecto activo
 
   @ApiPropertyOptional({ description: 'Si el usuario está bloqueado' })
   @IsOptional()
@@ -92,6 +101,16 @@ export class CreateUserLegacyDto {
   @IsString({ each: true })
   rol: string[];
 
+  @ApiPropertyOptional({ description: 'ID del rol asignado al usuario' })
+  @IsOptional()
+  @IsNumber()
+  roleId?: number;
+
+  @ApiPropertyOptional({ description: 'ID del departamento asignado al usuario' })
+  @IsOptional()
+  @IsNumber()
+  departmentId?: number;
+
   @ApiProperty({ description: 'Email único del usuario' })
   @IsString()
   @IsEmail()
@@ -104,7 +123,7 @@ export class CreateUserLegacyDto {
   @ApiPropertyOptional({ description: 'Si el usuario está activo' })
   @IsOptional()
   @IsBoolean()
-  isActive?: boolean;
+  active?: boolean;
 
   @ApiPropertyOptional({ description: 'Si el usuario está bloqueado' })
   @IsOptional()
@@ -117,9 +136,11 @@ export class CreateUserLegacyDto {
       firstName: this.name,
       lastName: this.lastname,
       role: Array.isArray(this.rol) ? (this.rol[0] || 'user') : 'user',
+      roleId: this.roleId || 11, // ID por defecto del rol "Empleado"
+      departmentId: this.departmentId || 1, // ID por defecto del departamento "Administración"
       email: this.email,
       password: this.password,
-      isActive: this.isActive ?? true,
+      active: this.active ?? true,
       isBlocked: this.isBlocked ?? false,
       isTwoFactorEnabled: false
     };

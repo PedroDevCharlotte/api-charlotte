@@ -17,7 +17,12 @@ export class AuthService {
   async validateUser(email: string, pass: string) {
     const user = await this.usersService.findOne(email);
     const isPasswordValid = user && (await bcrypt.compare(pass, user.password));
-    if (!isPasswordValid) return null;
+    
+    // Verificar que el usuario existe, la contraseña es válida y el usuario está activo
+    if (!isPasswordValid || !user.active) {
+      return null;
+    }
+    
     return user;
   }
 
