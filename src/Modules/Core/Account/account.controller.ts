@@ -16,7 +16,7 @@ import { Token } from 'src/Common/Decorators/token.decorator';
 
 import { AuthGuard } from './../../../Common/Auth/auth.guard';
 import { ApiBearerAuth } from '@nestjs/swagger';
-import { setup2FADto } from '../auth/Dto/verify-2fa.dto';
+import { setup2FADto } from '../auth/dto/verify-2fa.dto';
 @ApiBearerAuth('Token')
 @Controller('account')
 export class AccountController {
