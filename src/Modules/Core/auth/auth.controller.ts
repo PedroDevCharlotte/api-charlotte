@@ -11,11 +11,10 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserLoginDto } from './Dto/user-login.dto';
-import { LoginResponseDto } from './Dto/login-response.dto';
-import { setup2FADto, Verify2FADto } from './Dto/verify-2fa.dto';
-import { Enable2FADto } from './Dto/enable-2fa.dto';
-import { ChangeFirstPasswordDto } from './Dto/change-first-password.dto';
+import { UserLoginDto } from './dto/user-login.dto';
+import { LoginResponseDto } from './dto/login-response.dto';
+import { setup2FADto, Verify2FADto } from './dto/verify-2fa.dto';
+import { Enable2FADto } from './dto/enable-2fa.dto';
 import { AuthGuard } from './../../../Common/Auth/auth.guard';
 import { ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { AuditService } from '../audit/audit.service';
