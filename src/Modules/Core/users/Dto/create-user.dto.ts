@@ -28,6 +28,11 @@ export class CreateUserDto {
   @IsNumber()
   roleId: number;
 
+  
+  @ApiProperty({ description: 'dias de expiracion de contraseña' })
+  @IsNumber()
+  daysToPasswordExpiration: number;
+
   @ApiProperty({ description: 'ID del departamento asignado al usuario' })
   @IsNumber()
   departmentId: number;
@@ -130,11 +135,17 @@ export class CreateUserLegacyDto {
   @IsBoolean()
   isBlocked?: boolean;
 
+  @ApiPropertyOptional({ description: 'dias de expiracion de contraseña (legacy)' })
+  @IsOptional()
+  @IsNumber()
+  daysToPasswordExpiration?: number;
+
   // Método para convertir a UserDto
   toUserDto(): CreateUserDto {
     return {
       firstName: this.name,
       lastName: this.lastname,
+      daysToPasswordExpiration: this.daysToPasswordExpiration ?? 90,
       role: Array.isArray(this.rol) ? (this.rol[0] || 'user') : 'user',
       roleId: this.roleId || 11, // ID por defecto del rol "Empleado"
       departmentId: this.departmentId || 1, // ID por defecto del departamento "Administración"

@@ -2,11 +2,21 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsEmail, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
 export class UpdateUserDto {
+  @ApiPropertyOptional({ description: 'Id del usuario' })
+  @IsOptional()
+  @IsNumber()
+  id?: number;
+
   @ApiPropertyOptional({ description: 'Nombre del usuario' })
   @IsOptional()
   @IsString()
   firstName?: string;
 
+  @ApiPropertyOptional({ description: 'Dias de expiracion de contraseña' })
+  
+  @IsOptional()
+  @IsNumber()
+  daysToPasswordExpiration?: number;
   @ApiPropertyOptional({ description: 'Apellido del usuario' })
   @IsOptional()
   @IsString()

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{subject}}</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            padding: 30px;
+            text-align: center;
+            color: white;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 15px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            font-weight: bold;
+        }
+        .company-name {
+            color: white;
+            font-size: 24px;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer-text {
+            color: #6c757d;
+            font-size: 12px;
+            margin: 0;
+        }
+        .alert {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #721c24;
+        }
+        .warning-icon {
+            color: #dc3545;
+            font-size: 48px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .support-info {
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .contact-link {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+        .contact-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <!-- Header con Logo -->
+        <div class="header">
+            <div class="logo">C</div>
+            <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
+        </div>
+        
+        <!-- Contenido principal -->
+        <div class="content">
+            <div class="warning-icon">⚠️</div>
+            
+            <h2 style="color: #dc3545; margin-bottom: 20px; text-align: center;">Tu cuenta ha sido eliminada</h2>
+
+            <p>Hola <strong>{{userName}}</strong>,</p>
+
+            <p>Te informamos que tu cuenta en el sistema Charlotte Chemical ha sido eliminada del sistema.</p>
+
+            <div class="alert">
+                <p style="margin: 0;"><strong>⚠️ Tu cuenta ya no está disponible</strong> y no podrás acceder al sistema.</p>
+            </div>
+
+            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                <h3 style="color: #495057; margin-top: 0; margin-bottom: 15px;">📋 Detalles de la eliminación:</h3>
+                <div style="background: white; padding: 15px; border-radius: 4px;">
+                    <p style="margin: 5px 0;"><strong>Usuario eliminado:</strong> {{userEmail}}</p>
+                    <p style="margin: 5px 0;"><strong>Fecha de eliminación:</strong> {{deletionDate}}</p>
+                    <p style="margin: 5px 0;"><strong>Motivo:</strong> {{reason}}</p>
+                </div>
+            </div>
+
+            <div class="support-info">
+                <h3 style="color: #495057; margin-top: 0; margin-bottom: 15px;">💬 ¿Necesitas ayuda?</h3>
+                <p style="margin: 10px 0;">
+                    Si consideras que esto es un error o tienes alguna duda sobre la eliminación de tu cuenta, 
+                    no dudes en contactar a nuestro equipo de soporte.
+                </p>
+                <p style="margin: 10px 0;">
+                    <a href="mailto:soporte@charlotte.com.mx" class="contact-link">soporte@charlotte.com.mx</a>
+                </p>
+            </div>
+
+            <p style="margin-top: 30px;">
+                Lamentamos cualquier inconveniente que esto pueda causarte.<br>
+                <strong>Equipo Charlotte Chemical</strong>
+            </p>
+        </div>
+        
+        <!-- Footer -->
+        <div class="footer">
+            <p class="footer-text">
+                Este es un correo automático generado por el sistema Charlotte Chemical.<br>
+                Por favor, no responder a este mensaje.<br>
+                © {{year}} Charlotte Chemical Internacional, S.A. de C.V. Todos los derechos reservados.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

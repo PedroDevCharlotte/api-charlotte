@@ -1,10 +1,11 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
 import * as qrcode from 'qrcode';
 import { log } from 'console';
+import { RespTokenDto, userDetails } from './Dto/RespToken.dto';
 
 @Injectable()
 export class AuthService {
@@ -30,7 +31,7 @@ export class AuthService {
   async generateToken(
     userId: number,
     isTwoFactorAuthenticated = false,
-  ): Promise<{ access_token: string; requires2FA?: boolean; user?: any; register2FA?: boolean }> {
+  ): Promise<RespTokenDto> {
     let requires2FA = false, register2FA = false;
     const user = await this.findById(userId);
     
@@ -53,28 +54,61 @@ export class AuthService {
     if (!user.isTwoFactorEnabled) {
       payload.isTwoFactorAuthenticated = true;
     }
+    // Validar fecha de vencimiento de contraseña y si solicitar reseteo
+    let passwordExpired = false;
+    let requirePasswordReset = false;
 
+    if (user.dateToPasswordExpiration) {
+      const expiresAt = new Date(user.dateToPasswordExpiration);
+      const now = new Date();
+      if (now > expiresAt) {
+        passwordExpired = true;
+        requirePasswordReset = true;
+      }
+    }
+
+    if (passwordExpired) {
+      throw new UnauthorizedException('La contraseña ha expirado. Por favor, restablezca su contraseña.');
+    }
+  
     return {
       access_token: await this.jwtService.signAsync(payload),
       requires2FA: requires2FA,
       user: {
         id: user.id,
         email: user.email,
+        name: `${user.firstName} ${user.lastName}`,
         role: user.role?.name || 'Sin rol asignado',
         department: user.department?.name || 'Sin departamento asignado',
         roleId: user.roleId,
         departmentId: user.departmentId,
       },
       register2FA: register2FA,
+      isFirstLogin: user.isFirstLogin,
     };
   }
 
   // Verificación del código TOTP
-  async verify2FA(user: any, token: string): Promise<boolean> {
-    var resp;
+  async verify2FA(user: any, token: string, tokenHeader?: string): Promise<boolean> {
+    let resp: boolean;
     try {
-      const secretToVerify = user.twoFactorSecret || user.temp2FASecret; 
-     
+      console.log('Verifying 2FA token:', token);
+      console.log('User for 2FA verification:', user);
+      console.log('From flag:', tokenHeader);
+
+      let secretToVerify = user.twoFactorSecret || user.temp2FASecret;
+
+      if (tokenHeader) {
+        const decoded = this.jwtService.decode(tokenHeader) as { sub: number };
+        
+        if (!decoded || !decoded.sub) {
+          throw new UnauthorizedException('Token inválido');
+        }
+        let userUpdater = await this.usersService.findById(decoded.sub);
+        console.log('userUpdater:', userUpdater);
+
+        secretToVerify = userUpdater.twoFactorSecret || userUpdater.temp2FASecret;
+      }
 
       resp = speakeasy.totp.verify({
         secret: secretToVerify,
@@ -137,5 +171,34 @@ export class AuthService {
   async updateLast2FAVerifiedAt(userId: number): Promise<void> {
     const now = new Date();
     await this.usersService.updateLast2FAVerifiedAt(userId, now);
+  }
+
+  // Cambiar contraseña en el primer login
+  async changeFirstLoginPassword(userId: number, currentPassword: string, newPassword: string): Promise<void> {
+    const user = await this.usersService.findById(userId);
+    
+    if (!user) {
+      throw new UnauthorizedException('Operación inválida');
+    }
+
+    // Verificar que es primer login
+    if (!user.isFirstLogin) {
+      throw new UnauthorizedException('Esta operación solo está permitida en el primer login');
+    }
+
+    // Verificar la contraseña actual
+    const isCurrentPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    
+    console.log('Current password is invalid for user: 400 ', userId);
+
+    if (!isCurrentPasswordValid) {
+      throw new BadRequestException('La contraseña actual es incorrecta');
+    }
+
+    // Hashear la nueva contraseña
+    const hashedNewPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar la contraseña y marcar que ya no es primer login
+    await this.usersService.updatePasswordAndFirstLogin(userId, hashedNewPassword);
   }
 }

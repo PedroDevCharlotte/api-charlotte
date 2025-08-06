@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import { AuditLog } from './Entity/audit-log.entity';
 import { SessionLog } from './Entity/session-log.entity';
 
@@ -8,8 +9,9 @@ export interface AuditLogData {
   entityType: string;
   entityId: number;
   action: 'CREATE' | 'UPDATE' | 'DELETE';
-  userId?: number;
-  userEmail?: string;
+  authToken?: string; // Token de autorización para extraer userId y userEmail
+  userId?: number; // Opcional, se puede extraer del token
+  userEmail?: string; // Opcional, se puede extraer del token
   oldValues?: any;
   newValues?: any;
   ipAddress?: string;
@@ -37,9 +39,39 @@ export class AuditService {
     private auditLogRepository: Repository<AuditLog>,
     @InjectRepository(SessionLog)
     private sessionLogRepository: Repository<SessionLog>,
+    private jwtService: JwtService,
   ) {}
 
   // ============ AUDIT LOG METHODS ============
+
+  /**
+   * Extrae información del usuario desde el token JWT
+   */
+  private extractUserFromToken(authToken?: string): { userId: number | null; userEmail: string | null } {
+    if (!authToken) {
+      return { userId: null, userEmail: null };
+    }
+
+    try {
+      // Remover 'Bearer ' si está presente
+      const token = authToken.startsWith('Bearer ') ? authToken.substring(7) : authToken;
+      
+      // Decodificar el token JWT
+      const payload = this.jwtService.decode(token) as any;
+      
+      if (!payload) {
+        return { userId: null, userEmail: null };
+      }
+
+      return {
+        userId: payload.sub || payload.userId || null,
+        userEmail: payload.email || payload.username || null,
+      };
+    } catch (error) {
+      this.logger.warn('Error extracting user from token:', error.message);
+      return { userId: null, userEmail: null };
+    }
+  }
 
   /**
    * Registra un cambio en el sistema
@@ -48,12 +80,22 @@ export class AuditService {
     try {
       const changedFields = this.getChangedFields(data.oldValues, data.newValues);
       
+      // Extraer información del usuario del token si está disponible
+      let userId = data.userId;
+      let userEmail = data.userEmail;
+      
+      if (data.authToken && (!userId || !userEmail)) {
+        const userInfo = this.extractUserFromToken(data.authToken);
+        userId = userId || userInfo.userId || undefined;
+        userEmail = userEmail || userInfo.userEmail || undefined;
+      }
+      
       const auditLog = new AuditLog();
       auditLog.entityType = data.entityType;
       auditLog.entityId = data.entityId;
       auditLog.action = data.action;
-      auditLog.userId = data.userId || null;
-      auditLog.userEmail = data.userEmail || null;
+      auditLog.userId = userId || null;
+      auditLog.userEmail = userEmail || null;
       auditLog.oldValues = data.oldValues ? JSON.stringify(data.oldValues) : null;
       auditLog.newValues = data.newValues ? JSON.stringify(data.newValues) : null;
       auditLog.changedFields = JSON.stringify(changedFields);
@@ -63,7 +105,7 @@ export class AuditService {
 
       const savedLog = await this.auditLogRepository.save(auditLog);
       
-      this.logger.log(`Audit log created: ${data.action} on ${data.entityType}:${data.entityId} by user ${data.userId}`);
+      this.logger.log(`Audit log created: ${data.action} on ${data.entityType}:${data.entityId} by user ${userId}`);
       
       return savedLog;
     } catch (error) {
@@ -79,7 +121,6 @@ export class AuditService {
     return this.auditLogRepository.find({
       where: { entityType, entityId },
       order: { createdAt: 'DESC' },
-      relations: ['user'],
     });
   }
 
@@ -91,7 +132,6 @@ export class AuditService {
       where: { userId },
       order: { createdAt: 'DESC' },
       take: limit,
-      relations: ['user'],
     });
   }
 
@@ -107,7 +147,6 @@ export class AuditService {
     limit?: number;
   }): Promise<AuditLog[]> {
     const query = this.auditLogRepository.createQueryBuilder('audit')
-      .leftJoinAndSelect('audit.user', 'user')
       .orderBy('audit.createdAt', 'DESC');
 
     if (filters.entityType) {
@@ -221,7 +260,6 @@ export class AuditService {
       where: { userId },
       order: { loginAt: 'DESC' },
       take: limit,
-      relations: ['user'],
     });
   }
 

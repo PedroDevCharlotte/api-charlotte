@@ -1,4 +1,5 @@
-import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional } from 'class-validator';
 
 export class RespUserDto {
   @ApiProperty()
@@ -9,10 +10,24 @@ export class RespUserDto {
   lastName: string;
   @ApiProperty()
   email: string;
+  @ApiPropertyOptional()
+  @IsOptional()
+  daysToPasswordExpiration: number;
+  @ApiPropertyOptional({
+    description: 'Rol del usuario (campo legacy, usar roleId)',
+  })
+  @IsOptional()
+  role?: string;
+
+  @ApiPropertyOptional({
+    description: 'Departamento del usuario (campo legacy, usar departmentId)',
+  })
+  @IsOptional()
+  department?: string;
   @ApiProperty()
-  role: string;
+  roleId: number;
   @ApiProperty()
-  department: string;
+  departmentId: number;
   @ApiProperty()
   isTwoFactorEnabled: boolean;
   @ApiProperty()

@@ -33,7 +33,7 @@ export class DataSeederService implements OnModuleInit {
       }
       
       // Actualizar usuarios existentes que no tengan roleId
-      await this.updateExistingUsers();
+      // await this.updateExistingUsers();
       
       console.log('✅ Seeding completado exitosamente');
     } catch (error) {

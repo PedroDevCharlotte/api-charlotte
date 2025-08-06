@@ -19,6 +19,7 @@ import { UpdateUserDto } from './Dto/update-user.dto';
 import { ApiBearerAuth, ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { RequestPasswordResetDto } from './Dto/request-password-reset.dto';
 import { VerifyPasswordResetDto } from './Dto/verify-password-reset.dto';
+import { ExpiringPasswordUser, PasswordExpirationCheckResult } from './interfaces/password-expiration.interface';
 @ApiTags('Users')
 @ApiBearerAuth('Token')
 @Controller('user')
@@ -46,11 +47,11 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   createUser(@Body() createUserDto: CreateUserDto, @Request() req: any) {
-    const currentUserId = req.user?.id;
+    const authToken = req.headers.authorization;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     
-    return this.usersService.create(createUserDto, currentUserId, ipAddress, userAgent);
+    return this.usersService.create(createUserDto, authToken, ipAddress, userAgent);
   }
 
   @UseGuards(AuthGuard)
@@ -60,14 +61,14 @@ export class UserController {
   @ApiResponse({ status: 201, description: 'Usuario creado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   createUserLegacy(@Body() createUserLegacyDto: CreateUserLegacyDto, @Request() req: any) {
-    const currentUserId = req.user?.id;
+    const authToken = req.headers.authorization;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     
     // Convertir el DTO legacy al formato correcto
     const userDto = createUserLegacyDto.toUserDto();
     
-    return this.usersService.create(userDto, currentUserId, ipAddress, userAgent);
+    return this.usersService.create(userDto, authToken, ipAddress, userAgent);
   }
 
   // ENDPOINT TEMPORAL PARA TESTING - REMOVER EN PRODUCCIÓN
@@ -86,20 +87,20 @@ export class UserController {
 
   @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Put('update/:id')
+  @Put('update')
   @ApiOperation({ summary: 'Actualizar un usuario existente' })
   @ApiResponse({ status: 200, description: 'Usuario actualizado exitosamente.' })
   @ApiResponse({ status: 400, description: 'Datos inválidos.' })
   @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
-  updateUser(@Param('id') id: number, @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
-    const currentUserId = req.user?.id;
+  updateUser( @Body() updateUserDto: UpdateUserDto, @Request() req: any) {
+    const authToken = req.headers.authorization;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     
     // Agregar el ID al DTO de actualización
-    const updateDataWithId = { ...updateUserDto, id: Number(id) };
+    const updateDataWithId = { ...updateUserDto};
     
-    return this.usersService.update(updateDataWithId, currentUserId, ipAddress, userAgent);
+    return this.usersService.update(updateUserDto, authToken, ipAddress, userAgent);
   }
 
   @UseGuards(AuthGuard)
@@ -118,11 +119,11 @@ export class UserController {
     description: 'Usuario no encontrado' 
   })
   deleteUser(@Param('id') id: number, @Request() req: any) {
-    const currentUserId = req.user?.id;
+    const authToken = req.headers.authorization;
     const ipAddress = req.ip || req.connection?.remoteAddress;
     const userAgent = req.headers['user-agent'];
     
-    return this.usersService.delete(id, currentUserId, ipAddress, userAgent);
+    return this.usersService.delete(id, authToken, ipAddress, userAgent);
   }
 
   // ========== ENDPOINTS PARA RESET DE CONTRASEÑA ==========
@@ -183,5 +184,94 @@ export class UserController {
       verifyDto.code,
       verifyDto.newPassword
     );
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Post('check-password-expiration')
+  @ApiOperation({ 
+    summary: 'Verificar contraseñas próximas a vencer y enviar notificaciones',
+    description: 'Endpoint que revisa todas las contraseñas próximas a vencer y envía notificaciones por email a los usuarios correspondientes. Normalmente se ejecuta mediante un cron job.' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Verificación completada exitosamente',
+    schema: {
+      type: 'object',
+      properties: {
+        message: { type: 'string', example: 'Verificación de contraseñas completada. Se enviaron 5 notificaciones.' },
+        notificationsSent: { type: 'number', example: 5 },
+        usersChecked: { type: 'number', example: 150 }
+      }
+    }
+  })
+  async checkPasswordExpiration(@Request() req: any): Promise<PasswordExpirationCheckResult> {
+    // Solo usuarios con rol de administrador pueden ejecutar esta verificación
+    return this.usersService.checkPasswordExpiration();
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('expiring-passwords/:days')
+  @ApiOperation({ 
+    summary: 'Obtener lista de usuarios con contraseñas próximas a vencer',
+    description: 'Obtiene una lista de usuarios cuyas contraseñas vencerán en los próximos días especificados. Por defecto busca en los próximos 7 días.' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de usuarios con contraseñas próximas a vencer',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string' },
+          role: { type: 'string' },
+          department: { type: 'string' },
+          dateToPasswordExpiration: { type: 'string', format: 'date-time' },
+          daysRemaining: { type: 'number' },
+          status: { type: 'string', enum: ['Vencida', 'Vence mañana', 'Crítico', 'Próximo a vencer'] }
+        }
+      }
+    }
+  })
+  async getExpiringPasswords(@Param('days') days?: string): Promise<ExpiringPasswordUser[]> {
+    const daysToCheck = days ? parseInt(days, 10) : 7;
+    return this.usersService.getUsersWithExpiringPasswords(daysToCheck);
+  }
+
+  @UseGuards(AuthGuard)
+  @HttpCode(HttpStatus.OK)
+  @Get('expiring-passwords')
+  @ApiOperation({ 
+    summary: 'Obtener lista de usuarios con contraseñas próximas a vencer (7 días por defecto)',
+    description: 'Obtiene una lista de usuarios cuyas contraseñas vencerán en los próximos 7 días.' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de usuarios con contraseñas próximas a vencer',
+    schema: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          id: { type: 'number' },
+          firstName: { type: 'string' },
+          lastName: { type: 'string' },
+          email: { type: 'string' },
+          role: { type: 'string' },
+          department: { type: 'string' },
+          dateToPasswordExpiration: { type: 'string', format: 'date-time' },
+          daysRemaining: { type: 'number' },
+          status: { type: 'string', enum: ['Vencida', 'Vence mañana', 'Crítico', 'Próximo a vencer'] }
+        }
+      }
+    }
+  })
+  async getExpiringPasswordsDefault(): Promise<ExpiringPasswordUser[]> {
+    return this.usersService.getUsersWithExpiringPasswords(7);
   }
 }

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
 import { ConfigService } from '@nestjs/config';
+import * as Handlebars from 'handlebars';
 
 @Injectable()
 export class EmailService {
@@ -9,7 +10,30 @@ export class EmailService {
   constructor(
     private readonly mailerService: MailerService,
     private readonly configService: ConfigService,
-  ) {}
+  ) {
+    // Registrar helpers personalizados para Handlebars
+    this.registerHandlebarsHelpers();
+  }
+
+  /**
+   * Registrar helpers personalizados para las plantillas
+   */
+  private registerHandlebarsHelpers() {
+    // Helper para comparación de igualdad
+    Handlebars.registerHelper('eq', function(a: any, b: any) {
+      return a === b;
+    });
+
+    // Helper para comparación mayor que
+    Handlebars.registerHelper('gt', function(a: any, b: any) {
+      return a > b;
+    });
+
+    // Helper para comparación menor que
+    Handlebars.registerHelper('lt', function(a: any, b: any) {
+      return a < b;
+    });
+  }
 
   /**
    * Obtener la configuración base para emails con logo
@@ -74,7 +98,7 @@ export class EmailService {
   }
 
   // Ejemplo: Enviar email de bienvenida
-  async sendWelcomeEmail(to: string, userName: string): Promise<void> {
+  async sendWelcomeEmail(to: string, userName: string, userEmail?: string, temporaryPassword?: string): Promise<void> {
     const subject = '¡Bienvenido a Charlotte Chemical!';
     
     try {
@@ -85,6 +109,8 @@ export class EmailService {
         context: {
           subject,
           userName,
+          userEmail: userEmail || to, // Si no se proporciona userEmail, usar 'to'
+          temporaryPassword: temporaryPassword || '***No proporcionada***',
           ...this.getEmailBaseConfig(),
         },
       });
@@ -189,6 +215,115 @@ export class EmailService {
     } catch (error) {
       this.logger.error('Error sending password reset confirmation:', error.message);
       throw new Error(`Error al enviar confirmación de restablecimiento: ${error.message}`);
+    }
+  }
+
+  /**
+   * Enviar notificación de cambio de contraseña con nuevas credenciales
+   */
+  async sendPasswordChangeNotification(to: string, userName: string, newPassword: string): Promise<void> {
+    const subject = 'Tu contraseña ha sido actualizada - Charlotte Chemical';
+    
+    try {
+      await this.mailerService.sendMail({
+        to: to.trim(),
+        subject,
+        template: 'welcome', // Reutilizamos el template de bienvenida
+        context: {
+          subject,
+          userName,
+          userEmail: to,
+          temporaryPassword: newPassword,
+          ...this.getEmailBaseConfig(),
+        },
+      });
+
+      this.logger.log(`Password change notification sent successfully to: ${to}`);
+    } catch (error) {
+      this.logger.error('Error sending password change notification:', error.message);
+      throw new Error(`Error al enviar notificación de cambio de contraseña: ${error.message}`);
+    }
+  }
+
+  /**
+   * Enviar notificación de eliminación de cuenta
+   */
+  async sendAccountDeletionNotification(
+    to: string, 
+    userName: string, 
+    reason: string = 'Eliminación solicitada por administrador'
+  ): Promise<void> {
+    const subject = 'Tu cuenta ha sido eliminada - Charlotte Chemical';
+    
+    try {
+      await this.mailerService.sendMail({
+        to: to.trim(),
+        subject,
+        template: 'account-deletion',
+        context: {
+          subject,
+          userName,
+          userEmail: to,
+          deletionDate: new Date().toLocaleString('es-ES', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+            timeZone: 'America/Mexico_City'
+          }),
+          reason,
+          ...this.getEmailBaseConfig(),
+        },
+      });
+
+      this.logger.log(`Account deletion notification sent successfully to: ${to}`);
+    } catch (error) {
+      this.logger.error('Error sending account deletion notification:', error.message);
+      throw new Error(`Error al enviar notificación de eliminación de cuenta: ${error.message}`);
+    }
+  }
+
+  /**
+   * Enviar notificación de advertencia de expiración de contraseña
+   */
+  async sendPasswordExpirationWarning(
+    to: string,
+    userName: string,
+    daysRemaining: number,
+    customMessage: string
+  ): Promise<void> {
+    try {
+      this.logger.log(`Sending password expiration warning to: ${to} (${daysRemaining} days remaining)`);
+
+      const subject = daysRemaining === 0 
+        ? '🚨 Su contraseña ha vencido - Acción requerida'
+        : daysRemaining === 1 
+        ? '⚠️ Su contraseña vence mañana - Acción urgente'
+        : `⏰ Su contraseña vence en ${daysRemaining} días`;
+
+      await this.mailerService.sendMail({
+        to: to.trim(),
+        subject,
+        template: 'password-expiration-warning',
+        context: {
+          userName: userName.trim(),
+          daysRemaining,
+          isExpired: daysRemaining <= 0,
+          isExpiringTomorrow: daysRemaining === 1,
+          customMessage,
+          urgencyLevel: daysRemaining === 0 ? 'critical' : 
+                       daysRemaining === 1 ? 'urgent' : 
+                       daysRemaining <= 3 ? 'high' : 'medium',
+          changePasswordUrl: `${this.configService.get('FRONTEND_URL')}/forgot-password` || 'http://localhost:3000/forgot-password',
+          ...this.getEmailBaseConfig(),
+        },
+      });
+
+      this.logger.log(`Password expiration warning sent successfully to: ${to}`);
+    } catch (error) {
+      this.logger.error('Error sending password expiration warning:', error.message);
+      throw new Error(`Error al enviar advertencia de expiración de contraseña: ${error.message}`);
     }
   }
 }

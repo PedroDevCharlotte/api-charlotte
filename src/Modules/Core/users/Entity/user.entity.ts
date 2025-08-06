@@ -60,12 +60,19 @@ export class User {
   isTwoFactorEnabled: boolean;
   @Column({ type: 'timestamp', nullable: true })
   last2FAVerifiedAt?: Date;
-
+  @Column({ nullable: true })
+  daysToPasswordExpiration?: number; // Días para expiración de contraseña
   @Column('simple-array', { nullable: true })
   trustedDevices?: string[]; 
+  @Column({ type: 'datetime', nullable: true })
+  dateToPasswordExpiration?: Date; // Fecha de expiración de contraseña
+
+  @Column({ default: true })
+  isFirstLogin: boolean;
 
   @UpdateDateColumn({ name: 'UpdateAt' })
   UpdateAt: Date;
+  
 
   @CreateDateColumn({ name: 'CreatedAt' })
   CreatedAt: Date;

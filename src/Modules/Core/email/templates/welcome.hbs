@@ -90,7 +90,18 @@
                 <p style="margin: 0;"><strong>✓ Tu cuenta está activa</strong> y lista para usar.</p>
             </div>
 
-            <p>Para acceder al sistema, utiliza las credenciales que te fueron proporcionadas y haz clic en el siguiente botón:</p>
+            <div style="background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 25px 0;">
+                <h3 style="color: #495057; margin-top: 0; margin-bottom: 15px;">📧 Tus credenciales de acceso:</h3>
+                <div style="background: white; padding: 15px; border-radius: 4px; font-family: 'Courier New', monospace;">
+                    <p style="margin: 5px 0;"><strong>Usuario:</strong> {{userEmail}}</p>
+                    <p style="margin: 5px 0;"><strong>Contraseña temporal:</strong> {{temporaryPassword}}</p>
+                </div>
+                <p style="margin: 15px 0 0 0; font-size: 14px; color: #6c757d;">
+                    <strong>⚠️ Importante:</strong> Por seguridad, te recomendamos cambiar tu contraseña en tu primer acceso al sistema.
+                </p>
+            </div>
+
+            <p>Para acceder al sistema, utiliza las credenciales mostradas arriba y haz clic en el siguiente botón:</p>
 
             <div style="text-align: center;">
                 <a href="{{loginUrl}}" class="button">Acceder al Sistema</a>
