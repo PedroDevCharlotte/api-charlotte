@@ -11,6 +11,8 @@ import {
   ParseIntPipe,
   HttpStatus,
   ValidationPipe,
+  UseInterceptors,
+  UploadedFiles,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,7 +21,9 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
+  ApiConsumes,
 } from '@nestjs/swagger';
+import { FilesInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { Token } from '../../../Common/Decorators/token.decorator';
 import { TicketsService, TicketFilters } from './tickets.service';
@@ -72,9 +76,11 @@ export class TicketsController {
 
   @Post('complete')
   @ApiOperation({ 
-    summary: 'Crear un ticket completo con asignación automática',
-    description: 'Crea un ticket con todas las funcionalidades: asignación automática basada en tipo de soporte, participantes, archivos adjuntos, mensajes iniciales y campos personalizados'
+    summary: 'Crear un ticket completo con asignación automática y archivos adjuntos',
+    description: 'Crea un ticket con todas las funcionalidades: asignación automática basada en tipo de soporte, participantes, archivos adjuntos, mensajes iniciales y campos personalizados. Acepta FormData para archivos.'
   })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AnyFilesInterceptor())
   @ApiResponse({
     status: HttpStatus.CREATED,
     description: 'Ticket completo creado exitosamente con asignación automática',
@@ -89,6 +95,92 @@ export class TicketsController {
     description: 'Usuario creador o tipo de ticket no encontrado',
   })
   async createComplete(
+    @Body() formData: any,
+    @UploadedFiles() files: any[],
+  ): Promise<CompleteTicketResponseDto> {
+    // Debug: Log para ver qué está llegando
+    console.log('FormData recibido:', formData);
+    console.log('Archivos recibidos:', files);
+    console.log('Cantidad de archivos:', files?.length || 0);
+    
+    // Convertir FormData a DTO
+    const createCompleteTicketDto: CreateCompleteTicketDto = {
+      title: formData.title,
+      description: formData.description,
+      ticketTypeId: parseInt(formData.ticketTypeId),
+      createdByUserId: parseInt(formData.createdByUserId),
+      priority: formData.priority || 'MEDIUM',
+      assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
+      departmentId: formData.departmentId ? parseInt(formData.departmentId) : undefined,
+      tags: formData.tags ? (Array.isArray(formData.tags) ? formData.tags : [formData.tags]) : undefined,
+      isUrgent: formData.isUrgent === 'true',
+      isInternal: formData.isInternal === 'true',
+      dueDate: formData.dueDate || undefined,
+      customFields: formData.customFields ? JSON.parse(formData.customFields) : undefined,
+      initialMessage: formData.initialMessage || undefined,
+      participants: formData.participants ? JSON.parse(formData.participants) : undefined,
+      attachments: [] // Se llenará con los archivos procesados
+    };
+
+    console.log('DTO creado:', createCompleteTicketDto);
+
+    return await this.ticketsService.createCompleteTicketWithFiles(createCompleteTicketDto, files);
+  }
+
+  @Post('complete-debug')
+  @ApiOperation({ 
+    summary: 'Endpoint de debug para FormData',
+    description: 'Endpoint temporal para debuggear problemas con FormData y archivos'
+  })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(AnyFilesInterceptor())
+  async createCompleteDebug(
+    @Body() formData: any,
+    @UploadedFiles() files: any[],
+  ): Promise<any> {
+    return {
+      formData,
+      files: files?.map(f => ({
+        fieldname: f.fieldname,
+        originalname: f.originalname,
+        encoding: f.encoding,
+        mimetype: f.mimetype,
+        size: f.size
+      })) || [],
+      filesCount: files?.length || 0,
+      formDataKeys: Object.keys(formData || {}),
+      receivedAt: new Date().toISOString()
+    };
+  }
+
+  @Get('debug/users')
+  @ApiOperation({ 
+    summary: 'Listar usuarios disponibles para debugging',
+    description: 'Endpoint temporal para verificar qué usuarios existen en el sistema'
+  })
+  async debugUsers(): Promise<any> {
+    return await this.ticketsService.getAvailableUsers();
+  }
+
+  @Post('complete-json')
+  @ApiOperation({ 
+    summary: 'Crear un ticket completo con asignación automática (JSON)',
+    description: 'Crea un ticket con todas las funcionalidades usando JSON. Para casos donde no se necesitan archivos adjuntos.'
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Ticket completo creado exitosamente con asignación automática',
+    type: CompleteTicketResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos de entrada inválidos',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Usuario creador o tipo de ticket no encontrado',
+  })
+  async createCompleteJson(
     @Body(ValidationPipe) createCompleteTicketDto: CreateCompleteTicketDto,
   ): Promise<CompleteTicketResponseDto> {
     return await this.ticketsService.createCompleteTicket(createCompleteTicketDto);

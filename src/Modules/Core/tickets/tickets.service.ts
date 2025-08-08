@@ -649,33 +649,43 @@ export class TicketsService {
     const participantsCreated: TicketParticipant[] = [];
 
     // Agregar creador como participante
-    const creatorParticipant = await this.participantRepository.save(
-      this.participantRepository.create({
-        ticketId: savedTicket.id,
-        userId: createCompleteTicketDto.createdByUserId,
-        role: ParticipantRole.CREATOR,
-        canEdit: true,
-        canComment: true,
-        canClose: true,
-        canAssign: true
-      })
-    );
-    participantsCreated.push(creatorParticipant);
-
-    // Agregar usuario asignado como participante (si es diferente del creador)
-    if (assignedUser && assignedUser.id !== createCompleteTicketDto.createdByUserId) {
-      const assigneeParticipant = await this.participantRepository.save(
+    try {
+      const creatorParticipant = await this.participantRepository.save(
         this.participantRepository.create({
           ticketId: savedTicket.id,
-          userId: assignedUser.id,
-          role: ParticipantRole.ASSIGNEE,
+          userId: createCompleteTicketDto.createdByUserId,
+          role: ParticipantRole.CREATOR,
           canEdit: true,
           canComment: true,
           canClose: true,
-          canAssign: false
+          canAssign: true
         })
       );
-      participantsCreated.push(assigneeParticipant);
+      participantsCreated.push(creatorParticipant);
+    } catch (error) {
+      console.error(`Error agregando creador como participante (userId: ${createCompleteTicketDto.createdByUserId}):`, error);
+      throw new BadRequestException(`Error al agregar el usuario creador como participante. Verifique que el usuario con ID ${createCompleteTicketDto.createdByUserId} existe.`);
+    }
+
+    // Agregar usuario asignado como participante (si es diferente del creador)
+    if (assignedUser && assignedUser.id !== createCompleteTicketDto.createdByUserId) {
+      try {
+        const assigneeParticipant = await this.participantRepository.save(
+          this.participantRepository.create({
+            ticketId: savedTicket.id,
+            userId: assignedUser.id,
+            role: ParticipantRole.ASSIGNEE,
+            canEdit: true,
+            canComment: true,
+            canClose: true,
+            canAssign: false
+          })
+        );
+        participantsCreated.push(assigneeParticipant);
+      } catch (error) {
+        console.error(`Error agregando usuario asignado como participante (userId: ${assignedUser.id}):`, error);
+        throw new BadRequestException(`Error al agregar el usuario asignado como participante. Verifique que el usuario con ID ${assignedUser.id} existe.`);
+      }
     }
 
     // Agregar participantes adicionales especificados
@@ -687,7 +697,7 @@ export class TicketsService {
         });
         if (!participantUser) {
           console.warn(`Usuario participante con ID ${participantDto.userId} no encontrado, se omite`);
-          continue;
+          throw new NotFoundException(`Usuario participante con ID ${participantDto.userId} no encontrado`);
         }
 
         // Evitar duplicados
@@ -697,18 +707,23 @@ export class TicketsService {
           continue;
         }
 
-        const participant = await this.participantRepository.save(
-          this.participantRepository.create({
-            ticketId: savedTicket.id,
-            userId: participantDto.userId,
-            role: participantDto.role,
-            canEdit: participantDto.canEdit || false,
-            canComment: participantDto.canComment !== undefined ? participantDto.canComment : true,
-            canClose: false,
-            canAssign: false
-          })
-        );
-        participantsCreated.push(participant);
+        try {
+          const participant = await this.participantRepository.save(
+            this.participantRepository.create({
+              ticketId: savedTicket.id,
+              userId: participantDto.userId,
+              role: participantDto.role,
+              canEdit: participantDto.canEdit || false,
+              canComment: participantDto.canComment !== undefined ? participantDto.canComment : true,
+              canClose: false,
+              canAssign: false
+            })
+          );
+          participantsCreated.push(participant);
+        } catch (error) {
+          console.error(`Error agregando participante (userId: ${participantDto.userId}):`, error);
+          throw new BadRequestException(`Error al agregar participante con ID ${participantDto.userId}. Verifique que el usuario existe.`);
+        }
       }
     }
 
@@ -824,6 +839,62 @@ export class TicketsService {
   }
 
   /**
+   * Crear un ticket completo con archivos adjuntos desde FormData
+   */
+  async createCompleteTicketWithFiles(
+    createCompleteTicketDto: CreateCompleteTicketDto, 
+    files: any[] = []
+  ): Promise<CompleteTicketResponseDto> {
+    try {
+      // Procesar archivos si existen
+      if (files && files.length > 0) {
+        const attachments: any[] = [];
+        
+        for (const file of files) {
+          // Crear directorio para archivos si no existe
+          const uploadDir = 'uploads/tickets';
+          const fs = require('fs');
+          const path = require('path');
+          
+          if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+          }
+
+          // Generar nombre único para el archivo
+          const timestamp = Date.now();
+          const randomStr = Math.random().toString(36).substring(2, 15);
+          const fileExtension = path.extname(file.originalname);
+          const fileName = `${timestamp}_${randomStr}${fileExtension}`;
+          const filePath = path.join(uploadDir, fileName);
+
+          // Guardar archivo
+          fs.writeFileSync(filePath, file.buffer);
+
+          // Agregar a la lista de adjuntos
+          attachments.push({
+            fileName: fileName,
+            originalFileName: file.originalname,
+            filePath: filePath,
+            mimeType: file.mimetype,
+            fileSize: file.size,
+            description: `Archivo adjunto: ${file.originalname}`
+          });
+        }
+
+        // Agregar archivos al DTO
+        createCompleteTicketDto.attachments = attachments;
+      }
+
+      // Llamar al método original
+      return await this.createCompleteTicket(createCompleteTicketDto);
+
+    } catch (error) {
+      console.error('Error creando ticket con archivos:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Enviar notificaciones por email para la creación de tickets
    */
   private async sendTicketCreationNotifications(
@@ -888,6 +959,32 @@ export class TicketsService {
     } catch (error) {
       console.error('Error enviando notificaciones de creación:', error);
       throw error;
+    }
+  }
+
+  /**
+   * Método de debug para listar usuarios disponibles
+   */
+  async getAvailableUsers(): Promise<any> {
+    try {
+      const users = await this.userRepository.find({
+        select: ['id', 'firstName', 'lastName', 'email', 'active'],
+        where: { active: true },
+        order: { id: 'ASC' }
+      });
+
+      return {
+        totalUsers: users.length,
+        users: users.map(user => ({
+          id: user.id,
+          name: `${user.firstName} ${user.lastName}`,
+          email: user.email,
+          isActive: user.active
+        }))
+      };
+    } catch (error) {
+      console.error('Error obteniendo usuarios:', error);
+      return { error: error.message };
     }
   }
 }
