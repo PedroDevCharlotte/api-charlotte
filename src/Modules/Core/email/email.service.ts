@@ -33,6 +33,55 @@ export class EmailService {
     Handlebars.registerHelper('lt', function(a: any, b: any) {
       return a < b;
     });
+
+    // Helper para convertir saltos de línea en HTML
+    Handlebars.registerHelper('breaklines', function(text: string) {
+      if (!text) return '';
+      text = Handlebars.escapeExpression(text);
+      text = text.replace(/(\r\n|\n|\r)/gm, '<br>');
+      return new Handlebars.SafeString(text);
+    });
+
+    // Helper para obtener substring
+    Handlebars.registerHelper('substring', function(str: string, start: number, length?: number) {
+      if (!str) return '';
+      if (length !== undefined) {
+        return str.substring(start, start + length);
+      }
+      return str.substring(start);
+    });
+
+    // Helper para formatear fechas
+    Handlebars.registerHelper('formatDate', function(date: Date | string) {
+      if (!date) return '';
+      const d = new Date(date);
+      return d.toLocaleString('es-ES', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'America/Mexico_City'
+      });
+    });
+
+    // Helper para formatear fechas cortas
+    Handlebars.registerHelper('formatDateShort', function(date: Date | string) {
+      if (!date) return '';
+      const d = new Date(date);
+      return d.toLocaleDateString('es-ES', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        timeZone: 'America/Mexico_City'
+      });
+    });
+
+    // Helper para capitalizar texto
+    Handlebars.registerHelper('capitalize', function(str: string) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    });
   }
 
   /**

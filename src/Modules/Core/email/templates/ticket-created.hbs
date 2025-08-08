@@ -1,0 +1,152 @@
+{{> base title="Nuevo Ticket Creado" headerColor="#007bff"}}
+
+{{#*inline "content"}}
+<div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; margin-bottom: 16px;">
+    <div style="width: 48px; height: 48px; background-color: {{ticket.priorityColor}}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+      <span style="color: white; font-size: 24px; font-weight: bold;">🎫</span>
+    </div>
+    <div>
+      <h2 style="margin: 0; color: #007bff; font-size: 24px; font-weight: 600;">
+        {{#if isCopy}}CC: {{/if}}¡Se ha creado un nuevo ticket!
+      </h2>
+      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">
+        Ticket #{{ticket.ticketNumber}}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow: hidden;">
+  <!-- Header del ticket -->
+  <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 24px; color: white;">
+    <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">
+      {{ticket.title}}
+    </h1>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+      <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        #{{ticket.ticketNumber}}
+      </span>
+      <span style="background-color: {{ticket.priorityColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.priority}}
+      </span>
+      <span style="background-color: {{ticket.statusColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.status}}
+      </span>
+    </div>
+  </div>
+
+  <!-- Información del ticket -->
+  <div style="padding: 24px;">
+    {{#if ticket.description}}
+    <div style="margin-bottom: 20px;">
+      <h3 style="margin: 0 0 8px 0; color: #495057; font-size: 16px; font-weight: 600;">Descripción:</h3>
+      <div style="background-color: #f8f9fa; padding: 16px; border-radius: 6px; border-left: 4px solid #007bff;">
+        {{breaklines ticket.description}}
+      </div>
+    </div>
+    {{/if}}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Creado por:</strong>
+        <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.createdBy.fullName}}</p>
+        <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.createdBy.email}}</p>
+      </div>
+      
+      {{#if ticket.assignedTo}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Asignado a:</strong>
+        <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
+        <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.assignedTo.email}}</p>
+      </div>
+      {{/if}}
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Tipo de ticket:</strong>
+        <p style="margin: 4px 0 0 0; color: #6f42c1;">{{ticket.ticketType.name}}</p>
+      </div>
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Fecha de creación:</strong>
+        <p style="margin: 4px 0 0 0; color: #6c757d;">{{ticket.formattedCreatedAt}}</p>
+      </div>
+
+      {{#if ticket.formattedDueDate}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Fecha límite:</strong>
+        <p style="margin: 4px 0 0 0; color: #fd7e14;">{{ticket.formattedDueDate}}</p>
+      </div>
+      {{/if}}
+
+      {{#if ticket.department}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Departamento:</strong>
+        <p style="margin: 4px 0 0 0; color: #17a2b8;">{{ticket.department.name}}</p>
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if ticket.hasAttachments}}
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 16px; margin-right: 8px;">📎</span>
+        <strong style="color: #495057; font-size: 14px;">Archivos adjuntos ({{ticket.attachmentCount}}):</strong>
+      </div>
+      <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px;">
+        {{#each attachments}}
+        <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+          <span style="margin-right: 8px;">📄</span>
+          <span style="color: #007bff; font-weight: 500;">{{this.filename}}</span>
+          <span style="margin-left: auto; color: #6c757d; font-size: 12px;">({{this.fileSize}})</span>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if customMessage}}
+    <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 8px 0; color: #0056b3; font-size: 14px;">Mensaje adicional:</h4>
+      <p style="margin: 0; color: #495057;">{{breaklines customMessage}}</p>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+<!-- Botón de acción principal -->
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ticket.url}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #007bff, #0056b3); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); transition: all 0.2s;">
+    🔍 Ver Ticket en el Sistema
+  </a>
+</div>
+
+{{#unless isCopy}}
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border-left: 4px solid #28a745;">
+  <h3 style="margin: 0 0 12px 0; color: #155724; font-size: 16px;">¿Qué sigue?</h3>
+  <ul style="margin: 0; padding-left: 20px; color: #495057;">
+    <li style="margin-bottom: 8px;">Revisa los detalles del ticket haciendo clic en el enlace anterior</li>
+    <li style="margin-bottom: 8px;">{{#if ticket.assignedTo}}El agente asignado se pondrá en contacto contigo pronto{{else}}El ticket será asignado a un agente especializado{{/if}}</li>
+    <li style="margin-bottom: 8px;">Recibirás notificaciones automáticas sobre cualquier actualización</li>
+    <li>Puedes agregar comentarios o información adicional desde el sistema</li>
+  </ul>
+</div>
+{{/unless}}
+{{/inline}}
+
+{{#*inline "footer"}}
+<div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 24px;">
+  <p style="margin: 0 0 8px 0;">
+    {{#if isCopy}}Recibiste este correo como copia de una notificación de ticket{{else}}{{#if isMainRecipient}}Recibiste este correo porque estás relacionado con este ticket{{else}}Recibiste este correo porque eres participante en este ticket{{/if}}{{/if}}
+  </p>
+  <p style="margin: 0;">
+    Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}
+  </p>
+  {{#if systemInfo.supportEmail}}
+  <p style="margin: 8px 0 0 0;">
+    ¿Necesitas ayuda? Contacta: <a href="mailto:{{systemInfo.supportEmail}}" style="color: #007bff;">{{systemInfo.supportEmail}}</a>
+  </p>
+  {{/if}}
+</div>
+{{/inline}}

@@ -274,4 +274,79 @@ export class UserController {
   async getExpiringPasswordsDefault(): Promise<ExpiringPasswordUser[]> {
     return this.usersService.getUsersWithExpiringPasswords(7);
   }
+
+  // ========================================
+  // ENDPOINTS PARA JERARQUÍA DE USUARIOS
+  // ========================================
+
+  @UseGuards(AuthGuard)
+  @Get(':id/subordinates')
+  @ApiOperation({ summary: 'Obtener subordinados de un usuario' })
+  @ApiResponse({ status: 200, description: 'Lista de subordinados obtenida exitosamente.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async getSubordinates(@Param('id') id: number) {
+    return this.usersService.getSubordinates(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id/manager')
+  @ApiOperation({ summary: 'Obtener jefe directo de un usuario' })
+  @ApiResponse({ status: 200, description: 'Jefe directo obtenido exitosamente.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async getManager(@Param('id') id: number) {
+    return this.usersService.getManager(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id/assign-manager/:managerId')
+  @ApiOperation({ summary: 'Asignar jefe a un usuario' })
+  @ApiResponse({ status: 200, description: 'Jefe asignado exitosamente.' })
+  @ApiResponse({ status: 400, description: 'Esta asignación crearía un bucle en la jerarquía.' })
+  @ApiResponse({ status: 404, description: 'Usuario o jefe no encontrado.' })
+  async assignManager(@Param('id') id: number, @Param('managerId') managerId: number) {
+    return this.usersService.assignManager(id, managerId);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get(':id/available-managers')
+  @ApiOperation({ summary: 'Obtener usuarios disponibles para ser jefes' })
+  @ApiResponse({ status: 200, description: 'Lista de posibles jefes obtenida exitosamente.' })
+  async getAvailableManagers(@Param('id') id: number) {
+    return this.usersService.getAvailableManagers(id);
+  }
+
+  // ========================================
+  // ENDPOINTS PARA TIPOS DE SOPORTE
+  // ========================================
+
+  @UseGuards(AuthGuard)
+  @Get(':id/support-types')
+  @ApiOperation({ summary: 'Obtener tipos de soporte que puede manejar un usuario' })
+  @ApiResponse({ status: 200, description: 'Tipos de soporte obtenidos exitosamente.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async getUserSupportTypes(@Param('id') id: number) {
+    return this.usersService.getUserSupportTypes(id);
+  }
+
+  @UseGuards(AuthGuard)
+  @Put(':id/support-types')
+  @ApiOperation({ summary: 'Asignar tipos de soporte a un usuario' })
+  @ApiResponse({ status: 200, description: 'Tipos de soporte asignados exitosamente.' })
+  @ApiResponse({ status: 400, description: 'Algunos tipos de soporte no existen.' })
+  @ApiResponse({ status: 404, description: 'Usuario no encontrado.' })
+  async assignSupportTypes(
+    @Param('id') id: number,
+    @Body() body: { supportTypeIds: number[] }
+  ) {
+    return this.usersService.assignSupportTypes(id, body.supportTypeIds);
+  }
+
+  @UseGuards(AuthGuard)
+  @Get('by-support-type/:ticketTypeId')
+  @ApiOperation({ summary: 'Obtener usuarios que pueden dar soporte a un tipo específico' })
+  @ApiResponse({ status: 200, description: 'Usuarios obtenidos exitosamente.' })
+  @ApiResponse({ status: 404, description: 'Tipo de ticket no encontrado.' })
+  async getUsersBySupportType(@Param('ticketTypeId') ticketTypeId: number) {
+    return this.usersService.getUsersBySupportType(ticketTypeId);
+  }
 }

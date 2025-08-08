@@ -1,0 +1,6355 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_signIn",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserLoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciales inválidas"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Iniciar sesión de usuario",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/2fa/verify": {
+      "post": {
+        "operationId": "AuthController_verify2FA",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Verify2FADto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/2fa/setup": {
+      "post": {
+        "operationId": "AuthController_setup2FA",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/setup2FADto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/2fa/enable": {
+      "post": {
+        "operationId": "AuthController_enable2FA",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Enable2FADto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/2fa/disable": {
+      "post": {
+        "operationId": "AuthController_disable2FA",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Verify2FADto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/change-first-password": {
+      "post": {
+        "operationId": "AuthController_changeFirstPassword",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeFirstPasswordDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña cambiada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Contraseña cambiada exitosamente"
+                    },
+                    "access_token": {
+                      "type": "string",
+                      "example": "nuevo.jwt.token"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Contraseña actual incorrecta o nueva contraseña no válida"
+          },
+          "401": {
+            "description": "Token inválido, usuario no encontrado, o no es primer login"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cambiar contraseña en el primer login",
+        "tags": ["Auth"]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout exitoso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Sesión cerrada exitosamente"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cerrar sesión del usuario",
+        "tags": ["Auth"]
+      }
+    },
+    "/user/list": {
+      "get": {
+        "operationId": "UserController_getAllUsers",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Users"]
+      }
+    },
+    "/user/{id}": {
+      "get": {
+        "operationId": "UserController_getUserById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Users"]
+      }
+    },
+    "/user/insert": {
+      "post": {
+        "operationId": "UserController_createUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente."
+          },
+          "400": {
+            "description": "Datos inválidos."
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear un nuevo usuario (formato moderno)",
+        "tags": ["Users"]
+      }
+    },
+    "/user/insert-legacy": {
+      "post": {
+        "operationId": "UserController_createUserLegacy",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserLegacyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Usuario creado exitosamente."
+          },
+          "400": {
+            "description": "Datos inválidos."
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear un nuevo usuario (formato legacy)",
+        "tags": ["Users"]
+      }
+    },
+    "/user/test-insert": {
+      "post": {
+        "operationId": "UserController_testCreateUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserLegacyDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear usuario (SOLO TESTING)",
+        "tags": ["Users"]
+      }
+    },
+    "/user/update": {
+      "put": {
+        "operationId": "UserController_updateUser",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Usuario actualizado exitosamente."
+          },
+          "400": {
+            "description": "Datos inválidos."
+          },
+          "404": {
+            "description": "Usuario no encontrado."
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar un usuario existente",
+        "tags": ["Users"]
+      }
+    },
+    "/user/delete/{id}": {
+      "delete": {
+        "description": "Elimina un usuario del sistema usando su ID",
+        "operationId": "UserController_deleteUser",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Usuario eliminado exitosamente"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar usuario por ID",
+        "tags": ["Users"]
+      }
+    },
+    "/user/request-password-reset": {
+      "post": {
+        "description": "Envía un código de verificación al email del usuario para restablecer la contraseña",
+        "operationId": "UserController_requestPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RequestPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Código enviado exitosamente (si el email existe)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Código de verificación enviado a tu correo electrónico."
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error al enviar el código"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Solicitar restablecimiento de contraseña",
+        "tags": ["Users"]
+      }
+    },
+    "/user/verify-password-reset": {
+      "post": {
+        "description": "Verifica el código de 6 dígitos y establece la nueva contraseña",
+        "operationId": "UserController_verifyPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Contraseña restablecida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Contraseña restablecida exitosamente."
+                    },
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Código inválido o expirado"
+          },
+          "404": {
+            "description": "Usuario no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Verificar código y restablecer contraseña",
+        "tags": ["Users"]
+      }
+    },
+    "/user/check-password-expiration": {
+      "post": {
+        "description": "Endpoint que revisa todas las contraseñas próximas a vencer y envía notificaciones por email a los usuarios correspondientes. Normalmente se ejecuta mediante un cron job.",
+        "operationId": "UserController_checkPasswordExpiration",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Verificación completada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Verificación de contraseñas completada. Se enviaron 5 notificaciones."
+                    },
+                    "notificationsSent": {
+                      "type": "number",
+                      "example": 5
+                    },
+                    "usersChecked": {
+                      "type": "number",
+                      "example": 150
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Verificar contraseñas próximas a vencer y enviar notificaciones",
+        "tags": ["Users"]
+      }
+    },
+    "/user/expiring-passwords/{days}": {
+      "get": {
+        "description": "Obtiene una lista de usuarios cuyas contraseñas vencerán en los próximos días especificados. Por defecto busca en los próximos 7 días.",
+        "operationId": "UserController_getExpiringPasswords",
+        "parameters": [
+          {
+            "name": "days",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios con contraseñas próximas a vencer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number"
+                      },
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "department": {
+                        "type": "string"
+                      },
+                      "dateToPasswordExpiration": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "daysRemaining": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "Vencida",
+                          "Vence mañana",
+                          "Crítico",
+                          "Próximo a vencer"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener lista de usuarios con contraseñas próximas a vencer",
+        "tags": ["Users"]
+      }
+    },
+    "/user/expiring-passwords": {
+      "get": {
+        "description": "Obtiene una lista de usuarios cuyas contraseñas vencerán en los próximos 7 días.",
+        "operationId": "UserController_getExpiringPasswordsDefault",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Lista de usuarios con contraseñas próximas a vencer",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "number"
+                      },
+                      "firstName": {
+                        "type": "string"
+                      },
+                      "lastName": {
+                        "type": "string"
+                      },
+                      "email": {
+                        "type": "string"
+                      },
+                      "role": {
+                        "type": "string"
+                      },
+                      "department": {
+                        "type": "string"
+                      },
+                      "dateToPasswordExpiration": {
+                        "type": "string",
+                        "format": "date-time"
+                      },
+                      "daysRemaining": {
+                        "type": "number"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "Vencida",
+                          "Vence mañana",
+                          "Crítico",
+                          "Próximo a vencer"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener lista de usuarios con contraseñas próximas a vencer (7 días por defecto)",
+        "tags": ["Users"]
+      }
+    },
+    "/password-test/check-reset-status": {
+      "get": {
+        "operationId": "PasswordTestController_checkResetStatus",
+        "parameters": [
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "description": "Email del usuario",
+            "schema": {
+              "example": "usuario@charlotte.com.mx",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Verificar estado de código de reset",
+        "tags": ["Password Reset Test"]
+      }
+    },
+    "/email/send-welcome": {
+      "post": {
+        "operationId": "EmailController_sendWelcomeEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendWelcomeEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email enviado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar email de bienvenida",
+        "tags": ["Email"]
+      }
+    },
+    "/email/send-verification": {
+      "post": {
+        "operationId": "EmailController_sendVerificationCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendVerificationCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Código de verificación enviado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar código de verificación",
+        "tags": ["Email"]
+      }
+    },
+    "/email/send-reset-password": {
+      "post": {
+        "operationId": "EmailController_sendPasswordReset",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendPasswordResetDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email de restablecimiento enviado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar email de restablecimiento de contraseña",
+        "tags": ["Email"]
+      }
+    },
+    "/email/send-reset-password-code": {
+      "post": {
+        "operationId": "EmailController_sendPasswordResetCode",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendPasswordResetCodeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Código de restablecimiento enviado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar código de restablecimiento de contraseña",
+        "tags": ["Email"]
+      }
+    },
+    "/email/send-custom": {
+      "post": {
+        "operationId": "EmailController_sendCustomEmail",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SendCustomEmailDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Email personalizado enviado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error en los datos enviados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailErrorResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Enviar email personalizado",
+        "tags": ["Email"]
+      }
+    },
+    "/email-test/test-connection": {
+      "get": {
+        "operationId": "EmailTestController_testEmailConnection",
+        "parameters": [
+          {
+            "name": "email",
+            "required": true,
+            "in": "query",
+            "description": "Email de prueba",
+            "schema": {
+              "example": "test@charlotte.com.mx",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Probar conexión del servicio de email",
+        "tags": ["Email Test"]
+      }
+    },
+    "/audit/history": {
+      "get": {
+        "description": "Obtiene el historial de cambios con filtros opcionales",
+        "operationId": "AuditController_getAuditHistory",
+        "parameters": [
+          {
+            "name": "entityType",
+            "required": false,
+            "in": "query",
+            "description": "Tipo de entidad (User, Product, etc.)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "action",
+            "required": false,
+            "in": "query",
+            "description": "Acción (CREATE, UPDATE, DELETE)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "ID del usuario",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Límite de resultados (default: 50)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de auditoría obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener historial de auditoría",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/entity/{entityType}/{entityId}": {
+      "get": {
+        "description": "Obtiene todos los cambios realizados a una entidad específica",
+        "operationId": "AuditController_getEntityHistory",
+        "parameters": [
+          {
+            "name": "entityType",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "entityId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de la entidad obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener historial de una entidad específica",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/user/{userId}": {
+      "get": {
+        "description": "Obtiene todos los cambios realizados por un usuario específico",
+        "operationId": "AuditController_getUserHistory",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Límite de resultados (default: 50)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial del usuario obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AuditLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener historial de cambios por usuario",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/stats": {
+      "get": {
+        "description": "Obtiene estadísticas generales de auditoría",
+        "operationId": "AuditController_getAuditStats",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener estadísticas de auditoría",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/sessions": {
+      "get": {
+        "description": "Obtiene el historial de sesiones del usuario autenticado",
+        "operationId": "AuditController_getUserSessions",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Límite de resultados (default: 20)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de sesiones obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener historial de sesiones del usuario actual",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/sessions/active": {
+      "get": {
+        "description": "Obtiene todas las sesiones activas del usuario autenticado",
+        "operationId": "AuditController_getActiveSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sesiones activas obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener sesiones activas del usuario actual",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/sessions/logout-all": {
+      "post": {
+        "description": "Cierra todas las sesiones activas del usuario excepto la actual",
+        "operationId": "AuditController_logoutAllSessions",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Sesiones cerradas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cerrar todas las sesiones del usuario",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/sessions/stats": {
+      "get": {
+        "description": "Obtiene estadísticas generales de sesiones",
+        "operationId": "AuditController_getSessionStats",
+        "parameters": [
+          {
+            "name": "startDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de inicio (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "endDate",
+            "required": false,
+            "in": "query",
+            "description": "Fecha de fin (YYYY-MM-DD)",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas de sesiones obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener estadísticas de sesiones",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/admin/sessions/{userId}": {
+      "get": {
+        "description": "Obtiene el historial de sesiones de cualquier usuario (solo admin)",
+        "operationId": "AuditController_getAnyUserSessions",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Límite de resultados (default: 20)",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Historial de sesiones obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SessionLog"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener sesiones de un usuario específico (Admin)",
+        "tags": ["Audit"]
+      }
+    },
+    "/audit/admin/sessions/{userId}/logout-all": {
+      "post": {
+        "description": "Cierra todas las sesiones activas de cualquier usuario (solo admin)",
+        "operationId": "AuditController_forceLogoutUser",
+        "parameters": [
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sesiones cerradas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cerrar todas las sesiones de un usuario (Admin)",
+        "tags": ["Audit"]
+      }
+    },
+    "/roles": {
+      "post": {
+        "operationId": "RolesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Rol creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe un rol con este nombre"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo rol",
+        "tags": ["Roles"]
+      },
+      "get": {
+        "operationId": "RolesController_findAll",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "Incluir roles inactivos",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de roles obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoleResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener todos los roles activos",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/{id}": {
+      "get": {
+        "operationId": "RolesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un rol por ID",
+        "tags": ["Roles"]
+      },
+      "patch": {
+        "operationId": "RolesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Rol actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          },
+          "409": {
+            "description": "Ya existe un rol con este nombre"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un rol",
+        "tags": ["Roles"]
+      },
+      "delete": {
+        "operationId": "RolesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol eliminado exitosamente"
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          },
+          "409": {
+            "description": "No se puede eliminar el rol porque tiene usuarios asignados"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un rol permanentemente",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/name/{name}": {
+      "get": {
+        "operationId": "RolesController_findByName",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del rol",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un rol por nombre",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/{id}/permissions": {
+      "patch": {
+        "operationId": "RolesController_updatePermissions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Permisos actualizados exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar permisos de un rol",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/{id}/activate": {
+      "patch": {
+        "operationId": "RolesController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol activado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activar un rol",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/{id}/deactivate": {
+      "patch": {
+        "operationId": "RolesController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del rol",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol desactivado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RoleResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Rol no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desactivar un rol (soft delete)",
+        "tags": ["Roles"]
+      }
+    },
+    "/roles/permission/{permission}": {
+      "get": {
+        "operationId": "RolesController_getRolesByPermission",
+        "parameters": [
+          {
+            "name": "permission",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del permiso",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Roles con el permiso obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RoleResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener roles que tienen un permiso específico",
+        "tags": ["Roles"]
+      }
+    },
+    "/departments": {
+      "post": {
+        "operationId": "DepartmentsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Departamento creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe un departamento con este nombre o código"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Crear un nuevo departamento",
+        "tags": ["Departments"]
+      },
+      "get": {
+        "operationId": "DepartmentsController_findAll",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "Incluir departamentos inactivos",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de departamentos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener todos los departamentos activos",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/hierarchy": {
+      "get": {
+        "operationId": "DepartmentsController_getDepartmentHierarchy",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Jerarquía de departamentos obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener la jerarquía de departamentos con managers",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/{id}": {
+      "get": {
+        "operationId": "DepartmentsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un departamento por ID",
+        "tags": ["Departments"]
+      },
+      "patch": {
+        "operationId": "DepartmentsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateDepartmentDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Departamento actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          },
+          "409": {
+            "description": "Ya existe un departamento con este nombre o código"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Actualizar un departamento",
+        "tags": ["Departments"]
+      },
+      "delete": {
+        "operationId": "DepartmentsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento eliminado exitosamente"
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          },
+          "409": {
+            "description": "No se puede eliminar el departamento porque tiene usuarios asignados"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Eliminar un departamento permanentemente",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/code/{code}": {
+      "get": {
+        "operationId": "DepartmentsController_findByCode",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código del departamento",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un departamento por código",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/name/{name}": {
+      "get": {
+        "operationId": "DepartmentsController_findByName",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del departamento",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener un departamento por nombre",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/manager/{managerId}": {
+      "get": {
+        "operationId": "DepartmentsController_getDepartmentsByManager",
+        "parameters": [
+          {
+            "name": "managerId",
+            "required": true,
+            "in": "path",
+            "description": "ID del manager",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamentos del manager obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/DepartmentResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener departamentos gestionados por un manager",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/{id}/manager/{managerId}": {
+      "patch": {
+        "operationId": "DepartmentsController_setManager",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "managerId",
+            "required": true,
+            "in": "path",
+            "description": "ID del manager",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manager asignado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Asignar manager a un departamento",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/{id}/remove-manager": {
+      "patch": {
+        "operationId": "DepartmentsController_removeManager",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Manager removido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Remover manager de un departamento",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/{id}/activate": {
+      "patch": {
+        "operationId": "DepartmentsController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento activado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Activar un departamento",
+        "tags": ["Departments"]
+      }
+    },
+    "/departments/{id}/deactivate": {
+      "patch": {
+        "operationId": "DepartmentsController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del departamento",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamento desactivado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DepartmentResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Departamento no encontrado"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Desactivar un departamento (soft delete)",
+        "tags": ["Departments"]
+      }
+    },
+    "/account/me": {
+      "get": {
+        "operationId": "AccountController_signIn",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "tags": ["Account"]
+      }
+    },
+    "/ticket-types": {
+      "post": {
+        "operationId": "TicketTypesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Tipo de ticket creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Ya existe un tipo de ticket con este nombre o código"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear un nuevo tipo de ticket",
+        "tags": ["Ticket Types"]
+      },
+      "get": {
+        "operationId": "TicketTypesController_findAll",
+        "parameters": [
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "Incluir tipos de ticket inactivos",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tipos de ticket obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketTypeResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener todos los tipos de ticket",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/statistics": {
+      "get": {
+        "operationId": "TicketTypesController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener estadísticas de tipos de ticket",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/{id}": {
+      "get": {
+        "operationId": "TicketTypesController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tipo de ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un tipo de ticket por ID",
+        "tags": ["Ticket Types"]
+      },
+      "patch": {
+        "operationId": "TicketTypesController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tipo de ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketTypeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          },
+          "409": {
+            "description": "Ya existe un tipo de ticket con este nombre o código"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar un tipo de ticket",
+        "tags": ["Ticket Types"]
+      },
+      "delete": {
+        "operationId": "TicketTypesController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tipo de ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket eliminado exitosamente"
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          },
+          "409": {
+            "description": "No se puede eliminar el tipo de ticket porque tiene tickets asociados"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar un tipo de ticket permanentemente",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/name/{name}": {
+      "get": {
+        "operationId": "TicketTypesController_findByName",
+        "parameters": [
+          {
+            "name": "name",
+            "required": true,
+            "in": "path",
+            "description": "Nombre del tipo de ticket",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un tipo de ticket por nombre",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/code/{code}": {
+      "get": {
+        "operationId": "TicketTypesController_findByCode",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código del tipo de ticket",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket encontrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un tipo de ticket por código",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/{id}/deactivate": {
+      "patch": {
+        "operationId": "TicketTypesController_deactivate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tipo de ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket desactivado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Desactivar un tipo de ticket",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/ticket-types/{id}/activate": {
+      "patch": {
+        "operationId": "TicketTypesController_activate",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del tipo de ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Tipo de ticket activado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketTypeResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Tipo de ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Activar un tipo de ticket",
+        "tags": ["Ticket Types"]
+      }
+    },
+    "/tickets": {
+      "post": {
+        "operationId": "TicketsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Ticket creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear un nuevo ticket",
+        "tags": ["Tickets"]
+      },
+      "get": {
+        "operationId": "TicketsController_findAll",
+        "parameters": [
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "isInternal",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "isUrgent",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "search",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ticketTypeId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "departmentId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "createdBy",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "assignedTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "priority",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": ["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]
+              }
+            }
+          },
+          {
+            "name": "status",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "enum": [
+                  "DRAFT",
+                  "OPEN",
+                  "IN_PROGRESS",
+                  "WAITING_RESPONSE",
+                  "ON_HOLD",
+                  "RESOLVED",
+                  "CLOSED",
+                  "CANCELLED"
+                ]
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tickets obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener lista de tickets con filtros",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/my-tickets": {
+      "get": {
+        "operationId": "TicketsController_getMyTickets",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Mis tickets obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener mis tickets (creados o asignados)",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/assigned-to-me": {
+      "get": {
+        "operationId": "TicketsController_getAssignedToMe",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Tickets asignados obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener tickets asignados a mí",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/statistics": {
+      "get": {
+        "operationId": "TicketsController_getStatistics",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener estadísticas de tickets del usuario",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/{id}": {
+      "get": {
+        "operationId": "TicketsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes permisos para ver este ticket"
+          },
+          "404": {
+            "description": "Ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un ticket por ID",
+        "tags": ["Tickets"]
+      },
+      "patch": {
+        "operationId": "TicketsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Ticket actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes permisos para editar este ticket"
+          },
+          "404": {
+            "description": "Ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar un ticket",
+        "tags": ["Tickets"]
+      },
+      "delete": {
+        "operationId": "TicketsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Ticket eliminado exitosamente"
+          },
+          "403": {
+            "description": "No tienes permisos para eliminar este ticket"
+          },
+          "404": {
+            "description": "Ticket no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar un ticket",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/{id}/assign": {
+      "patch": {
+        "operationId": "TicketsController_assignTicket",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket asignado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Asignar un ticket a un usuario",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/{id}/close": {
+      "patch": {
+        "operationId": "TicketsController_closeTicket",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Ticket cerrado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cerrar un ticket",
+        "tags": ["Tickets"]
+      }
+    },
+    "/tickets/{ticketId}/messages": {
+      "post": {
+        "operationId": "TicketMessagesController_create",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateTicketMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mensaje creado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMessageResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos"
+          },
+          "403": {
+            "description": "No tienes permisos para escribir en este ticket"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear un mensaje en un ticket",
+        "tags": ["Ticket Messages"]
+      },
+      "get": {
+        "operationId": "TicketMessagesController_findAll",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "dateTo",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFrom",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "senderId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "isInternal",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "type",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "enum": [
+                "COMMENT",
+                "SYSTEM",
+                "ATTACHMENT",
+                "STATUS_CHANGE",
+                "ASSIGNMENT",
+                "ESCALATION"
+              ],
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensajes obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMessageListResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener mensajes de un ticket",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/tickets/{ticketId}/messages/unread": {
+      "get": {
+        "operationId": "TicketMessagesController_getUnreadMessages",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensajes no leídos obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketMessageResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener mensajes no leídos de un ticket",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/tickets/{ticketId}/messages/stats": {
+      "get": {
+        "operationId": "TicketMessagesController_getMessageStats",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener estadísticas de mensajes de un ticket",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/tickets/{ticketId}/messages/{id}": {
+      "get": {
+        "operationId": "TicketMessagesController_findOne",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del mensaje",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensaje obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMessageResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes permisos para ver este mensaje"
+          },
+          "404": {
+            "description": "Mensaje no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un mensaje específico",
+        "tags": ["Ticket Messages"]
+      },
+      "patch": {
+        "operationId": "TicketMessagesController_update",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del mensaje",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTicketMessageDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensaje actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketMessageResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No puedes editar este mensaje"
+          },
+          "404": {
+            "description": "Mensaje no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar un mensaje",
+        "tags": ["Ticket Messages"]
+      },
+      "delete": {
+        "operationId": "TicketMessagesController_remove",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del mensaje",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Mensaje eliminado exitosamente"
+          },
+          "403": {
+            "description": "No puedes eliminar este mensaje"
+          },
+          "404": {
+            "description": "Mensaje no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar un mensaje",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/tickets/{ticketId}/messages/{id}/read": {
+      "patch": {
+        "operationId": "TicketMessagesController_markAsRead",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID del mensaje",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Mensaje marcado como leído"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Marcar mensaje como leído",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/tickets/{ticketId}/messages/mark-all-read": {
+      "patch": {
+        "operationId": "TicketMessagesController_markAllAsRead",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Todos los mensajes marcados como leídos"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Marcar todos los mensajes como leídos",
+        "tags": ["Ticket Messages"]
+      }
+    },
+    "/messages/mark-multiple-read": {
+      "patch": {
+        "operationId": "MessagesController_markMultipleAsRead",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Mensajes marcados como leídos"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Marcar múltiples mensajes como leídos",
+        "tags": ["Messages"]
+      }
+    },
+    "/tickets/{ticketId}/participants": {
+      "post": {
+        "operationId": "TicketParticipantsController_addParticipant",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Participante agregado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "El usuario ya es participante del ticket"
+          },
+          "403": {
+            "description": "No tienes permisos para agregar participantes"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Agregar un participante a un ticket",
+        "tags": ["Ticket Participants"]
+      },
+      "get": {
+        "operationId": "TicketParticipantsController_getParticipants",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Participantes obtenidos exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener todos los participantes de un ticket",
+        "tags": ["Ticket Participants"]
+      }
+    },
+    "/tickets/{ticketId}/participants/{participantId}": {
+      "get": {
+        "operationId": "TicketParticipantsController_getParticipant",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "description": "ID del participante",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Participante obtenido exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Participante no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener un participante específico",
+        "tags": ["Ticket Participants"]
+      },
+      "patch": {
+        "operationId": "TicketParticipantsController_updateParticipant",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "description": "ID del participante",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Participante actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "No tienes permisos para gestionar participantes"
+          },
+          "404": {
+            "description": "Participante no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar permisos de un participante",
+        "tags": ["Ticket Participants"]
+      },
+      "delete": {
+        "operationId": "TicketParticipantsController_removeParticipant",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "description": "ID del participante",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Participante removido exitosamente"
+          },
+          "403": {
+            "description": "No tienes permisos para remover participantes"
+          },
+          "404": {
+            "description": "Participante no encontrado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Remover un participante de un ticket",
+        "tags": ["Ticket Participants"]
+      }
+    },
+    "/tickets/{ticketId}/participants/{participantId}/role": {
+      "patch": {
+        "operationId": "TicketParticipantsController_changeRole",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "participantId",
+            "required": true,
+            "in": "path",
+            "description": "ID del participante",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol del participante actualizado exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Cambiar el rol de un participante",
+        "tags": ["Ticket Participants"]
+      }
+    },
+    "/participants/my-participations": {
+      "get": {
+        "operationId": "ParticipantsController_getMyParticipations",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Participaciones obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TicketParticipantResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener mis participaciones en tickets",
+        "tags": ["Participants"]
+      }
+    },
+    "/participants/my-stats": {
+      "get": {
+        "operationId": "ParticipantsController_getMyStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Estadísticas obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Obtener estadísticas de mis participaciones",
+        "tags": ["Participants"]
+      }
+    },
+    "/participants/transfer-ownership/{ticketId}": {
+      "post": {
+        "operationId": "ParticipantsController_transferOwnership",
+        "parameters": [
+          {
+            "name": "ticketId",
+            "required": true,
+            "in": "path",
+            "description": "ID del ticket",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Propiedad transferida exitosamente"
+          }
+        },
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "summary": "Transferir propiedad de un ticket",
+        "tags": ["Participants"]
+      }
+    },
+    "/general-lists": {
+      "post": {
+        "operationId": "GeneralListsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateGeneralListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Lista creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o código duplicado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear una nueva lista general",
+        "tags": ["General Lists"]
+      },
+      "get": {
+        "operationId": "GeneralListsController_findAll",
+        "parameters": [
+          {
+            "name": "includeOptions",
+            "required": false,
+            "in": "query",
+            "description": "Incluir opciones en la respuesta",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "category",
+            "required": false,
+            "in": "query",
+            "description": "Filtrar por categoría",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listas obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeneralListResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener todas las listas generales",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/categories": {
+      "get": {
+        "operationId": "GeneralListsController_getCategories",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Categorías obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener todas las categorías disponibles",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/by-category/{category}": {
+      "get": {
+        "operationId": "GeneralListsController_findByCategory",
+        "parameters": [
+          {
+            "name": "category",
+            "required": true,
+            "in": "path",
+            "description": "Categoría a filtrar",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listas de la categoría obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GeneralListResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener listas por categoría",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/by-code/{code}": {
+      "get": {
+        "operationId": "GeneralListsController_findByCode",
+        "parameters": [
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código de la lista",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "includeOptions",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralListResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lista no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener una lista por código",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/{id}": {
+      "get": {
+        "operationId": "GeneralListsController_findOne",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "includeOptions",
+            "required": true,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralListResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Lista no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener una lista por ID",
+        "tags": ["General Lists"]
+      },
+      "patch": {
+        "operationId": "GeneralListsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateGeneralListDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Lista actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GeneralListResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "No se puede modificar una lista del sistema"
+          },
+          "404": {
+            "description": "Lista no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar una lista general",
+        "tags": ["General Lists"]
+      },
+      "delete": {
+        "operationId": "GeneralListsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Lista eliminada exitosamente"
+          },
+          "400": {
+            "description": "No se puede eliminar una lista del sistema"
+          },
+          "404": {
+            "description": "Lista no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar una lista general",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/{id}/options": {
+      "get": {
+        "operationId": "GeneralListsController_getListOptions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "parentOptionId",
+            "required": false,
+            "in": "query",
+            "description": "ID de la opción padre para listas jerárquicas",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones obtenidas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener opciones de una lista específica",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/{id}/options/search": {
+      "get": {
+        "operationId": "GeneralListsController_searchOptions",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones encontradas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Buscar opciones en una lista",
+        "tags": ["General Lists"]
+      }
+    },
+    "/general-lists/{listId}/options": {
+      "post": {
+        "operationId": "ListOptionsController_create",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateListOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Opción creada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOptionResponseDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos o código duplicado"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Crear una nueva opción en una lista",
+        "tags": ["List Options"]
+      },
+      "get": {
+        "operationId": "ListOptionsController_findByList",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "includeInactive",
+            "required": false,
+            "in": "query",
+            "description": "Incluir opciones inactivas",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ListOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener todas las opciones de una lista",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/search": {
+      "get": {
+        "operationId": "ListOptionsController_search",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "q",
+            "required": true,
+            "in": "query",
+            "description": "Término de búsqueda",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones encontradas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ListOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Buscar opciones en una lista",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/default": {
+      "get": {
+        "operationId": "ListOptionsController_getDefault",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción por defecto obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No hay opción por defecto configurada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener la opción por defecto de una lista",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/by-code/{code}": {
+      "get": {
+        "operationId": "ListOptionsController_findByCode",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "code",
+            "required": true,
+            "in": "path",
+            "description": "Código de la opción",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener una opción por código",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/{id}": {
+      "get": {
+        "operationId": "ListOptionsController_findOne",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la opción",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opción obtenida exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener una opción por ID",
+        "tags": ["List Options"]
+      },
+      "patch": {
+        "operationId": "ListOptionsController_update",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la opción",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateListOptionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Opción actualizada exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListOptionResponseDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Actualizar una opción",
+        "tags": ["List Options"]
+      },
+      "delete": {
+        "operationId": "ListOptionsController_remove",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la opción",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Opción eliminada exitosamente"
+          },
+          "404": {
+            "description": "Opción no encontrada"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Eliminar una opción",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/{id}/children": {
+      "get": {
+        "operationId": "ListOptionsController_getChildren",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "description": "ID de la opción padre",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones hijas obtenidas exitosamente",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ListOptionResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Obtener opciones hijas de una opción padre",
+        "tags": ["List Options"]
+      }
+    },
+    "/general-lists/{listId}/options/reorder": {
+      "patch": {
+        "operationId": "ListOptionsController_reorder",
+        "parameters": [
+          {
+            "name": "listId",
+            "required": true,
+            "in": "path",
+            "description": "ID de la lista",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Opciones reordenadas exitosamente"
+          }
+        },
+        "security": [
+          {
+            "Token": []
+          }
+        ],
+        "summary": "Reordenar opciones de una lista",
+        "tags": ["List Options"]
+      }
+    }
+  },
+  "info": {
+    "title": "API Charlotte Core",
+    "description": "The API description",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [
+    {
+      "name": "Charlotte",
+      "description": ""
+    }
+  ],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "Token": {
+        "scheme": "Bearer",
+        "bearerFormat": "JWT",
+        "description": "Integration API Token <JWT>",
+        "name": "Authorization",
+        "type": "http",
+        "in": "Header"
+      }
+    },
+    "schemas": {
+      "UserLoginDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "password": {
+            "type": "string"
+          }
+        },
+        "required": ["email", "password"]
+      },
+      "UserInfoDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "email": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string"
+          },
+          "department": {
+            "type": "string"
+          },
+          "roleId": {
+            "type": "number"
+          },
+          "departmentId": {
+            "type": "number"
+          }
+        },
+        "required": ["id", "email", "role", "department"]
+      },
+      "LoginResponseDto": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string"
+          },
+          "requires2FA": {
+            "type": "boolean"
+          },
+          "register2FA": {
+            "type": "boolean"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserInfoDto"
+          }
+        },
+        "required": ["access_token"]
+      },
+      "Verify2FADto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "ID del usuario"
+          },
+          "token": {
+            "type": "string",
+            "description": "Token de 2FA de 6 dígitos"
+          },
+          "from": {
+            "type": "boolean",
+            "description": "Valor opcional para indicar el origen de la solicitud"
+          }
+        },
+        "required": ["userId", "token"]
+      },
+      "setup2FADto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "ID del usuario para configurar 2FA"
+          }
+        },
+        "required": ["userId"]
+      },
+      "Enable2FADto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number",
+            "description": "ID del usuario"
+          },
+          "token": {
+            "type": "string",
+            "description": "Token de 6 dígitos del autenticador"
+          },
+          "twoFactorSecret": {
+            "type": "string",
+            "description": "Secreto de 2FA (opcional)"
+          },
+          "temp2FASecret": {
+            "type": "string",
+            "description": "Secreto temporal de 2FA (opcional)"
+          }
+        },
+        "required": ["userId", "token"]
+      },
+      "ChangeFirstPasswordDto": {
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "description": "Contraseña actual del usuario",
+            "example": "contraseñaActual123",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "Nueva contraseña del usuario",
+            "example": "nuevaContraseña456",
+            "minLength": 8
+          }
+        },
+        "required": ["currentPassword", "newPassword"]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "firstName": {
+            "type": "string",
+            "description": "Nombre del usuario"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Apellido del usuario"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario (campo legacy, usar roleId)"
+          },
+          "roleId": {
+            "type": "number",
+            "description": "ID del rol asignado al usuario"
+          },
+          "daysToPasswordExpiration": {
+            "type": "number",
+            "description": "dias de expiracion de contraseña"
+          },
+          "departmentId": {
+            "type": "number",
+            "description": "ID del departamento asignado al usuario"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email único del usuario"
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Si el usuario está activo"
+          },
+          "isBlocked": {
+            "type": "boolean",
+            "description": "Si el usuario está bloqueado"
+          },
+          "isTwoFactorEnabled": {
+            "type": "boolean",
+            "description": "Si el 2FA está habilitado"
+          },
+          "passwordResetCode": {
+            "type": "string",
+            "description": "Código de reseteo de contraseña"
+          },
+          "passwordResetCodeExpiresAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Fecha de expiración del código de reseteo"
+          },
+          "twoFactorSecret": {
+            "type": "string",
+            "description": "Secreto para 2FA"
+          },
+          "temp2FASecret": {
+            "type": "string",
+            "description": "Secreto temporal para habilitar 2FA"
+          },
+          "last2FAVerifiedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Última verificación de 2FA"
+          },
+          "trustedDevices": {
+            "description": "Dispositivos de confianza",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "firstName",
+          "lastName",
+          "roleId",
+          "daysToPasswordExpiration",
+          "departmentId",
+          "email",
+          "password"
+        ]
+      },
+      "CreateUserLegacyDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del usuario (legacy)"
+          },
+          "lastname": {
+            "type": "string",
+            "description": "Apellido del usuario (legacy)"
+          },
+          "rol": {
+            "description": "Rol del usuario (legacy)",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "roleId": {
+            "type": "number",
+            "description": "ID del rol asignado al usuario"
+          },
+          "departmentId": {
+            "type": "number",
+            "description": "ID del departamento asignado al usuario"
+          },
+          "email": {
+            "type": "string",
+            "description": "Email único del usuario"
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Si el usuario está activo"
+          },
+          "isBlocked": {
+            "type": "boolean",
+            "description": "Si el usuario está bloqueado"
+          },
+          "daysToPasswordExpiration": {
+            "type": "number",
+            "description": "dias de expiracion de contraseña (legacy)"
+          }
+        },
+        "required": ["name", "lastname", "rol", "email", "password"]
+      },
+      "UpdateUserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number",
+            "description": "Id del usuario"
+          },
+          "firstName": {
+            "type": "string",
+            "description": "Nombre del usuario"
+          },
+          "daysToPasswordExpiration": {
+            "type": "number",
+            "description": "Dias de expiracion de contraseña"
+          },
+          "lastName": {
+            "type": "string",
+            "description": "Apellido del usuario"
+          },
+          "email": {
+            "type": "string",
+            "description": "Correo electrónico del usuario"
+          },
+          "password": {
+            "type": "string",
+            "description": "Contraseña del usuario"
+          },
+          "roleId": {
+            "type": "number",
+            "description": "ID del rol asignado al usuario"
+          },
+          "departmentId": {
+            "type": "number",
+            "description": "ID del departamento asignado al usuario"
+          },
+          "active": {
+            "type": "boolean",
+            "description": "Si el usuario está activo"
+          },
+          "isBlocked": {
+            "type": "boolean",
+            "description": "Si el usuario está bloqueado"
+          },
+          "isTwoFactorEnabled": {
+            "type": "boolean",
+            "description": "Si el 2FA está habilitado"
+          },
+          "role": {
+            "type": "string",
+            "description": "Rol del usuario (campo legacy, usar roleId)"
+          }
+        }
+      },
+      "RequestPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email del usuario para restablecer contraseña",
+            "example": "usuario@charlotte.com.mx"
+          }
+        },
+        "required": ["email"]
+      },
+      "VerifyPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email del usuario",
+            "example": "usuario@charlotte.com.mx"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código de verificación de 6 dígitos",
+            "example": "123456"
+          },
+          "newPassword": {
+            "type": "string",
+            "description": "Nueva contraseña (mínimo 8 caracteres)",
+            "example": "NuevaPassword123!",
+            "minLength": 8
+          }
+        },
+        "required": ["email", "code", "newPassword"]
+      },
+      "SendWelcomeEmailDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de correo electrónico del destinatario",
+            "example": "pedro.martinez@charlotte.com.mx"
+          },
+          "name": {
+            "type": "string",
+            "description": "Nombre del usuario para personalizar el email",
+            "example": "Pedro Martínez",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "required": ["email", "name"]
+      },
+      "EmailResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de confirmación",
+            "example": "Email enviado exitosamente"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": true
+          },
+          "sentAt": {
+            "type": "string",
+            "description": "Timestamp de cuando se envió el email",
+            "example": "2025-08-01T10:30:00.000Z"
+          }
+        },
+        "required": ["message", "success", "sentAt"]
+      },
+      "EmailErrorResponseDto": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "description": "Mensaje de error",
+            "example": "Error al enviar el email"
+          },
+          "success": {
+            "type": "boolean",
+            "description": "Indica si la operación fue exitosa",
+            "example": false
+          },
+          "errorCode": {
+            "type": "string",
+            "description": "Código de error",
+            "example": "EMAIL_SEND_FAILED"
+          }
+        },
+        "required": ["message", "success", "errorCode"]
+      },
+      "SendVerificationCodeDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de correo electrónico del destinatario",
+            "example": "usuario@ejemplo.com"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código de verificación (6 dígitos)",
+            "example": "123456",
+            "minLength": 6,
+            "maxLength": 6
+          }
+        },
+        "required": ["email", "code"]
+      },
+      "SendPasswordResetDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de correo electrónico del destinatario",
+            "example": "usuario@ejemplo.com"
+          },
+          "token": {
+            "type": "string",
+            "description": "Token de restablecimiento de contraseña",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+            "minLength": 10
+          }
+        },
+        "required": ["email", "token"]
+      },
+      "SendPasswordResetCodeDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de correo electrónico del destinatario",
+            "example": "pedro.martinez@charlotte.com.mx"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código de 6 dígitos para restablecer la contraseña",
+            "example": "123456",
+            "minLength": 6,
+            "maxLength": 6
+          },
+          "userName": {
+            "type": "string",
+            "description": "Nombre del usuario para personalizar el email",
+            "example": "Pedro Martínez",
+            "minLength": 2,
+            "maxLength": 100
+          }
+        },
+        "required": ["email", "code", "userName"]
+      },
+      "SendCustomEmailDto": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Dirección de correo electrónico del destinatario",
+            "example": "usuario@ejemplo.com"
+          },
+          "subject": {
+            "type": "string",
+            "description": "Asunto del correo electrónico",
+            "example": "Notificación importante",
+            "maxLength": 200
+          },
+          "text": {
+            "type": "string",
+            "description": "Contenido del email en texto plano",
+            "example": "Este es el contenido del mensaje en texto plano."
+          },
+          "html": {
+            "type": "string",
+            "description": "Contenido del email en HTML",
+            "example": "<h1>Título</h1><p>Este es el contenido del mensaje en HTML.</p>"
+          }
+        },
+        "required": ["email", "subject"]
+      },
+      "AuditLog": {
+        "type": "object",
+        "properties": {}
+      },
+      "SessionLog": {
+        "type": "object",
+        "properties": {}
+      },
+      "CreateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del rol",
+            "example": "admin"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del rol"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el rol está activo",
+            "default": true
+          },
+          "permissions": {
+            "description": "Permisos del rol",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": ["name"]
+      },
+      "RoleResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "isActive",
+          "permissions",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateRoleDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del rol"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del rol"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el rol está activo"
+          },
+          "permissions": {
+            "description": "Permisos del rol",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "CreateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del departamento",
+            "example": "Tecnología"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del departamento"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código del departamento",
+            "example": "IT"
+          },
+          "managerId": {
+            "type": "number",
+            "description": "ID del manager del departamento"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el departamento está activo",
+            "default": true
+          }
+        },
+        "required": ["name"]
+      },
+      "DepartmentResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "managerId": {
+            "type": "object",
+            "nullable": true
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "code",
+          "managerId",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateDepartmentDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del departamento"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del departamento"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código del departamento"
+          },
+          "managerId": {
+            "type": "number",
+            "description": "ID del manager del departamento"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el departamento está activo"
+          }
+        }
+      },
+      "CreateTicketTypeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del tipo de ticket",
+            "example": "Soporte"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del tipo de ticket"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código del tipo de ticket",
+            "example": "SUPPORT"
+          },
+          "color": {
+            "type": "string",
+            "description": "Color hexadecimal para UI",
+            "example": "#FF5722"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Prioridad para ordenamiento (0-999)",
+            "default": 0
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el tipo de ticket está activo",
+            "default": true
+          }
+        },
+        "required": ["name"]
+      },
+      "TicketTypeResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "priority": {
+            "type": "number"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "code",
+          "color",
+          "priority",
+          "isActive",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateTicketTypeDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Nombre del tipo de ticket"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del tipo de ticket"
+          },
+          "code": {
+            "type": "string",
+            "description": "Código del tipo de ticket"
+          },
+          "color": {
+            "type": "string",
+            "description": "Color hexadecimal para UI"
+          },
+          "priority": {
+            "type": "number",
+            "description": "Prioridad para ordenamiento (0-999)"
+          },
+          "isActive": {
+            "type": "boolean",
+            "description": "Si el tipo de ticket está activo"
+          }
+        }
+      },
+      "CreateTicketDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título del ticket",
+            "example": "Error en el sistema de login"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción detallada del ticket"
+          },
+          "ticketTypeId": {
+            "type": "number",
+            "description": "ID del tipo de ticket",
+            "example": 1
+          },
+          "priority": {
+            "type": "string",
+            "description": "Prioridad del ticket",
+            "enum": ["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"],
+            "default": "MEDIUM"
+          },
+          "assignedTo": {
+            "type": "number",
+            "description": "ID del usuario asignado"
+          },
+          "departmentId": {
+            "type": "number",
+            "description": "ID del departamento responsable"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Fecha límite (ISO 8601)"
+          },
+          "estimatedHours": {
+            "type": "number",
+            "description": "Horas estimadas para resolución"
+          },
+          "tags": {
+            "description": "Tags para categorización",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isUrgent": {
+            "type": "boolean",
+            "description": "Si el ticket es urgente",
+            "default": false
+          },
+          "isInternal": {
+            "type": "boolean",
+            "description": "Si el ticket es interno",
+            "default": false
+          },
+          "customFields": {
+            "type": "object",
+            "description": "Campos personalizados adicionales"
+          },
+          "participantIds": {
+            "description": "IDs de participantes iniciales",
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["title", "description", "ticketTypeId"]
+      },
+      "TicketResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "ticketNumber": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "DRAFT",
+              "OPEN",
+              "IN_PROGRESS",
+              "WAITING_RESPONSE",
+              "ON_HOLD",
+              "RESOLVED",
+              "CLOSED",
+              "CANCELLED"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "enum": ["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]
+          },
+          "ticketTypeId": {
+            "type": "number"
+          },
+          "createdBy": {
+            "type": "number"
+          },
+          "assignedTo": {
+            "type": "number",
+            "nullable": true
+          },
+          "departmentId": {
+            "type": "number",
+            "nullable": true
+          },
+          "dueDate": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "resolvedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "closedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "estimatedHours": {
+            "type": "number",
+            "nullable": true
+          },
+          "actualHours": {
+            "type": "number",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "notificationsEnabled": {
+            "type": "boolean"
+          },
+          "isUrgent": {
+            "type": "boolean"
+          },
+          "isInternal": {
+            "type": "boolean"
+          },
+          "customFields": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "ticketType": {
+            "type": "object"
+          },
+          "creator": {
+            "type": "object"
+          },
+          "assignee": {
+            "type": "object"
+          },
+          "department": {
+            "type": "object"
+          },
+          "participants": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "ticketNumber",
+          "title",
+          "description",
+          "status",
+          "priority",
+          "ticketTypeId",
+          "createdBy",
+          "assignedTo",
+          "departmentId",
+          "dueDate",
+          "resolvedAt",
+          "closedAt",
+          "estimatedHours",
+          "actualHours",
+          "tags",
+          "notificationsEnabled",
+          "isUrgent",
+          "isInternal",
+          "customFields",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "TicketListResponseDto": {
+        "type": "object",
+        "properties": {
+          "tickets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketResponseDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": ["tickets", "total", "page", "limit", "totalPages"]
+      },
+      "UpdateTicketDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "description": "Título del ticket"
+          },
+          "description": {
+            "type": "string",
+            "description": "Descripción del ticket"
+          },
+          "status": {
+            "type": "string",
+            "description": "Estado del ticket",
+            "enum": [
+              "DRAFT",
+              "OPEN",
+              "IN_PROGRESS",
+              "WAITING_RESPONSE",
+              "ON_HOLD",
+              "RESOLVED",
+              "CLOSED",
+              "CANCELLED"
+            ]
+          },
+          "priority": {
+            "type": "string",
+            "description": "Prioridad del ticket",
+            "enum": ["LOW", "MEDIUM", "HIGH", "URGENT", "CRITICAL"]
+          },
+          "assignedTo": {
+            "type": "number",
+            "description": "ID del usuario asignado"
+          },
+          "departmentId": {
+            "type": "number",
+            "description": "ID del departamento responsable"
+          },
+          "dueDate": {
+            "type": "string",
+            "description": "Fecha límite (ISO 8601)"
+          },
+          "estimatedHours": {
+            "type": "number",
+            "description": "Horas estimadas para resolución"
+          },
+          "actualHours": {
+            "type": "number",
+            "description": "Horas reales de trabajo"
+          },
+          "tags": {
+            "description": "Tags para categorización",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isUrgent": {
+            "type": "boolean",
+            "description": "Si el ticket es urgente"
+          },
+          "isInternal": {
+            "type": "boolean",
+            "description": "Si el ticket es interno"
+          },
+          "customFields": {
+            "type": "object",
+            "description": "Campos personalizados adicionales"
+          }
+        }
+      },
+      "CreateTicketMessageDto": {
+        "type": "object",
+        "properties": {
+          "ticketId": {
+            "type": "number",
+            "description": "ID del ticket"
+          },
+          "content": {
+            "type": "string",
+            "description": "Contenido del mensaje"
+          },
+          "type": {
+            "type": "string",
+            "description": "Tipo de mensaje",
+            "enum": [
+              "COMMENT",
+              "SYSTEM",
+              "ATTACHMENT",
+              "STATUS_CHANGE",
+              "ASSIGNMENT",
+              "ESCALATION"
+            ],
+            "default": "COMMENT"
+          },
+          "replyToId": {
+            "type": "number",
+            "description": "ID del mensaje al que responde"
+          },
+          "isInternal": {
+            "type": "boolean",
+            "description": "Si el mensaje es interno",
+            "default": false
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Metadatos adicionales del mensaje"
+          }
+        },
+        "required": ["ticketId", "content"]
+      },
+      "TicketMessageResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "ticketId": {
+            "type": "number"
+          },
+          "senderId": {
+            "type": "number"
+          },
+          "content": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "COMMENT",
+              "SYSTEM",
+              "ATTACHMENT",
+              "STATUS_CHANGE",
+              "ASSIGNMENT",
+              "ESCALATION"
+            ]
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "isInternal": {
+            "type": "boolean"
+          },
+          "isEdited": {
+            "type": "boolean"
+          },
+          "replyToId": {
+            "type": "number",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "editedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "editedBy": {
+            "type": "number",
+            "nullable": true
+          },
+          "sender": {
+            "type": "object"
+          },
+          "replyTo": {
+            "type": "object"
+          },
+          "replies": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "reads": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "ticketId",
+          "senderId",
+          "content",
+          "type",
+          "metadata",
+          "isInternal",
+          "isEdited",
+          "replyToId",
+          "createdAt",
+          "updatedAt",
+          "editedAt",
+          "editedBy"
+        ]
+      },
+      "TicketMessageListResponseDto": {
+        "type": "object",
+        "properties": {
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TicketMessageResponseDto"
+            }
+          },
+          "total": {
+            "type": "number",
+            "description": "Total de mensajes"
+          },
+          "page": {
+            "type": "number",
+            "description": "Página actual"
+          },
+          "limit": {
+            "type": "number",
+            "description": "Límite por página"
+          }
+        },
+        "required": ["messages", "total", "page", "limit"]
+      },
+      "UpdateTicketMessageDto": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "description": "Contenido del mensaje"
+          },
+          "isInternal": {
+            "type": "boolean",
+            "description": "Si el mensaje es interno"
+          },
+          "metadata": {
+            "type": "object",
+            "description": "Metadatos adicionales del mensaje"
+          }
+        }
+      },
+      "TicketParticipantResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "ticketId": {
+            "type": "number"
+          },
+          "userId": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "CREATOR",
+              "ASSIGNEE",
+              "COLLABORATOR",
+              "OBSERVER",
+              "APPROVER",
+              "REVIEWER"
+            ]
+          },
+          "canComment": {
+            "type": "boolean"
+          },
+          "canEdit": {
+            "type": "boolean"
+          },
+          "canClose": {
+            "type": "boolean"
+          },
+          "canAssign": {
+            "type": "boolean"
+          },
+          "receiveNotifications": {
+            "type": "boolean"
+          },
+          "joinedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "removedAt": {
+            "format": "date-time",
+            "type": "string",
+            "nullable": true
+          },
+          "addedBy": {
+            "type": "number",
+            "nullable": true
+          },
+          "user": {
+            "type": "object"
+          },
+          "addedByUser": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "id",
+          "ticketId",
+          "userId",
+          "role",
+          "canComment",
+          "canEdit",
+          "canClose",
+          "canAssign",
+          "receiveNotifications",
+          "joinedAt",
+          "removedAt",
+          "addedBy"
+        ]
+      },
+      "CreateGeneralListDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "TICKET_STATUS"
+          },
+          "name": {
+            "type": "string",
+            "example": "Estados de Ticket"
+          },
+          "description": {
+            "type": "string",
+            "example": "Lista de estados para tickets"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "STATUS",
+              "PRIORITY",
+              "DEPARTMENT",
+              "COUNTRY",
+              "CURRENCY",
+              "TICKET_TYPE",
+              "PROJECT_TYPE",
+              "CUSTOM"
+            ],
+            "default": "CUSTOM"
+          },
+          "isSystemList": {
+            "type": "boolean",
+            "default": false
+          },
+          "allowCustomValues": {
+            "type": "boolean",
+            "default": false
+          },
+          "parentListId": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "code",
+          "name",
+          "category",
+          "isSystemList",
+          "allowCustomValues"
+        ]
+      },
+      "ListOptionResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "listId": {
+            "type": "number"
+          },
+          "code": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "displayText": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          },
+          "parentOptionId": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "childOptions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListOptionResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "listId",
+          "code",
+          "value",
+          "displayText",
+          "description",
+          "color",
+          "icon",
+          "isDefault",
+          "isActive",
+          "sortOrder",
+          "parentOptionId",
+          "metadata",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "GeneralListResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "STATUS",
+              "PRIORITY",
+              "DEPARTMENT",
+              "COUNTRY",
+              "CURRENCY",
+              "TICKET_TYPE",
+              "PROJECT_TYPE",
+              "CUSTOM"
+            ]
+          },
+          "isSystemList": {
+            "type": "boolean"
+          },
+          "allowCustomValues": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "parentListId": {
+            "type": "number"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ListOptionResponseDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "category",
+          "isSystemList",
+          "allowCustomValues",
+          "isActive",
+          "parentListId",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "UpdateGeneralListDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "allowCustomValues": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CreateListOptionDto": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "example": "OPEN"
+          },
+          "value": {
+            "type": "string",
+            "example": "OPEN"
+          },
+          "displayText": {
+            "type": "string",
+            "example": "Abierto"
+          },
+          "description": {
+            "type": "string",
+            "example": "Ticket abierto para revisión"
+          },
+          "color": {
+            "type": "string",
+            "example": "#2196F3"
+          },
+          "icon": {
+            "type": "string",
+            "example": "check-circle"
+          },
+          "isDefault": {
+            "type": "boolean",
+            "default": false
+          },
+          "sortOrder": {
+            "type": "number",
+            "default": 0
+          },
+          "parentOptionId": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        },
+        "required": ["code", "value", "displayText", "isDefault", "sortOrder"]
+      },
+      "UpdateListOptionDto": {
+        "type": "object",
+        "properties": {
+          "value": {
+            "type": "string"
+          },
+          "displayText": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "color": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "sortOrder": {
+            "type": "number"
+          },
+          "metadata": {
+            "type": "object"
+          }
+        }
+      }
+    }
+  }
+}

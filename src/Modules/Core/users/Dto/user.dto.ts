@@ -26,6 +26,17 @@ export class UserDto {
   @IsNumber()
   departmentId: number;
 
+  @ApiPropertyOptional({ description: 'ID del jefe directo del usuario (para jerarquía)' })
+  @IsOptional()
+  @IsNumber()
+  managerId?: number;
+
+  @ApiPropertyOptional({ description: 'Array de IDs de tipos de soporte que puede manejar' })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  supportTypeIds?: number[];
+
   @ApiProperty()
   @IsString()
   @IsEmail()

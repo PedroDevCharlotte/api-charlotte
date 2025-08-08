@@ -5,10 +5,14 @@ import {
   UpdateDateColumn,
   CreateDateColumn,
   ManyToOne,
+  OneToMany,
+  ManyToMany,
   JoinColumn,
+  JoinTable,
 } from 'typeorm';
 import { Role } from '../../roles/Entity/role.entity';
 import { Department } from '../../departments/Entity/department.entity';
+import { TicketType } from '../../ticket-types/Entity/ticket-type.entity';
 
 @Entity({ name: 'users' })
 export class User {
@@ -40,6 +44,10 @@ export class User {
   // 🏬 Relación con departamento - Foreign Key
   @Column()
   departmentId: number;
+
+  // 👤 Jerarquía - Jefe directo (nullable para usuarios de alto nivel)
+  @Column({ nullable: true })
+  managerId?: number;
 
   @Column({ default: true })
   active: boolean;
@@ -85,4 +93,26 @@ export class User {
   @ManyToOne(() => Department, (department) => department.users)
   @JoinColumn({ name: 'departmentId' })
   department: Department;
+
+  // 👤 Jerarquía - Relación con el jefe directo
+  @ManyToOne(() => User, (user) => user.subordinates, { nullable: true })
+  @JoinColumn({ name: 'managerId' })
+  manager?: User;
+
+  // 👥 Empleados que reportan a este usuario
+  @OneToMany(() => User, (user) => user.manager)
+  subordinates: User[];
+
+  // 🎫 Tipos de soporte que puede manejar este usuario
+  @ManyToMany(() => TicketType, (ticketType) => ticketType.supportUsers)
+  @JoinTable({
+    name: 'user_support_types',
+    joinColumn: { name: 'userId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'ticketTypeId', referencedColumnName: 'id' }
+  })
+  supportTypes: TicketType[];
+
+  // 🎫 Tipos de soporte donde este usuario es el asignado por defecto
+  @OneToMany(() => TicketType, (ticketType) => ticketType.defaultUser)
+  defaultForTicketTypes: TicketType[];
 }

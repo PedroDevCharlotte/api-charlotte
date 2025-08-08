@@ -17,7 +17,7 @@ import { CreateDepartmentDto, UpdateDepartmentDto, DepartmentResponseDto } from 
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 
 @ApiTags('Departments')
-@ApiBearerAuth()
+@ApiBearerAuth('Token')
 @UseGuards(AuthGuard)
 @Controller('departments')
 export class DepartmentsController {

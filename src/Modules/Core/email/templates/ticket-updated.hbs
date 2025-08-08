@@ -1,0 +1,203 @@
+{{> base title="Ticket Actualizado" headerColor="#17a2b8"}}
+
+{{#*inline "content"}}
+<div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; margin-bottom: 16px;">
+    <div style="width: 48px; height: 48px; background-color: #17a2b8; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+      <span style="color: white; font-size: 24px; font-weight: bold;">📝</span>
+    </div>
+    <div>
+      <h2 style="margin: 0; color: #17a2b8; font-size: 24px; font-weight: 600;">
+        {{#if isCopy}}CC: {{/if}}Ticket actualizado
+      </h2>
+      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">
+        Ticket #{{ticket.ticketNumber}} • Actualizado por {{user.fullName}}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow: hidden;">
+  <!-- Header del ticket -->
+  <div style="background: linear-gradient(135deg, #17a2b8, #117a8b); padding: 24px; color: white;">
+    <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">
+      {{ticket.title}}
+    </h1>
+    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+      <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        #{{ticket.ticketNumber}}
+      </span>
+      <span style="background-color: {{ticket.priorityColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.priority}}
+      </span>
+      <span style="background-color: {{ticket.statusColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.status}}
+      </span>
+    </div>
+  </div>
+
+  <!-- Información de la actualización -->
+  <div style="padding: 24px;">
+    <div style="background-color: #e1f5fe; border: 1px solid #81d4fa; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 20px; margin-right: 8px;">👤</span>
+        <h3 style="margin: 0; color: #01579b; font-size: 16px;">Actualizado por:</h3>
+      </div>
+      <p style="margin: 0; color: #0277bd; font-weight: 500;">{{user.fullName}}</p>
+      <p style="margin: 4px 0 0 0; color: #0288d1; font-size: 14px;">{{user.email}}</p>
+    </div>
+
+    {{#if previousValues}}
+    <div style="margin-bottom: 20px;">
+      <h3 style="margin: 0 0 12px 0; color: #495057; font-size: 16px; font-weight: 600;">📋 Cambios realizados:</h3>
+      <div style="background-color: #f8f9fa; border-radius: 6px; padding: 16px; border-left: 4px solid #17a2b8;">
+        {{#if previousValues.title}}
+        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e9ecef;">
+          <strong style="color: #495057; font-size: 14px;">Título:</strong>
+          <div style="margin-top: 4px;">
+            <div style="background-color: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; margin-bottom: 4px; text-decoration: line-through;">
+              {{previousValues.title}}
+            </div>
+            <div style="background-color: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 4px;">
+              {{ticket.title}}
+            </div>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if previousValues.description}}
+        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e9ecef;">
+          <strong style="color: #495057; font-size: 14px;">Descripción:</strong>
+          <div style="margin-top: 4px;">
+            <div style="background-color: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; margin-bottom: 4px; text-decoration: line-through;">
+              {{breaklines previousValues.description}}
+            </div>
+            <div style="background-color: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 4px;">
+              {{breaklines ticket.description}}
+            </div>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if previousValues.priority}}
+        <div style="margin-bottom: 12px; padding-bottom: 12px; border-bottom: 1px solid #e9ecef;">
+          <strong style="color: #495057; font-size: 14px;">Prioridad:</strong>
+          <div style="margin-top: 4px;">
+            <span style="background-color: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 4px; margin-right: 8px; text-decoration: line-through;">
+              {{previousValues.priority}}
+            </span>
+            →
+            <span style="background-color: {{ticket.priorityColor}}; color: white; padding: 4px 8px; border-radius: 4px; margin-left: 8px;">
+              {{ticket.priority}}
+            </span>
+          </div>
+        </div>
+        {{/if}}
+
+        {{#if previousValues.assignedTo}}
+        <div style="margin-bottom: 12px;">
+          <strong style="color: #495057; font-size: 14px;">Asignación:</strong>
+          <div style="margin-top: 4px;">
+            {{#if previousValues.assignedTo}}
+            <div style="background-color: #f8d7da; color: #721c24; padding: 8px; border-radius: 4px; margin-bottom: 4px; text-decoration: line-through;">
+              {{previousValues.assignedTo.fullName}} ({{previousValues.assignedTo.email}})
+            </div>
+            {{/if}}
+            {{#if ticket.assignedTo}}
+            <div style="background-color: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 4px;">
+              {{ticket.assignedTo.fullName}} ({{ticket.assignedTo.email}})
+            </div>
+            {{else}}
+            <div style="background-color: #d1ecf1; color: #0c5460; padding: 8px; border-radius: 4px;">
+              Sin asignar
+            </div>
+            {{/if}}
+          </div>
+        </div>
+        {{/if}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if customMessage}}
+    <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 8px 0; color: #0056b3; font-size: 14px;">Mensaje adicional:</h4>
+      <p style="margin: 0; color: #495057;">{{breaklines customMessage}}</p>
+    </div>
+    {{/if}}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Estado actual:</strong>
+        <p style="margin: 4px 0 0 0; color: {{ticket.statusColor}}; font-weight: 500;">{{ticket.status}}</p>
+      </div>
+      
+      {{#if ticket.assignedTo}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Asignado a:</strong>
+        <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
+      </div>
+      {{/if}}
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Última actualización:</strong>
+        <p style="margin: 4px 0 0 0; color: #6c757d;">{{ticket.formattedCreatedAt}}</p>
+      </div>
+    </div>
+
+    {{#if ticket.hasAttachments}}
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 16px; margin-right: 8px;">📎</span>
+        <strong style="color: #495057; font-size: 14px;">Archivos adjuntos ({{ticket.attachmentCount}}):</strong>
+      </div>
+      <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px;">
+        {{#each attachments}}
+        <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+          <span style="margin-right: 8px;">📄</span>
+          <span style="color: #007bff; font-weight: 500;">{{this.filename}}</span>
+          <span style="margin-left: auto; color: #6c757d; font-size: 12px;">({{this.fileSize}})</span>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+<!-- Botón de acción principal -->
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ticket.url}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #17a2b8, #117a8b); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(23, 162, 184, 0.3); transition: all 0.2s;">
+    🔍 Ver Ticket Actualizado
+  </a>
+</div>
+
+{{#unless isCopy}}
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border-left: 4px solid #17a2b8;">
+  <h3 style="margin: 0 0 12px 0; color: #0c5460; font-size: 16px;">Información importante:</h3>
+  <ul style="margin: 0; padding-left: 20px; color: #495057;">
+    <li style="margin-bottom: 8px;">Los cambios ya están reflejados en el sistema</li>
+    <li style="margin-bottom: 8px;">Todos los participantes han sido notificados</li>
+    <li style="margin-bottom: 8px;">Puedes ver el historial completo en el enlace anterior</li>
+    <li>Si tienes dudas sobre los cambios, contacta al usuario que realizó la actualización</li>
+  </ul>
+</div>
+{{/unless}}
+{{/inline}}
+
+{{#*inline "footer"}}
+<div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 24px;">
+  <p style="margin: 0 0 8px 0;">
+    {{#if isCopy}}Recibiste este correo como copia de una actualización de ticket{{else}}{{#if isMainRecipient}}Recibiste este correo porque estás relacionado con este ticket{{else}}Recibiste este correo porque eres participante en este ticket{{/if}}{{/if}}
+  </p>
+  <p style="margin: 0;">
+    Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}
+  </p>
+  {{#if systemInfo.supportEmail}}
+  <p style="margin: 8px 0 0 0;">
+    ¿Necesitas ayuda? Contacta: <a href="mailto:{{systemInfo.supportEmail}}" style="color: #007bff;">{{systemInfo.supportEmail}}</a>
+  </p>
+  {{/if}}
+</div>
+{{/inline}}

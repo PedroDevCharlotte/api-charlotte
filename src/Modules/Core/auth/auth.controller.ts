@@ -11,16 +11,18 @@ import {
   Request,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { UserLoginDto } from './dto/user-login.dto';
-import { LoginResponseDto } from './dto/login-response.dto';
-import { setup2FADto, Verify2FADto } from './dto/verify-2fa.dto';
-import { Enable2FADto } from './dto/enable-2fa.dto';
+import { UserLoginDto } from './Dto/user-login.dto';
+import { LoginResponseDto } from './Dto/login-response.dto';
+import { setup2FADto, Verify2FADto } from './Dto/verify-2fa.dto';
+import { Enable2FADto } from './Dto/enable-2fa.dto';
+import { ChangeFirstPasswordDto } from './Dto/change-first-password.dto';
 import { AuthGuard } from './../../../Common/Auth/auth.guard';
 import { ApiBearerAuth, ApiResponse, ApiOperation } from '@nestjs/swagger';
 import { AuditService } from '../audit/audit.service';
 import * as qrcode from 'qrcode';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 import { JwtService } from '@nestjs/jwt';
+import * as sharp from 'sharp';
 @ApiBearerAuth('Token')
 @Controller('auth')
 export class AuthController {
@@ -126,9 +128,115 @@ export class AuthController {
       throw new UnauthorizedException('Usuario no encontrado');
     }
     console.log('User found for 2FA setup:', user);
-    const { otpauthUrl, secret } =
-      await this.authService.generate2FASecret(user);
-    return { otpauthUrl, secret, qrCode: await qrcode.toDataURL(otpauthUrl) };
+    const { otpauthUrl, secret } = await this.authService.generate2FASecret(user);
+    
+    // Generar QR personalizado con logo de Charlotte
+    const customQrCode = await this.generateCustomQR(otpauthUrl);
+    
+    return { 
+      otpauthUrl, 
+      secret, 
+      qrCode: customQrCode 
+    };
+  }
+
+  /**
+   * Genera un código QR personalizado con el logo de Charlotte Inc
+   */
+  private async generateCustomQR(data: string): Promise<string> {
+    try {
+      // Configuración del QR
+      const qrOptions = {
+        errorCorrectionLevel: 'H' as const, // Nivel alto de corrección de errores para permitir el logo
+        type: 'png' as const,
+        quality: 0.92,
+        margin: 1,
+        color: {
+          dark: '#003366', // Azul corporativo de Charlotte
+          light: '#FFFFFF'
+        },
+        width: 300
+      };
+
+      // Generar QR base
+      const qrBuffer = await qrcode.toBuffer(data, qrOptions);
+      
+      // Ruta al logo de Charlotte
+      const logoPathPng = join(process.cwd(), 'public', 'images', 'logos', 'Logo azul CCI INTL.png');
+      const logoPathJpg = join(process.cwd(), 'public', 'images', 'logos', 'cci-logo-azul.jpg');
+      
+      try {
+        // Intentar cargar el logo
+        let logoBuffer;
+        try {
+          logoBuffer = await sharp(logoPathPng).png().toBuffer();
+        } catch (error) {
+          console.log('No se pudo cargar el logo PNG, intentando con JPG...');
+          logoBuffer = await sharp(logoPathJpg).png().toBuffer();
+        }
+
+        // Obtener dimensiones del QR
+        const qrImage = sharp(qrBuffer);
+        const { width: qrWidth, height: qrHeight } = await qrImage.metadata();
+        
+        // Calcular tamaño del logo (20% del QR)
+        const logoSize = Math.floor((qrWidth || 300) * 0.2);
+        
+        // Redimensionar logo y crear fondo blanco
+        const resizedLogo = await sharp(logoBuffer)
+          .resize(logoSize, logoSize)
+          .toBuffer();
+
+        // Crear fondo blanco para el logo
+        const logoWithBackground = await sharp({
+          create: {
+            width: logoSize + 20,
+            height: logoSize + 20,
+            channels: 4,
+            background: { r: 255, g: 255, b: 255, alpha: 1 }
+          }
+        })
+        .composite([{
+          input: resizedLogo,
+          left: 10,
+          top: 10
+        }])
+        .png()
+        .toBuffer();
+
+        // Calcular posición central
+        const left = Math.floor(((qrWidth || 300) - (logoSize + 20)) / 2);
+        const top = Math.floor(((qrHeight || 300) - (logoSize + 20)) / 2);
+
+        // Combinar QR con logo
+        const finalImage = await qrImage
+          .composite([{
+            input: logoWithBackground,
+            left: left,
+            top: top
+          }])
+          .png()
+          .toBuffer();
+
+        return `data:image/png;base64,${finalImage.toString('base64')}`;
+        
+      } catch (logoError) {
+        console.log('No se pudo cargar ningún logo, generando QR sin logo:', logoError);
+        return `data:image/png;base64,${qrBuffer.toString('base64')}`;
+      }
+      
+    } catch (error) {
+      console.error('Error generando QR personalizado:', error);
+      // Fallback: generar QR normal si hay error
+      return await qrcode.toDataURL(data, {
+        errorCorrectionLevel: 'H',
+        color: {
+          dark: '#003366',
+          light: '#FFFFFF'
+        },
+        width: 300
+      });
+    }
   }
 
   // Endpoint para habilitar 2FA después de escanear el QR y verificar el código

@@ -17,7 +17,7 @@ import { CreateRoleDto, UpdateRoleDto, RoleResponseDto } from './Dto/role.dto';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 
 @ApiTags('Roles')
-@ApiBearerAuth()
+@ApiBearerAuth('Token')
 @UseGuards(AuthGuard)
 @Controller('roles')
 export class RolesController {

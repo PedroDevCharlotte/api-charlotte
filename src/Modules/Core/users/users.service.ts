@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './Entity/user.entity';
 import { Repository } from 'typeorm';
-import { UserLoginDto } from '../auth/dto/user-login.dto';
+import { UserLoginDto } from '../auth/Dto/user-login.dto';
 import { UserDto } from './Dto/user.dto';
 import { UpdateUserDto } from './Dto/update-user.dto';
 import * as bcrypt from 'bcrypt';
@@ -11,6 +11,7 @@ import { isError } from 'util';
 import { MailerService } from '@nestjs-modules/mailer';
 import { EmailService } from '../email/email.service';
 import { AuditService } from '../audit/audit.service';
+import { TicketType } from '../ticket-types/Entity/ticket-type.entity';
 import { 
   UserNotificationItem, 
   ExpiringPasswordUser, 
@@ -22,6 +23,8 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(TicketType)
+    private readonly ticketTypeRepository: Repository<TicketType>,
     private readonly mailService: MailerService, // Asegúrate de tener un servicio de correo
     private readonly emailService: EmailService, // Nuestro servicio de email mejorado
     private readonly auditService: AuditService, // Servicio de auditoría
@@ -63,7 +66,7 @@ export class UsersService {
 
     try {
       let users = await this.userRepository.find({
-        relations: ['role', 'department']
+        relations: ['role', 'department', 'manager', 'subordinates', 'supportTypes']
       });
       response.users = users.map((user) => {
         const respUser = new RespUserDto();
@@ -95,7 +98,7 @@ export class UsersService {
   async findById(userId: number): Promise<any | undefined> {
     return this.userRepository.findOne({ 
       where: { id: userId },
-      relations: ['role', 'department']
+      relations: ['role', 'department', 'manager', 'subordinates', 'supportTypes']
     });
   }
   async create(user: any, authToken?: string, ipAddress?: string, userAgent?: string): Promise<User> {
@@ -654,5 +657,202 @@ export class UsersService {
       console.error('Error obteniendo usuarios con contraseñas próximas a vencer:', error);
       throw new BadRequestException('Error al obtener la lista de usuarios.');
     }
+  }
+
+  // ========================================
+  // MÉTODOS PARA JERARQUÍA Y TIPOS DE SOPORTE
+  // ========================================
+
+  /**
+   * Obtener subordinados de un usuario
+   */
+  async getSubordinates(userId: number): Promise<User[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['subordinates', 'subordinates.role', 'subordinates.department']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    return user.subordinates || [];
+  }
+
+  /**
+   * Obtener jefe directo de un usuario
+   */
+  async getManager(userId: number): Promise<User | null> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['manager', 'manager.role', 'manager.department']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    return user.manager || null;
+  }
+
+  /**
+   * Asignar jefe a un usuario
+   */
+  async assignManager(userId: number, managerId: number): Promise<User> {
+    // Verificar que el usuario existe
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    // Verificar que el jefe existe
+    const manager = await this.userRepository.findOne({ where: { id: managerId } });
+    if (!manager) {
+      throw new NotFoundException(`Jefe con ID ${managerId} no encontrado`);
+    }
+
+    // Evitar bucles (el jefe no puede ser subordinado del usuario)
+    if (await this.wouldCreateHierarchyLoop(userId, managerId)) {
+      throw new BadRequestException('Esta asignación crearía un bucle en la jerarquía');
+    }
+
+    user.managerId = managerId;
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * Verificar si asignar un jefe crearía un bucle en la jerarquía
+   */
+  private async wouldCreateHierarchyLoop(userId: number, managerId: number): Promise<boolean> {
+    let currentManagerId: number | undefined = managerId;
+    const visitedIds = new Set<number>();
+
+    while (currentManagerId) {
+      if (visitedIds.has(currentManagerId)) {
+        return true; // Bucle detectado
+      }
+      
+      if (currentManagerId === userId) {
+        return true; // El usuario sería jefe de su jefe
+      }
+
+      visitedIds.add(currentManagerId);
+      
+      const manager = await this.userRepository.findOne({ 
+        where: { id: currentManagerId },
+        select: ['managerId']
+      });
+      
+      currentManagerId = manager?.managerId || undefined;
+    }
+
+    return false;
+  }
+
+  /**
+   * Obtener tipos de soporte que puede manejar un usuario
+   */
+  async getUserSupportTypes(userId: number): Promise<TicketType[]> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['supportTypes']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    return user.supportTypes || [];
+  }
+
+  /**
+   * Asignar tipos de soporte a un usuario
+   */
+  async assignSupportTypes(userId: number, supportTypeIds: number[]): Promise<User> {
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['supportTypes']
+    });
+
+    if (!user) {
+      throw new NotFoundException(`Usuario con ID ${userId} no encontrado`);
+    }
+
+    // Verificar que todos los tipos de soporte existen
+    const supportTypes = await this.ticketTypeRepository.findByIds(supportTypeIds);
+    if (supportTypes.length !== supportTypeIds.length) {
+      throw new BadRequestException('Algunos tipos de soporte no existen');
+    }
+
+    user.supportTypes = supportTypes;
+    return await this.userRepository.save(user);
+  }
+
+  /**
+   * Obtener usuarios que pueden dar soporte a un tipo específico
+   */
+  async getUsersBySupportType(ticketTypeId: number): Promise<User[]> {
+    const ticketType = await this.ticketTypeRepository.findOne({
+      where: { id: ticketTypeId },
+      relations: ['supportUsers', 'supportUsers.role', 'supportUsers.department']
+    });
+
+    if (!ticketType) {
+      throw new NotFoundException(`Tipo de ticket con ID ${ticketTypeId} no encontrado`);
+    }
+
+    return ticketType.supportUsers || [];
+  }
+
+  /**
+   * Obtener usuarios disponibles para ser jefes (excluyendo subordinados del usuario actual)
+   */
+  async getAvailableManagers(userId: number): Promise<User[]> {
+    // Obtener todos los subordinados del usuario (recursivamente) para excluirlos
+    const subordinateIds = await this.getAllSubordinateIds(userId);
+    subordinateIds.add(userId); // También excluir al usuario mismo
+
+    const queryBuilder = this.userRepository.createQueryBuilder('user')
+      .leftJoinAndSelect('user.role', 'role')
+      .leftJoinAndSelect('user.department', 'department')
+      .where('user.active = :active', { active: true });
+
+    if (subordinateIds.size > 0) {
+      queryBuilder.andWhere('user.id NOT IN (:...excludeIds)', { 
+        excludeIds: Array.from(subordinateIds) 
+      });
+    }
+
+    return await queryBuilder
+      .orderBy('user.firstName', 'ASC')
+      .addOrderBy('user.lastName', 'ASC')
+      .getMany();
+  }
+
+  /**
+   * Obtener todos los IDs de subordinados de un usuario recursivamente
+   */
+  private async getAllSubordinateIds(userId: number): Promise<Set<number>> {
+    const subordinateIds = new Set<number>();
+    
+    const processSubordinates = async (currentUserId: number) => {
+      const user = await this.userRepository.findOne({
+        where: { id: currentUserId },
+        relations: ['subordinates'],
+        select: ['id', 'subordinates']
+      });
+
+      if (user && user.subordinates) {
+        for (const subordinate of user.subordinates) {
+          if (!subordinateIds.has(subordinate.id)) {
+            subordinateIds.add(subordinate.id);
+            await processSubordinates(subordinate.id);
+          }
+        }
+      }
+    };
+
+    await processSubordinates(userId);
+    return subordinateIds;
   }
 }

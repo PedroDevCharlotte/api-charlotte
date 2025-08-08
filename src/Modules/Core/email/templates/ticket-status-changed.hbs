@@ -1,0 +1,218 @@
+{{> base title="Estado de Ticket Cambiado" headerColor=statusChange.newStatusColor}}
+
+{{#*inline "content"}}
+<div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; margin-bottom: 16px;">
+    <div style="width: 48px; height: 48px; background-color: {{statusChange.newStatusColor}}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+      <span style="color: white; font-size: 24px; font-weight: bold;">🔄</span>
+    </div>
+    <div>
+      <h2 style="margin: 0; color: {{statusChange.newStatusColor}}; font-size: 24px; font-weight: 600;">
+        {{#if isCopy}}CC: {{/if}}Estado de ticket actualizado
+      </h2>
+      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">
+        Ticket #{{ticket.ticketNumber}} • Cambiado por {{user.fullName}}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Cambio de estado destacado -->
+<div style="background-color: white; border-radius: 12px; border: 2px solid {{statusChange.newStatusColor}}; margin-bottom: 24px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, {{statusChange.newStatusColor}}, {{statusChange.newStatusColor}}dd); padding: 24px; color: white; text-align: center;">
+    <h2 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600;">Cambio de Estado</h2>
+    
+    <div style="display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;">
+      <!-- Estado anterior -->
+      <div style="text-align: center;">
+        <div style="background-color: rgba(255,255,255,0.2); border-radius: 8px; padding: 16px; margin-bottom: 8px;">
+          <span style="background-color: {{statusChange.oldStatusColor}}; color: white; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; opacity: 0.8; text-decoration: line-through;">
+            {{statusChange.oldStatus}}
+          </span>
+        </div>
+        <p style="margin: 0; font-size: 12px; opacity: 0.9;">Estado anterior</p>
+      </div>
+
+      <!-- Flecha -->
+      <div style="font-size: 32px; opacity: 0.9;">
+        ➡️
+      </div>
+
+      <!-- Estado nuevo -->
+      <div style="text-align: center;">
+        <div style="background-color: rgba(255,255,255,0.2); border-radius: 8px; padding: 16px; margin-bottom: 8px;">
+          <span style="background-color: white; color: {{statusChange.newStatusColor}}; padding: 8px 16px; border-radius: 20px; font-weight: 600; font-size: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+            {{ticket.status}}
+          </span>
+        </div>
+        <p style="margin: 0; font-size: 12px; opacity: 0.9;">Estado actual</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Información del ticket -->
+  <div style="padding: 24px;">
+    <h1 style="margin: 0 0 16px 0; font-size: 20px; font-weight: 600; color: #495057;">
+      {{ticket.title}}
+    </h1>
+
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 20px;">
+      <span style="background-color: rgba(255,255,255,0.1); border: 1px solid #e9ecef; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #6c757d;">
+        #{{ticket.ticketNumber}}
+      </span>
+      <span style="background-color: {{ticket.priorityColor}}; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.priority}}
+      </span>
+      <span style="background-color: {{ticket.statusColor}}; color: white; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.status}}
+      </span>
+    </div>
+
+    <div style="background-color: #e1f5fe; border: 1px solid #81d4fa; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 20px; margin-right: 8px;">👤</span>
+        <h3 style="margin: 0; color: #01579b; font-size: 16px;">Cambio realizado por:</h3>
+      </div>
+      <p style="margin: 0; color: #0277bd; font-weight: 500;">{{user.fullName}}</p>
+      <p style="margin: 4px 0 0 0; color: #0288d1; font-size: 14px;">{{user.email}}</p>
+    </div>
+
+    {{#if customMessage}}
+    <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 8px 0; color: #0056b3; font-size: 14px;">Mensaje adicional:</h4>
+      <p style="margin: 0; color: #495057;">{{breaklines customMessage}}</p>
+    </div>
+    {{/if}}
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Creado por:</strong>
+        <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.createdBy.fullName}}</p>
+      </div>
+      
+      {{#if ticket.assignedTo}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Asignado a:</strong>
+        <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
+      </div>
+      {{/if}}
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Tipo:</strong>
+        <p style="margin: 4px 0 0 0; color: #6f42c1;">{{ticket.ticketType.name}}</p>
+      </div>
+
+      {{#if ticket.formattedDueDate}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Fecha límite:</strong>
+        <p style="margin: 4px 0 0 0; color: #fd7e14;">{{ticket.formattedDueDate}}</p>
+      </div>
+      {{/if}}
+    </div>
+  </div>
+</div>
+
+<!-- Información del estado -->
+<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; padding: 20px;">
+  <h3 style="margin: 0 0 16px 0; color: #495057; font-size: 18px; font-weight: 600;">
+    {{#eq ticket.status "OPEN"}}📂 Ticket Abierto{{/eq}}
+    {{#eq ticket.status "IN_PROGRESS"}}⚡ En Progreso{{/eq}}
+    {{#eq ticket.status "WAITING_RESPONSE"}}⏳ Esperando Respuesta{{/eq}}
+    {{#eq ticket.status "ON_HOLD"}}⏸️ En Espera{{/eq}}
+    {{#eq ticket.status "RESOLVED"}}✅ Resuelto{{/eq}}
+    {{#eq ticket.status "CLOSED"}}🔒 Cerrado{{/eq}}
+    {{#eq ticket.status "CANCELLED"}}❌ Cancelado{{/eq}}
+  </h3>
+  
+  <div style="color: #6c757d; line-height: 1.6;">
+    {{#eq ticket.status "OPEN"}}
+    <p style="margin: 0;">El ticket está abierto y listo para ser trabajado. Será asignado a un agente especializado pronto.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "IN_PROGRESS"}}
+    <p style="margin: 0;">El ticket está siendo trabajado activamente. El agente asignado está investigando y resolviendo el problema.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "WAITING_RESPONSE"}}
+    <p style="margin: 0;">Se requiere información adicional o respuesta del solicitante para continuar con la resolución.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "ON_HOLD"}}
+    <p style="margin: 0;">El ticket está temporalmente pausado. Puede ser debido a dependencias externas o recursos no disponibles.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "RESOLVED"}}
+    <p style="margin: 0;">El problema ha sido resuelto. El ticket será cerrado automáticamente si no hay objeciones en las próximas 24 horas.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "CLOSED"}}
+    <p style="margin: 0;">El ticket ha sido completado y cerrado. La resolución está disponible en el historial del ticket.</p>
+    {{/eq}}
+    
+    {{#eq ticket.status "CANCELLED"}}
+    <p style="margin: 0;">El ticket ha sido cancelado. No se realizarán más acciones sobre este ticket.</p>
+    {{/eq}}
+  </div>
+</div>
+
+<!-- Botón de acción principal -->
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ticket.url}}" 
+     style="display: inline-block; background: linear-gradient(135deg, {{statusChange.newStatusColor}}, {{statusChange.newStatusColor}}dd); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: all 0.2s;">
+    🔍 Ver Ticket en el Sistema
+  </a>
+</div>
+
+{{#unless isCopy}}
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border-left: 4px solid {{statusChange.newStatusColor}};">
+  <h3 style="margin: 0 0 12px 0; color: #495057; font-size: 16px;">Próximos pasos:</h3>
+  <ul style="margin: 0; padding-left: 20px; color: #495057;">
+    {{#eq ticket.status "OPEN"}}
+    <li style="margin-bottom: 8px;">El ticket será asignado a un agente especializado</li>
+    <li style="margin-bottom: 8px;">Recibirás una notificación cuando sea asignado</li>
+    <li>Mantén este correo para referencia futura</li>
+    {{/eq}}
+    
+    {{#eq ticket.status "IN_PROGRESS"}}
+    <li style="margin-bottom: 8px;">El agente está trabajando en la resolución</li>
+    <li style="margin-bottom: 8px;">Recibirás actualizaciones conforme progrese</li>
+    <li>Proporciona información adicional si es solicitada</li>
+    {{/eq}}
+    
+    {{#eq ticket.status "WAITING_RESPONSE"}}
+    <li style="margin-bottom: 8px; color: #fd7e14; font-weight: 500;">Se requiere tu respuesta para continuar</li>
+    <li style="margin-bottom: 8px;">Revisa los comentarios más recientes</li>
+    <li>Responde lo antes posible para agilizar la resolución</li>
+    {{/eq}}
+    
+    {{#eq ticket.status "RESOLVED"}}
+    <li style="margin-bottom: 8px; color: #28a745; font-weight: 500;">Revisa la solución proporcionada</li>
+    <li style="margin-bottom: 8px;">Confirma si el problema está resuelto</li>
+    <li>El ticket se cerrará automáticamente en 24 horas</li>
+    {{/eq}}
+    
+    {{#eq ticket.status "CLOSED"}}
+    <li style="margin-bottom: 8px;">El ticket ha sido completado exitosamente</li>
+    <li style="margin-bottom: 8px;">La solución está documentada en el sistema</li>
+    <li>Puedes crear un nuevo ticket si tienes problemas similares</li>
+    {{/eq}}
+  </ul>
+</div>
+{{/unless}}
+{{/inline}}
+
+{{#*inline "footer"}}
+<div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 24px;">
+  <p style="margin: 0 0 8px 0;">
+    {{#if isCopy}}Recibiste este correo como copia de un cambio de estado{{else}}{{#if isMainRecipient}}Recibiste este correo porque estás relacionado con este ticket{{else}}Recibiste este correo porque eres participante en este ticket{{/if}}{{/if}}
+  </p>
+  <p style="margin: 0;">
+    Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}
+  </p>
+  {{#if systemInfo.supportEmail}}
+  <p style="margin: 8px 0 0 0;">
+    ¿Necesitas ayuda? Contacta: <a href="mailto:{{systemInfo.supportEmail}}" style="color: #007bff;">{{systemInfo.supportEmail}}</a>
+  </p>
+  {{/if}}
+</div>
+{{/inline}}

@@ -1,0 +1,247 @@
+{{> base title="Ticket Cerrado" headerColor="#6c757d"}}
+
+{{#*inline "content"}}
+<div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+  <div style="display: flex; align-items: center; margin-bottom: 16px;">
+    <div style="width: 48px; height: 48px; background-color: #6c757d; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+      <span style="color: white; font-size: 24px; font-weight: bold;">🔒</span>
+    </div>
+    <div>
+      <h2 style="margin: 0; color: #6c757d; font-size: 24px; font-weight: 600;">
+        {{#if isCopy}}CC: {{/if}}Ticket cerrado
+      </h2>
+      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">
+        Ticket #{{ticket.ticketNumber}} • Cerrado por {{user.fullName}}
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Estado de finalización -->
+<div style="background-color: white; border-radius: 12px; border: 2px solid #28a745; margin-bottom: 24px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+  <div style="background: linear-gradient(135deg, #28a745, #1e7e34); padding: 24px; color: white; text-align: center;">
+    <div style="font-size: 64px; margin-bottom: 16px;">✅</div>
+    <h2 style="margin: 0 0 8px 0; font-size: 28px; font-weight: 600;">Ticket Completado</h2>
+    <p style="margin: 0; font-size: 16px; opacity: 0.9;">El ticket ha sido resuelto y cerrado exitosamente</p>
+  </div>
+
+  <!-- Información del ticket -->
+  <div style="padding: 24px;">
+    <h1 style="margin: 0 0 16px 0; font-size: 22px; font-weight: 600; color: #495057; text-align: center;">
+      {{ticket.title}}
+    </h1>
+
+    <div style="display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 24px;">
+      <span style="background-color: #f8f9fa; border: 1px solid #e9ecef; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 500; color: #6c757d;">
+        #{{ticket.ticketNumber}}
+      </span>
+      <span style="background-color: {{ticket.priorityColor}}; color: white; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        {{ticket.priority}}
+      </span>
+      <span style="background-color: #6c757d; color: white; padding: 6px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
+        CERRADO
+      </span>
+    </div>
+
+    <!-- Información de cierre -->
+    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; margin-bottom: 20px; border-left: 4px solid #28a745;">
+      <div style="display: flex; align-items: center; margin-bottom: 12px;">
+        <span style="font-size: 20px; margin-right: 8px;">👤</span>
+        <h3 style="margin: 0; color: #155724; font-size: 16px;">Cerrado por:</h3>
+      </div>
+      <p style="margin: 0; color: #28a745; font-weight: 500; font-size: 16px;">{{user.fullName}}</p>
+      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">{{user.email}}</p>
+    </div>
+
+    {{#if customMessage}}
+    <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
+      <h4 style="margin: 0 0 8px 0; color: #0056b3; font-size: 14px;">Notas de cierre:</h4>
+      <p style="margin: 0; color: #495057;">{{breaklines customMessage}}</p>
+    </div>
+    {{/if}}
+
+    <!-- Resumen del ticket -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Solicitante:</strong>
+        <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.createdBy.fullName}}</p>
+        <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.createdBy.email}}</p>
+      </div>
+      
+      {{#if ticket.assignedTo}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Resuelto por:</strong>
+        <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
+        <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.assignedTo.email}}</p>
+      </div>
+      {{/if}}
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Tipo de ticket:</strong>
+        <p style="margin: 4px 0 0 0; color: #6f42c1;">{{ticket.ticketType.name}}</p>
+      </div>
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Fecha de creación:</strong>
+        <p style="margin: 4px 0 0 0; color: #6c757d;">{{ticket.formattedCreatedAt}}</p>
+      </div>
+
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Fecha de cierre:</strong>
+        <p style="margin: 4px 0 0 0; color: #28a745; font-weight: 500;">
+          {{#if ticket.closedAt}}
+          {{formatDate ticket.closedAt}}
+          {{else}}
+          Ahora
+          {{/if}}
+        </p>
+      </div>
+
+      {{#if ticket.department}}
+      <div>
+        <strong style="color: #495057; font-size: 14px;">Departamento:</strong>
+        <p style="margin: 4px 0 0 0; color: #17a2b8;">{{ticket.department.name}}</p>
+      </div>
+      {{/if}}
+    </div>
+
+    {{#if ticket.resolution}}
+    <div style="margin-bottom: 20px;">
+      <h3 style="margin: 0 0 12px 0; color: #495057; font-size: 16px; font-weight: 600;">📋 Resolución:</h3>
+      <div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 6px; padding: 16px; border-left: 4px solid #28a745;">
+        {{breaklines ticket.resolution}}
+      </div>
+    </div>
+    {{/if}}
+
+    {{#if ticket.hasAttachments}}
+    <div style="margin-bottom: 20px;">
+      <div style="display: flex; align-items: center; margin-bottom: 8px;">
+        <span style="font-size: 16px; margin-right: 8px;">📎</span>
+        <strong style="color: #495057; font-size: 14px;">Archivos del ticket ({{ticket.attachmentCount}}):</strong>
+      </div>
+      <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px;">
+        {{#each attachments}}
+        <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+          <span style="margin-right: 8px;">📄</span>
+          <span style="color: #007bff; font-weight: 500;">{{this.filename}}</span>
+          <span style="margin-left: auto; color: #6c757d; font-size: 12px;">({{this.fileSize}})</span>
+        </div>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+  </div>
+</div>
+
+<!-- Métricas del ticket -->
+<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; padding: 20px;">
+  <h3 style="margin: 0 0 16px 0; color: #495057; font-size: 18px; font-weight: 600; text-align: center;">📊 Resumen del Ticket</h3>
+  
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 16px; text-align: center;">
+    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+      <div style="font-size: 24px; color: #007bff; font-weight: bold; margin-bottom: 4px;">
+        {{#if ticket.totalDays}}{{ticket.totalDays}}{{else}}< 1{{/if}}
+      </div>
+      <div style="color: #6c757d; font-size: 12px; font-weight: 500;">
+        DÍAS ABIERTO
+      </div>
+    </div>
+    
+    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+      <div style="font-size: 24px; color: #28a745; font-weight: bold; margin-bottom: 4px;">
+        {{#if ticket.messageCount}}{{ticket.messageCount}}{{else}}0{{/if}}
+      </div>
+      <div style="color: #6c757d; font-size: 12px; font-weight: 500;">
+        COMENTARIOS
+      </div>
+    </div>
+    
+    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+      <div style="font-size: 24px; color: #6f42c1; font-weight: bold; margin-bottom: 4px;">
+        {{#if ticket.participantCount}}{{ticket.participantCount}}{{else}}1{{/if}}
+      </div>
+      <div style="color: #6c757d; font-size: 12px; font-weight: 500;">
+        PARTICIPANTES
+      </div>
+    </div>
+    
+    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 16px;">
+      <div style="font-size: 24px; color: #fd7e14; font-weight: bold; margin-bottom: 4px;">
+        ✅
+      </div>
+      <div style="color: #6c757d; font-size: 12px; font-weight: 500;">
+        RESUELTO
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Botón de acción principal -->
+<div style="text-align: center; margin: 32px 0;">
+  <a href="{{ticket.url}}" 
+     style="display: inline-block; background: linear-gradient(135deg, #6c757d, #495057); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3); transition: all 0.2s;">
+    📋 Ver Historial Completo
+  </a>
+</div>
+
+{{#unless isCopy}}
+<div style="background-color: #d4edda; border: 1px solid #c3e6cb; border-radius: 8px; padding: 20px; border-left: 4px solid #28a745;">
+  <h3 style="margin: 0 0 12px 0; color: #155724; font-size: 16px;">🎉 ¡Ticket completado exitosamente!</h3>
+  <ul style="margin: 0; padding-left: 20px; color: #155724;">
+    <li style="margin-bottom: 8px;">Tu problema ha sido resuelto satisfactoriamente</li>
+    <li style="margin-bottom: 8px;">Toda la información queda registrada en el sistema</li>
+    <li style="margin-bottom: 8px;">Puedes acceder al historial cuando necesites</li>
+    <li style="margin-bottom: 8px;">Si tienes problemas similares, puedes crear un nuevo ticket</li>
+    <li>Gracias por usar nuestro sistema de soporte técnico</li>
+  </ul>
+</div>
+{{/unless}}
+
+<!-- Encuesta de satisfacción -->
+<div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 8px; padding: 20px; margin-top: 20px; text-align: center;">
+  <h3 style="margin: 0 0 12px 0; color: #0056b3; font-size: 16px;">📝 Tu opinión es importante</h3>
+  <p style="margin: 0 0 16px 0; color: #495057;">
+    ¿Cómo calificarías el servicio recibido? Tu feedback nos ayuda a mejorar.
+  </p>
+  
+  <div style="display: flex; justify-content: center; gap: 8px; margin-bottom: 16px;">
+    <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}?rating=5" 
+       style="background-color: #28a745; color: white; text-decoration: none; padding: 8px 12px; border-radius: 20px; font-size: 18px;">
+      😊 Excelente
+    </a>
+    <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}?rating=4" 
+       style="background-color: #28a745; color: white; text-decoration: none; padding: 8px 12px; border-radius: 20px; font-size: 18px;">
+      🙂 Bueno
+    </a>
+    <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}?rating=3" 
+       style="background-color: #ffc107; color: #212529; text-decoration: none; padding: 8px 12px; border-radius: 20px; font-size: 18px;">
+      😐 Regular
+    </a>
+    <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}?rating=2" 
+       style="background-color: #fd7e14; color: white; text-decoration: none; padding: 8px 12px; border-radius: 20px; font-size: 18px;">
+      🙁 Malo
+    </a>
+  </div>
+  
+  <p style="margin: 0; color: #6c757d; font-size: 12px;">
+    Haz clic en una de las opciones para calificar nuestro servicio
+  </p>
+</div>
+{{/inline}}
+
+{{#*inline "footer"}}
+<div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 24px;">
+  <p style="margin: 0 0 8px 0;">
+    {{#if isCopy}}Recibiste este correo como copia del cierre de un ticket{{else}}{{#if isMainRecipient}}Recibiste este correo porque estás relacionado con este ticket{{else}}Recibiste este correo porque eres participante en este ticket{{/if}}{{/if}}
+  </p>
+  <p style="margin: 0;">
+    Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}
+  </p>
+  {{#if systemInfo.supportEmail}}
+  <p style="margin: 8px 0 0 0;">
+    ¿Necesitas ayuda? Contacta: <a href="mailto:{{systemInfo.supportEmail}}" style="color: #007bff;">{{systemInfo.supportEmail}}</a>
+  </p>
+  {{/if}}
+</div>
+{{/inline}}
