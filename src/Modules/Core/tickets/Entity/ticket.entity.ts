@@ -18,13 +18,12 @@ import { TicketAttachment } from './ticket-attachment.entity';
 import { TicketHistory } from './ticket-history.entity';
 
 export enum TicketStatus {
-  DRAFT = 'DRAFT',
   OPEN = 'OPEN',
   IN_PROGRESS = 'IN_PROGRESS',
-  WAITING_RESPONSE = 'WAITING_RESPONSE',
-  ON_HOLD = 'ON_HOLD',
-  RESOLVED = 'RESOLVED',
+  FOLLOW_UP = 'FOLLOW_UP',
+  COMPLETED = 'COMPLETED',
   CLOSED = 'CLOSED',
+  NON_CONFORMITY = 'NON_CONFORMITY',
   CANCELLED = 'CANCELLED',
 }
 

@@ -45,6 +45,6 @@ async function bootstrap() {
     credentials: true
   });
 
-  await app.listen(AppModule.Port || 3007);
+  await app.listen(AppModule.Port || 3006);
 }
 bootstrap();

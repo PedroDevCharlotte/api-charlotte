@@ -1,3 +1,12 @@
+function mapUser(user: any) {
+  if (!user) return null;
+  return {
+    id: user.id,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    email: user.email,
+  };
+}
 import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions, ILike } from 'typeorm';
@@ -49,6 +58,13 @@ export class TicketsService {
     private ticketNotificationService: TicketNotificationService,
   ) {}
 
+  async getAttachmentById(id: number) {
+    return this.attachmentRepository.findOne({
+      where: { id },
+      relations: ['uploadedBy']
+    });
+  }
+
   /**
    * Crear un nuevo ticket
    */
@@ -98,7 +114,7 @@ export class TicketsService {
   /**
    * Obtener todos los tickets con filtros
    */
-  async findAll(filters: TicketFilters, currentUserId: number): Promise<{ tickets: Ticket[]; total: number }> {
+  async findAll(filters: TicketFilters, currentUserId: number): Promise<{ tickets: any[]; total: number }> {
     const queryBuilder = this.ticketRepository.createQueryBuilder('ticket')
       .leftJoinAndSelect('ticket.ticketType', 'ticketType')
       .leftJoinAndSelect('ticket.creator', 'creator')
@@ -172,14 +188,46 @@ export class TicketsService {
     queryBuilder.orderBy('ticket.createdAt', 'DESC');
 
     const [tickets, total] = await queryBuilder.getManyAndCount();
-
-    return { tickets, total };
+    const formattedTickets = tickets.map(ticket => ({
+      ...ticket,
+      creator: mapUser(ticket.creator),
+      assignee: mapUser(ticket.assignee),
+      participants: ticket.participants?.map(p => ({
+        ...p,
+        user: mapUser(p.user)
+      })),
+      messages: ticket.messages?.map(msg => ({
+        ...msg,
+        sender: mapUser(msg.sender),
+        editedByUser: mapUser(msg.editedByUser),
+        // Si hay replyTo, mapear su sender
+        replyTo: msg.replyTo ? {
+          ...msg.replyTo,
+          sender: mapUser(msg.replyTo.sender)
+        } : null,
+        // Mapear uploadedBy en attachments
+        attachments: msg.attachments?.map(att => ({
+          ...att,
+          uploadedBy: mapUser(att.uploadedBy)
+        }))
+      })),
+      attachments: ticket.attachments?.map(att => ({
+        ...att,
+        uploadedBy: mapUser(att.uploadedBy)
+      })),
+      history: ticket.history?.map(h => ({
+        ...h,
+        user: mapUser(h.user)
+      }))
+    }));
+    return { tickets: formattedTickets, total };
   }
 
   /**
    * Obtener un ticket por ID
    */
-  async findOne(id: number, currentUserId: number): Promise<Ticket> {
+  async findOne(id: number, currentUserId: number): Promise<any> {
+    console.log("Id del usuario",currentUserId)
     const ticket = await this.ticketRepository.findOne({
       where: { id },
       relations: [
@@ -192,6 +240,7 @@ export class TicketsService {
         'messages',
         'messages.sender',
         'messages.replyTo',
+        'messages.attachments',
         'attachments',
         'attachments.uploadedBy',
         'history',
@@ -206,7 +255,39 @@ export class TicketsService {
     // Verificar permisos de acceso
     await this.checkTicketAccess(ticket, currentUserId);
 
-    return ticket;
+    // Mapear usuarios en la respuesta
+    return {
+      ...ticket,
+      creator: mapUser(ticket.creator),
+      assignee: mapUser(ticket.assignee),
+      participants: ticket.participants?.map(p => ({
+        ...p,
+        user: mapUser(p.user)
+      })),
+      messages: ticket.messages?.map(msg => ({
+        ...msg,
+        sender: mapUser(msg.sender),
+        editedByUser: mapUser(msg.editedByUser),
+        // Si hay replyTo, mapear su sender
+        replyTo: msg.replyTo ? {
+          ...msg.replyTo,
+          sender: mapUser(msg.replyTo.sender)
+        } : null,
+        // Mapear uploadedBy en attachments
+        attachments: msg.attachments?.map(att => ({
+          ...att,
+          uploadedBy: mapUser(att.uploadedBy)
+        }))
+      })),
+      attachments: ticket.attachments?.map(att => ({
+        ...att,
+        uploadedBy: mapUser(att.uploadedBy)
+      })),
+      history: ticket.history?.map(h => ({
+        ...h,
+        user: mapUser(h.user)
+      }))
+    };
   }
 
   /**
@@ -253,9 +334,15 @@ export class TicketsService {
     
     // Verificar permisos
     await this.checkAssignPermissions(ticket, currentUserId);
-
+    // Buscar el nuevo usuario asignado
+    const newAssignee = await this.userRepository.findOne({ where: { id: assigneeId } });
+    if (!newAssignee) {
+      throw new NotFoundException('Usuario asignado no encontrado');
+    }
     const oldAssignee = ticket.assignedTo;
     ticket.assignedTo = assigneeId;
+    ticket.assignee = newAssignee;
+
     
     await this.ticketRepository.save(ticket);
 
@@ -318,7 +405,7 @@ export class TicketsService {
       ticketId,
       currentUserId,
       HistoryAction.CLOSED,
-      { status: TicketStatus.RESOLVED },
+      { status: TicketStatus.COMPLETED },
       { status: TicketStatus.CLOSED, closedAt: ticket.closedAt }
     );
 
@@ -532,7 +619,7 @@ export class TicketsService {
   }
 
   private async handleStatusChange(ticket: Ticket, oldStatus: TicketStatus, newStatus: TicketStatus, userId: number): Promise<void> {
-    if (newStatus === TicketStatus.RESOLVED && !ticket.resolvedAt) {
+    if (newStatus === TicketStatus.COMPLETED && !ticket.resolvedAt) {
       ticket.resolvedAt = new Date();
     }
 
@@ -985,6 +1072,44 @@ export class TicketsService {
     } catch (error) {
       console.error('Error obteniendo usuarios:', error);
       return { error: error.message };
+    }
+  }
+
+  /**
+   * Obtener usuarios activos que pueden atender un tipo de ticket específico
+   */
+  async getUsersByTicketType(ticketTypeId: number, page = 1, limit = 20): Promise<{ total: number; page: number; limit: number; users: any[] }> {
+    try {
+      // Verificar que el tipo de ticket existe
+      const ticketType = await this.ticketTypeRepository.findOne({ where: { id: ticketTypeId } });
+      if (!ticketType) {
+        throw new NotFoundException(`Tipo de ticket con ID ${ticketTypeId} no encontrado`);
+      }
+
+      const query = this.userRepository.createQueryBuilder('user')
+        .innerJoin('user.supportTypes', 'supportType', 'supportType.id = :ticketTypeId', { ticketTypeId })
+        .where('user.active = :active', { active: true });
+
+      const total = await query.getCount();
+
+      const users = await query
+        .skip((page - 1) * limit)
+        .take(limit)
+        .getMany();
+
+      const mapped = users.map(u => ({
+        id: u.id,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        email: u.email,
+        departmentId: u.departmentId,
+        active: u.active
+      }));
+
+      return { total, page, limit, users: mapped };
+    } catch (error) {
+      console.error(`Error obteniendo usuarios por tipo de ticket ${ticketTypeId}:`, error);
+      throw error;
     }
   }
 }

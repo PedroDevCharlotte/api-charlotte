@@ -268,8 +268,10 @@ curl -X POST http://localhost:3006/tickets/complete \
 
 Los tickets se crean automáticamente con estado `OPEN` y pueden transicionar a:
 - `IN_PROGRESS` - En progreso
-- `WAITING_RESPONSE` - Esperando respuesta  
-- `ON_HOLD` - En espera
-- `RESOLVED` - Resuelto
+Los tickets se crean automáticamente con estado `OPEN` y pueden transicionar a:
+- `IN_PROGRESS` - En progreso
+- `FOLLOW_UP` - En seguimiento / esperando acción
+- `COMPLETED` - Completado
 - `CLOSED` - Cerrado
+- `NON_CONFORMITY` - No conformidad
 - `CANCELLED` - Cancelado

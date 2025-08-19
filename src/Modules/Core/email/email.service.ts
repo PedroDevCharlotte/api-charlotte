@@ -82,6 +82,19 @@ export class EmailService {
       if (!str) return '';
       return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
     });
+
+    // Registrar partials básicos (por ejemplo 'base') leyendo archivos desde templates
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const partialPath = path.join(__dirname, 'templates', 'base.hbs');
+      if (fs.existsSync(partialPath)) {
+        const basePartial = fs.readFileSync(partialPath, 'utf8');
+        Handlebars.registerPartial('base', basePartial);
+      }
+    } catch (err) {
+      this.logger.warn('Could not register handlebars partials automatically:', err?.message || err);
+    }
   }
 
   /**
@@ -141,8 +154,10 @@ export class EmailService {
         context,
       });
     } catch (error) {
-      console.error('Error sending email with template:', error);
-      throw new Error('Failed to send email with template');
+  this.logger.error('Error sending email with template:', error?.message || error);
+  this.logger.error('Template send error full:', error);
+  // Rethrow with original message for better diagnostics upstream
+  throw new Error(`Failed to send email with template '${template}' to '${to}': ${error?.message || error}`);
     }
   }
 

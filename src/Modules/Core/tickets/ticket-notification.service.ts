@@ -59,14 +59,13 @@ export class TicketNotificationService {
    */
   private getStatusColor(status: TicketStatus): string {
     const colors = {
-      'DRAFT': '#6c757d',
-      'OPEN': '#007bff',
-      'IN_PROGRESS': '#17a2b8',
-      'WAITING_RESPONSE': '#ffc107',
-      'ON_HOLD': '#fd7e14',
-      'RESOLVED': '#28a745',
-      'CLOSED': '#343a40',
-      'CANCELLED': '#dc3545'
+  'OPEN': '#007bff',
+  'IN_PROGRESS': '#17a2b8',
+  'FOLLOW_UP': '#ffc107',
+  'COMPLETED': '#28a745',
+  'CLOSED': '#343a40',
+  'NON_CONFORMITY': '#6f42c1',
+  'CANCELLED': '#dc3545'
     };
     return colors[status] || '#6c757d';
   }
@@ -126,8 +125,19 @@ export class TicketNotificationService {
       
       const emailContext = this.getTicketEmailContext(context);
 
+      // Validar y filtrar destinatarios
+      const isValidEmail = (e: string) => typeof e === 'string' && /.+@.+\..+/.test(e.trim());
+      const toRecipients = Array.isArray(context.recipients?.to) ? context.recipients.to : [];
+      const ccRecipients = Array.isArray(context.recipients?.cc) ? context.recipients.cc : [];
+
+      const validTo = toRecipients.map(r => (r || '').toString().trim()).filter(isValidEmail);
+      const invalidTo = toRecipients.filter(r => !isValidEmail((r || '').toString()));
+      if (invalidTo.length) {
+        this.logger.warn(`Invalid 'to' recipients filtered out: ${JSON.stringify(invalidTo)}`);
+      }
+
       // Enviar a destinatarios principales
-      for (const recipient of context.recipients.to) {
+      for (const recipient of validTo) {
         await this.emailService.sendEmailWithTemplate(
           recipient,
           subject,
@@ -141,8 +151,13 @@ export class TicketNotificationService {
       }
 
       // Enviar copias si existen
-      if (context.recipients.cc?.length) {
-        for (const ccRecipient of context.recipients.cc) {
+      if (ccRecipients.length) {
+        const validCc = ccRecipients.map(r => (r || '').toString().trim()).filter(isValidEmail);
+        const invalidCc = ccRecipients.filter(r => !isValidEmail((r || '').toString()));
+        if (invalidCc.length) {
+          this.logger.warn(`Invalid 'cc' recipients filtered out: ${JSON.stringify(invalidCc)}`);
+        }
+        for (const ccRecipient of validCc) {
           await this.emailService.sendEmailWithTemplate(
             ccRecipient,
             `CC: ${subject}`,
@@ -226,11 +241,11 @@ export class TicketNotificationService {
       let statusEmoji = '🔄';
       switch (newStatus) {
         case TicketStatus.IN_PROGRESS: statusEmoji = '⚡'; break;
-        case TicketStatus.RESOLVED: statusEmoji = '✅'; break;
+        case TicketStatus.FOLLOW_UP: statusEmoji = '🔁'; break;
+        case TicketStatus.COMPLETED: statusEmoji = '✅'; break;
         case TicketStatus.CLOSED: statusEmoji = '🔒'; break;
         case TicketStatus.CANCELLED: statusEmoji = '❌'; break;
-        case TicketStatus.ON_HOLD: statusEmoji = '⏸️'; break;
-        case TicketStatus.WAITING_RESPONSE: statusEmoji = '⏳'; break;
+        case TicketStatus.NON_CONFORMITY: statusEmoji = '⚠️'; break;
       }
 
       const subject = `${statusEmoji} Estado Cambiado: ${context.ticket.title} (#${context.ticket.ticketNumber})`;

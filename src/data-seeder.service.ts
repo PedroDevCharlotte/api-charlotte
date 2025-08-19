@@ -47,11 +47,11 @@ export class DataSeederService implements OnModuleInit {
       console.log('🌱 Iniciando seeding de datos...');
       
       // Verificar si ya hay datos
-      const roleCount = await this.roleRepository.count();
-      const departmentCount = await this.departmentRepository.count();
-      const ticketTypeCount = await this.ticketTypeRepository.count();
-      const ticketCount = await this.ticketRepository.count();
-      const generalListCount = await this.generalListRepository.count();
+      // const roleCount = await this.roleRepository.count();
+      // const departmentCount = await this.departmentRepository.count();
+      // const ticketTypeCount = await this.ticketTypeRepository.count();
+      // const ticketCount = await this.ticketRepository.count();
+      // const generalListCount = await this.generalListRepository.count();
       
       // if (roleCount === 0) {
       //   await this.seedRoles();
@@ -74,12 +74,12 @@ export class DataSeederService implements OnModuleInit {
       // }
 
       // Seed de listas generales para tipos de ticket
-      if (generalListCount === 0) {
-        await this.seedTicketTypeLists();
-      }
+      // if (generalListCount === 0) {
+      //   await this.seedTicketTypeLists();
+      // }
 
       // Seed de jerarquía de usuarios y tipos de soporte
-      await this.userHierarchySeederService.seedUserHierarchyAndSupport();
+      // await this.userHierarchySeederService.seedUserHierarchyAndSupport();
       // }
       
       // Actualizar usuarios existentes que no tengan roleId
@@ -373,7 +373,7 @@ export class DataSeederService implements OnModuleInit {
       {
         title: 'Reporte de ventas mensual - Marzo 2025',
         description: 'Generar el reporte consolidado de ventas del mes de marzo con comparativas del año anterior.',
-        status: TicketStatus.WAITING_RESPONSE,
+        status: TicketStatus.FOLLOW_UP,
         priority: TicketPriority.MEDIUM,
         ticketTypeId: reporteType?.id || ticketTypes[0].id,
         departmentId: departments[0].id,

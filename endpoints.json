@@ -2780,14 +2780,13 @@
               "items": {
                 "type": "string",
                 "enum": [
-                  "DRAFT",
-                  "OPEN",
-                  "IN_PROGRESS",
-                  "WAITING_RESPONSE",
-                  "ON_HOLD",
-                  "RESOLVED",
-                  "CLOSED",
-                  "CANCELLED"
+                    "OPEN",
+                    "IN_PROGRESS",
+                    "FOLLOW_UP",
+                    "COMPLETED",
+                    "CLOSED",
+                    "NON_CONFORMITY",
+                    "CANCELLED"
                 ]
               }
             }

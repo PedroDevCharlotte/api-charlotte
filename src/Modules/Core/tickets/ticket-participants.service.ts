@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { TicketParticipant, ParticipantRole } from './Entity/ticket-participant.entity';
+import { TicketStatus } from './Entity/ticket.entity';
 import { User } from '../users/Entity/user.entity';
 import { AddParticipantDto, UpdateParticipantDto } from './Dto/ticket-participant.dto';
 import { TicketsService } from './tickets.service';
@@ -208,11 +209,11 @@ export class TicketParticipantsService {
     }, {} as Record<string, number>);
 
     const activeTickets = participations.filter(p => 
-      p.ticket.status !== 'CLOSED' && p.ticket.status !== 'CANCELLED'
+      p.ticket.status !== TicketStatus.CLOSED && p.ticket.status !== TicketStatus.CANCELLED
     ).length;
 
     const closedTickets = participations.filter(p => 
-      p.ticket.status === 'CLOSED'
+      p.ticket.status === TicketStatus.CLOSED
     ).length;
 
     return {

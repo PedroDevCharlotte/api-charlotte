@@ -6,7 +6,7 @@
   "password": "1234567",
   "database": "charlottecore",
   "autoLoadEntities": true,
-  "synchronize": true,
+  "synchronize": false,
   "migrations": [
     "dist/Modules/Database/Migrations/*.js"
   ],

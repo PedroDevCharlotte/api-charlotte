@@ -1,3 +1,4 @@
+import { TicketAttachment } from './ticket-attachment.entity';
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -78,6 +79,9 @@ export class TicketMessage {
   // Control de lectura
   @OneToMany(() => TicketMessageRead, read => read.message, { cascade: true })
   reads: TicketMessageRead[];
+
+  @OneToMany(() => TicketAttachment, attachment => attachment.message)
+  attachments: TicketAttachment[];
 
   @CreateDateColumn()
   createdAt: Date;

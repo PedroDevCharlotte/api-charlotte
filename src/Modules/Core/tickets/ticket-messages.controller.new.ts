@@ -30,6 +30,8 @@ import {
   TicketMessageResponseDto,
   TicketMessageListResponseDto,
 } from './Dto/ticket-message.dto';
+import { UseInterceptors, UploadedFiles } from '@nestjs/common';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @ApiTags('Ticket Messages')
 @ApiBearerAuth('Token')
@@ -63,6 +65,57 @@ export class TicketMessagesController {
     const messageDto = { ...createMessageDto, ticketId };
     const message = await this.messagesService.create(messageDto, userId);
     
+    return {
+      id: message.id,
+      ticketId: message.ticketId,
+      senderId: message.senderId,
+      content: message.content,
+      type: message.type,
+      isInternal: message.isInternal,
+      metadata: message.metadata,
+      replyToId: message.replyToId,
+      createdAt: message.createdAt,
+      editedAt: message.editedAt,
+    } as TicketMessageResponseDto;
+  }
+
+  @Post('with-attachments')
+  @ApiOperation({ summary: 'Crear un mensaje con archivos adjuntos y notificación automática' })
+  @ApiParam({ name: 'ticketId', description: 'ID del ticket', type: Number })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Mensaje creado exitosamente con archivos adjuntos y notificación',
+    type: TicketMessageResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.BAD_REQUEST,
+    description: 'Datos de entrada inválidos',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'No tienes permisos para escribir en este ticket',
+  })
+  @ApiBearerAuth('Token')
+  @UseInterceptors(AnyFilesInterceptor())
+  async createWithAttachments(
+    @Param('ticketId', ParseIntPipe) ticketId: number,
+    @Body() formData: any,
+    @UploadedFiles() files: any[],
+    @Token('id') userId: number,
+  ): Promise<TicketMessageResponseDto> {
+    // Construir DTO base
+    const createMessageDto: CreateTicketMessageDto = {
+      ticketId,
+      content: formData.content,
+      type: formData.type,
+      replyToId: formData.replyToId ? parseInt(formData.replyToId) : undefined,
+      isInternal: formData.isInternal === 'true' || formData.isInternal === true,
+      metadata: formData.metadata ? JSON.parse(formData.metadata) : undefined,
+    };
+
+    // Lógica en el servicio: guardar mensaje, archivos, actualizar participantes y notificar
+    const message = await this.messagesService.createWithAttachments(createMessageDto, userId, files);
+
     return {
       id: message.id,
       ticketId: message.ticketId,

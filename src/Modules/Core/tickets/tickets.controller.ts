@@ -13,6 +13,7 @@ import {
   ValidationPipe,
   UseInterceptors,
   UploadedFiles,
+  Res,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -29,7 +30,9 @@ import { Token } from '../../../Common/Decorators/token.decorator';
 import { TicketsService, TicketFilters } from './tickets.service';
 import { Ticket, TicketStatus, TicketPriority } from './Entity/ticket.entity';
 import { CreateTicketDto, UpdateTicketDto, TicketResponseDto, TicketListResponseDto } from './Dto/ticket.dto';
+import { AssignTicketDto } from './Dto/assign-ticket.dto';
 import { CreateCompleteTicketDto, CompleteTicketResponseDto } from './Dto/create-complete-ticket.dto';
+import * as jwt from 'jsonwebtoken';
 
 interface TicketQueryFilters {
   status?: TicketStatus | TicketStatus[];
@@ -54,6 +57,55 @@ interface TicketQueryFilters {
 @Controller('tickets')
 export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
+  @Get('attachments/:id/download')
+  @ApiOperation({ summary: 'Descargar archivo adjunto por id' })
+  async downloadAttachmentById(@Param('id', ParseIntPipe) id: number, @Res() res) {
+    const attachment = await this.ticketsService.getAttachmentById(id);
+    if (!attachment) {
+      return res.status(404).json({ message: 'Archivo adjunto no encontrado' });
+    }
+    const path = require('path');
+    const fs = require('fs');
+    const filePath = path.join(process.cwd(), attachment.filePath.replace(/\\/g, path.sep));
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ message: 'Archivo físico no encontrado' });
+    }
+    res.setHeader('Content-Type', attachment.mimeType || 'application/octet-stream');
+    res.setHeader('Content-Disposition', `attachment; filename="${attachment.originalFileName || attachment.fileName}"`);
+    const stream = fs.createReadStream(filePath);
+    stream.pipe(res);
+  }
+
+  @Get('attachments/:id')
+  @ApiOperation({ summary: 'Obtener metadata de un archivo adjunto por id' })
+  async getAttachmentById(@Param('id', ParseIntPipe) id: number) {
+    const attachment = await this.ticketsService.getAttachmentById(id);
+    if (!attachment) {
+      return { statusCode: 404, message: 'Archivo adjunto no encontrado' };
+    }
+    // Mapear uploader
+    const uploader = attachment.uploadedBy ? {
+      id: attachment.uploadedBy.id,
+      firstName: attachment.uploadedBy.firstName,
+      lastName: attachment.uploadedBy.lastName,
+      email: attachment.uploadedBy.email
+    } : null;
+    // Solo exponer campos relevantes
+    return {
+      id: attachment.id,
+      ticketId: attachment.ticketId,
+      messageId: attachment.messageId,
+      fileName: attachment.fileName,
+      originalFileName: attachment.originalFileName,
+      filePath: attachment.filePath,
+      mimeType: attachment.mimeType,
+      fileSize: attachment.fileSize,
+      isPublic: attachment.isPublic,
+      description: attachment.description,
+      uploadedAt: attachment.uploadedAt,
+      uploadedBy: uploader
+    };
+  }
 
   @Post()
   @ApiOperation({ summary: 'Crear un nuevo ticket' })
@@ -70,6 +122,7 @@ export class TicketsController {
     @Body(ValidationPipe) createTicketDto: CreateTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
+  
     const ticket = await this.ticketsService.create(createTicketDto, userId);
     return new TicketResponseDto(ticket);
   }
@@ -162,6 +215,28 @@ export class TicketsController {
     return await this.ticketsService.getAvailableUsers();
   }
 
+  @Get('available-by-type/:ticketTypeId')
+  @ApiOperation({ summary: 'Obtener usuarios activos que pueden atender un tipo de ticket' })
+  @ApiParam({ name: 'ticketTypeId', description: 'ID del tipo de ticket', type: Number })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  async getUsersByTicketType(
+    @Param('ticketTypeId', ParseIntPipe) ticketTypeId: number,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const p = page ? Number(page) : 1;
+    const l = limit ? Number(limit) : 20;
+    const result = await this.ticketsService.getUsersByTicketType(ticketTypeId, p, l);
+    return {
+      ticketTypeId,
+      total: result.total,
+      page: result.page,
+      limit: result.limit,
+      users: result.users
+    };
+  }
+
   @Post('complete-json')
   @ApiOperation({ 
     summary: 'Crear un ticket completo con asignación automática (JSON)',
@@ -211,6 +286,7 @@ export class TicketsController {
     @Token('id') userId: number,
   ): Promise<TicketListResponseDto> {
     // Convertir strings de query params a arrays y tipos apropiados
+    
     const processedFilters: TicketFilters = {
       ...filters,
       status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
@@ -249,6 +325,8 @@ export class TicketsController {
     @Token('id') userId: number,
   ): Promise<TicketListResponseDto> {
     // Convertir query filters a TicketFilters y agregar createdBy
+    // Decodificar el token JWT para obtener el userId
+    
     const processedFilters: TicketFilters = {
       status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
       priority: filters.priority ? (Array.isArray(filters.priority) ? filters.priority : [filters.priority]) : undefined,
@@ -286,6 +364,7 @@ export class TicketsController {
     @Query() filters: TicketQueryFilters,
     @Token('id') userId: number,
   ): Promise<TicketListResponseDto> {
+    
     // Convertir query filters a TicketFilters y agregar assignedTo
     const processedFilters: TicketFilters = {
       status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
@@ -319,7 +398,11 @@ export class TicketsController {
     status: HttpStatus.OK,
     description: 'Estadísticas obtenidas exitosamente',
   })
-  async getStatistics(@Token('id') userId: number) {
+  async getStatistics(
+        @Token('id') userId: number,
+
+  ) {
+
     return await this.ticketsService.getStatistics(userId);
   }
 
@@ -343,6 +426,7 @@ export class TicketsController {
     @Param('id', ParseIntPipe) id: number,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
+    
     const ticket = await this.ticketsService.findOne(id, userId);
     return new TicketResponseDto(ticket);
   }
@@ -368,6 +452,7 @@ export class TicketsController {
     @Body(ValidationPipe) updateTicketDto: UpdateTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
+    
     const ticket = await this.ticketsService.update(id, updateTicketDto, userId);
     return new TicketResponseDto(ticket);
   }
@@ -382,10 +467,11 @@ export class TicketsController {
   })
   async assignTicket(
     @Param('id', ParseIntPipe) id: number,
-    @Body('assigneeId', ParseIntPipe) assigneeId: number,
+    @Body(ValidationPipe) assignDto: AssignTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    const ticket = await this.ticketsService.assignTicket(id, assigneeId, userId);
+    
+    const ticket = await this.ticketsService.assignTicket(id, assignDto.assigneeId, userId);
     return new TicketResponseDto(ticket);
   }
 
@@ -402,6 +488,7 @@ export class TicketsController {
     @Body('resolution') resolution: string,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
+    
     const ticket = await this.ticketsService.closeTicket(id, resolution, userId);
     return new TicketResponseDto(ticket);
   }
@@ -425,6 +512,7 @@ export class TicketsController {
     @Param('id', ParseIntPipe) id: number,
     @Token('id') userId: number,
   ): Promise<void> {
+    
     await this.ticketsService.remove(id, userId);
   }
 }

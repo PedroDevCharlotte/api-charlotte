@@ -171,7 +171,7 @@ Los siguientes campos son **obligatorios** en ambos endpoints:
     ticketNumber: string,
     title: string,
     description: string,
-    status: 'OPEN' | 'IN_PROGRESS' | 'RESOLVED' | 'CLOSED',
+    status: 'OPEN' | 'IN_PROGRESS' | 'FOLLOW_UP' | 'COMPLETED' | 'CLOSED' | 'NON_CONFORMITY' | 'CANCELLED',
     priority: 'URGENT' | 'HIGH' | 'MEDIUM' | 'LOW',
     // ... más campos del ticket
   },

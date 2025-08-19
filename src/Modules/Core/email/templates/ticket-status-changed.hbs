@@ -117,41 +117,41 @@
   <h3 style="margin: 0 0 16px 0; color: #495057; font-size: 18px; font-weight: 600;">
     {{#eq ticket.status "OPEN"}}📂 Ticket Abierto{{/eq}}
     {{#eq ticket.status "IN_PROGRESS"}}⚡ En Progreso{{/eq}}
-    {{#eq ticket.status "WAITING_RESPONSE"}}⏳ Esperando Respuesta{{/eq}}
-    {{#eq ticket.status "ON_HOLD"}}⏸️ En Espera{{/eq}}
-    {{#eq ticket.status "RESOLVED"}}✅ Resuelto{{/eq}}
+    {{#eq ticket.status "FOLLOW_UP"}}🔁 En Seguimiento{{/eq}}
+    {{#eq ticket.status "COMPLETED"}}✅ Completado{{/eq}}
     {{#eq ticket.status "CLOSED"}}🔒 Cerrado{{/eq}}
+    {{#eq ticket.status "NON_CONFORMITY"}}⚠️ No Conformidad{{/eq}}
     {{#eq ticket.status "CANCELLED"}}❌ Cancelado{{/eq}}
   </h3>
   
   <div style="color: #6c757d; line-height: 1.6;">
-    {{#eq ticket.status "OPEN"}}
-    <p style="margin: 0;">El ticket está abierto y listo para ser trabajado. Será asignado a un agente especializado pronto.</p>
-    {{/eq}}
+  {{#eq ticket.status "OPEN"}}
+  <p style="margin: 0;">El ticket está abierto y listo para ser trabajado. Será asignado a un agente especializado pronto.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "IN_PROGRESS"}}
-    <p style="margin: 0;">El ticket está siendo trabajado activamente. El agente asignado está investigando y resolviendo el problema.</p>
-    {{/eq}}
+  {{#eq ticket.status "IN_PROGRESS"}}
+  <p style="margin: 0;">El ticket está siendo trabajado activamente. El agente asignado está investigando y resolviendo el problema.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "WAITING_RESPONSE"}}
-    <p style="margin: 0;">Se requiere información adicional o respuesta del solicitante para continuar con la resolución.</p>
-    {{/eq}}
+  {{#eq ticket.status "FOLLOW_UP"}}
+  <p style="margin: 0;">El ticket requiere seguimiento. Se darán actualizaciones conforme se avance.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "ON_HOLD"}}
-    <p style="margin: 0;">El ticket está temporalmente pausado. Puede ser debido a dependencias externas o recursos no disponibles.</p>
-    {{/eq}}
+  {{#eq ticket.status "COMPLETED"}}
+  <p style="margin: 0;">La tarea asociada al ticket fue completada. Revisa la resolución y cierra el ticket si procede.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "RESOLVED"}}
-    <p style="margin: 0;">El problema ha sido resuelto. El ticket será cerrado automáticamente si no hay objeciones en las próximas 24 horas.</p>
-    {{/eq}}
+  {{#eq ticket.status "CLOSED"}}
+  <p style="margin: 0;">El ticket ha sido completado y cerrado. La resolución está disponible en el historial del ticket.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "CLOSED"}}
-    <p style="margin: 0;">El ticket ha sido completado y cerrado. La resolución está disponible en el historial del ticket.</p>
-    {{/eq}}
+  {{#eq ticket.status "NON_CONFORMITY"}}
+  <p style="margin: 0;">Se detectó una no conformidad. Requiere revisión y acciones correctivas.</p>
+  {{/eq}}
     
-    {{#eq ticket.status "CANCELLED"}}
-    <p style="margin: 0;">El ticket ha sido cancelado. No se realizarán más acciones sobre este ticket.</p>
-    {{/eq}}
+  {{#eq ticket.status "CANCELLED"}}
+  <p style="margin: 0;">El ticket ha sido cancelado. No se realizarán más acciones sobre este ticket.</p>
+  {{/eq}}
   </div>
 </div>
 
@@ -179,17 +179,17 @@
     <li>Proporciona información adicional si es solicitada</li>
     {{/eq}}
     
-    {{#eq ticket.status "WAITING_RESPONSE"}}
-    <li style="margin-bottom: 8px; color: #fd7e14; font-weight: 500;">Se requiere tu respuesta para continuar</li>
-    <li style="margin-bottom: 8px;">Revisa los comentarios más recientes</li>
-    <li>Responde lo antes posible para agilizar la resolución</li>
-    {{/eq}}
+  {{#eq ticket.status "FOLLOW_UP"}}
+  <li style="margin-bottom: 8px; color: #fd7e14; font-weight: 500;">Se requiere seguimiento para continuar</li>
+  <li style="margin-bottom: 8px;">Revisa los comentarios más recientes</li>
+  <li>Proporciona la información solicitada para agilizar la resolución</li>
+  {{/eq}}
     
-    {{#eq ticket.status "RESOLVED"}}
-    <li style="margin-bottom: 8px; color: #28a745; font-weight: 500;">Revisa la solución proporcionada</li>
-    <li style="margin-bottom: 8px;">Confirma si el problema está resuelto</li>
-    <li>El ticket se cerrará automáticamente en 24 horas</li>
-    {{/eq}}
+  {{#eq ticket.status "COMPLETED"}}
+  <li style="margin-bottom: 8px; color: #28a745; font-weight: 500;">Revisa la tarea completada</li>
+  <li style="margin-bottom: 8px;">Confirma si la tarea cumple con lo esperado</li>
+  <li>El ticket podrá cerrarse según el flujo de trabajo</li>
+  {{/eq}}
     
     {{#eq ticket.status "CLOSED"}}
     <li style="margin-bottom: 8px;">El ticket ha sido completado exitosamente</li>

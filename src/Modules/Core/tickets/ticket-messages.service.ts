@@ -36,6 +36,7 @@ export class TicketMessagesService {
   async create(createMessageDto: CreateTicketMessageDto, currentUserId: number): Promise<TicketMessage> {
     // Verificar acceso al ticket
     const ticket = await this.ticketsService.findOne(createMessageDto.ticketId, currentUserId);
+    console.log(' ------------------- Crear mensaje:  -----------------------------------', createMessageDto);
     
     // Verificar que el usuario puede escribir mensajes
     await this.checkWritePermissions(createMessageDto.ticketId, currentUserId);
@@ -50,7 +51,7 @@ export class TicketMessagesService {
         throw new BadRequestException('Mensaje padre no encontrado en este ticket');
       }
     }
-
+    
     // Crear el mensaje
     const message = this.messageRepository.create({
       ...createMessageDto,
@@ -63,6 +64,97 @@ export class TicketMessagesService {
 
     // Marcar como leído por el remitente
     await this.markAsRead(savedMessage.id, currentUserId);
+
+    return this.findOne(savedMessage.id, currentUserId);
+  }
+
+  /**
+   * Crear mensaje con archivos adjuntos, actualizar participantes y notificar
+   */
+  async createWithAttachments(
+    createMessageDto: CreateTicketMessageDto,
+    currentUserId: number,
+    files: any[]
+  ): Promise<TicketMessage> {
+    // 1. Verificar acceso y permisos
+    const ticket = await this.ticketsService.findOne(createMessageDto.ticketId, currentUserId);
+    await this.checkWritePermissions(createMessageDto.ticketId, currentUserId);
+
+    // 2. Si el usuario no es participante, agregarlo como colaborador
+    let participant = await this.participantRepository.findOne({ where: { ticketId: createMessageDto.ticketId, userId: currentUserId } });
+    if (!participant) {
+      const { ParticipantRole } = require('./Entity/ticket-participant.entity');
+      participant = this.participantRepository.create({
+        ticketId: createMessageDto.ticketId,
+        userId: currentUserId,
+        role: ParticipantRole.COLLABORATOR,
+        canEdit: false,
+        canComment: true,
+        canClose: false,
+        canAssign: false
+      });
+      await this.participantRepository.save(participant);
+    }
+
+    // 3. Crear el mensaje
+    const message = this.messageRepository.create({
+      ...createMessageDto,
+      senderId: currentUserId,
+      isInternal: createMessageDto.isInternal || false,
+    });
+    const savedMessage = await this.messageRepository.save(message);
+
+    // 4. Guardar archivos adjuntos si existen
+    if (files && files.length > 0) {
+      const fs = require('fs');
+      const path = require('path');
+      const uploadDir = 'uploads/ticket-messages';
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      for (const file of files) {
+        const timestamp = Date.now();
+        const randomStr = Math.random().toString(36).substring(2, 15);
+        const ext = path.extname(file.originalname);
+        const fileName = `${timestamp}_${randomStr}${ext}`;
+        const filePath = path.join(uploadDir, fileName);
+        fs.writeFileSync(filePath, file.buffer);
+        // Guardar registro en la base de datos (TicketAttachment)
+        const attachmentRepo = this.ticketsService['attachmentRepository'];
+        await attachmentRepo.save({
+          ticketId: createMessageDto.ticketId,
+          messageId: savedMessage.id,
+          uploadedById: currentUserId,
+          fileName,
+          originalFileName: file.originalname,
+          filePath,
+          mimeType: file.mimetype,
+          fileSize: file.size,
+          description: file.originalname
+        });
+      }
+    }
+
+    // 5. Marcar como leído por el remitente
+    await this.markAsRead(savedMessage.id, currentUserId);
+
+    // 6. Notificar a los destinatarios (usuario, técnico asignado, participantes)
+
+    // Notificar a los destinatarios (usuario, técnico asignado, participantes)
+    const notificationService = this.ticketsService['ticketNotificationService'];
+    if (notificationService?.notifyTicketCommented) {
+      // Buscar usuario que envía el mensaje
+      const userRepo = this.ticketsService['userRepository'];
+      const user = await userRepo.findOne({ where: { id: currentUserId } });
+      if (!user) throw new NotFoundException('Usuario no encontrado para notificación');
+      await notificationService.notifyTicketCommented({
+        ticket,
+        action: 'commented',
+        user,
+        message: savedMessage,
+        recipients: { to: [] } // dejar que el servicio resuelva destinatarios reales
+      });
+    }
 
     return this.findOne(savedMessage.id, currentUserId);
   }
