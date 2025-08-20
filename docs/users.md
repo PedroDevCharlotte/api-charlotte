@@ -19,6 +19,7 @@ Endpoints de utilidades
 - POST `/user/verify-password-reset` — Verificar código y establecer nueva contraseña.
 - POST `/user/check-password-expiration` — (Admin) verificar contraseñas próximas a expirar y enviar notificaciones.
 - GET `/user/expiring-passwords/:days` — Obtener usuarios con contraseñas próximas a expirar (privado).
+- GET `/user/expiring-passwords` — Obtener usuarios con contraseñas próximas a expirar (versión sin parámetros).
 
 Jerarquía y soporte
 

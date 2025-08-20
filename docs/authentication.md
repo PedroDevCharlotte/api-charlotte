@@ -19,7 +19,9 @@ Endpoints principales
   - Respuesta: { otpauthUrl, secret, qrCode }
 
 - POST `/auth/2fa/enable` — Habilitar 2FA después de verificar el código (requiere token).
+  - Body: `Enable2FADto` { userId, token, twoFactorSecret?, temp2FASecret? }
 - POST `/auth/2fa/disable` — Deshabilitar 2FA (requiere token).
+  - Body: `Verify2FADto` { userId, token }
 
 - POST `/auth/change-first-password` — Cambiar contraseña en el primer login (requiere token en header).
   - Body: `ChangeFirstPasswordDto` { currentPassword, newPassword }
@@ -38,6 +40,16 @@ DTOs (resumen)
   - requires2FA? (boolean)
   - register2FA? (boolean)
   - user? (object con id, email, role, department)
+
+- `Enable2FADto`:
+  - userId (number)
+  - token (string, 6 dígitos del autenticador)
+  - twoFactorSecret? (string, opcional)
+  - temp2FASecret? (string, opcional)
+
+- `ChangeFirstPasswordDto`:
+  - currentPassword (string)
+  - newPassword (string, mínimo 8 caracteres)
 
 Ejemplo: login
 

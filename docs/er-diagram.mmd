@@ -5,9 +5,21 @@ erDiagram
         string firstName
         string lastName
         string email
+        string password
         int roleId FK
         int departmentId FK
         int managerId FK
+        boolean active
+        boolean isBlocked
+        boolean isTwoFactorEnabled
+        boolean isFirstLogin
+        string twoFactorSecret
+        string passwordResetCode
+        datetime passwordResetCodeExpiresAt
+        datetime last2FAVerifiedAt
+        int daysToPasswordExpiration
+        datetime dateToPasswordExpiration
+        array trustedDevices
     }
 
     ROLES {

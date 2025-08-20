@@ -26,3 +26,7 @@ mmdc -i docs/er-diagram.mmd -o docs/er-diagram.svg
 Notas:
 - Si el diagrama contiene caracteres especiales o nombres largos, puede requerir ajustar la opción `-w` (width) o `-H` (config) de la CLI.
 - El comando `npx` descargará temporalmente la dependencia la primera vez. Asegúrate de estar conectado a internet.
+- **Nota**: Si tienes problemas con la CLI de Mermaid (especialmente warnings sobre Puppeteer), usa las alternativas:
+  - VSCode con extensión "Mermaid Preview" o "Markdown Preview Mermaid Support"
+  - Sitio web https://mermaid.live para pegar el contenido y exportar manualmente
+  - Plugin de Mermaid para editores como Obsidian, Notion, etc.
