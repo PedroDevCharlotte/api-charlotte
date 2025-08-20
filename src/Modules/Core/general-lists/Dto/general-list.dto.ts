@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsString, IsOptional, IsBoolean, IsEnum, Length } from 'class-validator';
 import { ListCategory } from '../Entity/general-list.entity';
+import { ListOptionResponseDto } from './list-option.dto';
 
 export class CreateGeneralListDto {
   @ApiProperty({ example: 'TICKET_STATUS' })
@@ -121,52 +122,4 @@ export class GeneralListResponseDto {
   }
 }
 
-// Import para evitar circular dependency
-export class ListOptionResponseDto {
-  @ApiProperty()
-  id: number;
-
-  @ApiProperty()
-  code: string;
-
-  @ApiProperty()
-  value: string;
-
-  @ApiProperty()
-  displayText: string;
-
-  @ApiProperty()
-  description: string;
-
-  @ApiProperty()
-  color: string;
-
-  @ApiProperty()
-  icon: string;
-
-  @ApiProperty()
-  isDefault: boolean;
-
-  @ApiProperty()
-  isActive: boolean;
-
-  @ApiProperty()
-  sortOrder: number;
-
-  @ApiProperty()
-  metadata: any;
-
-  constructor(option: any) {
-    this.id = option.id;
-    this.code = option.code;
-    this.value = option.value;
-    this.displayText = option.displayText;
-    this.description = option.description;
-    this.color = option.color;
-    this.icon = option.icon;
-    this.isDefault = option.isDefault;
-    this.isActive = option.isActive;
-    this.sortOrder = option.sortOrder;
-    this.metadata = option.metadata;
-  }
-}
+// ListOptionResponseDto is imported from list-option.dto to avoid duplicate definitions
