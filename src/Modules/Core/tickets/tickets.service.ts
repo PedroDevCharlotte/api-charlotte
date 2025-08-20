@@ -541,12 +541,12 @@ export class TicketsService {
       const participant = this.participantRepository.create({
         ticketId,
         userId,
-        role,
+        role, 
         addedBy
       });
       await this.participantRepository.save(participant);
     }
-  }
+  } 
 
   private async createSystemMessage(ticketId: number, userId: number, content: string, metadata?: any): Promise<void> {
     const message = this.messageRepository.create({

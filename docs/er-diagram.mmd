@@ -1,0 +1,108 @@
+%% Mermaid ER diagram for api-charlotte (simplified)
+erDiagram
+    USERS {
+        int id PK
+        string firstName
+        string lastName
+        string email
+        int roleId FK
+        int departmentId FK
+        int managerId FK
+    }
+
+    ROLES {
+        int id PK
+        string name
+    }
+
+    DEPARTMENTS {
+        int id PK
+        string name
+    }
+
+    TICKET_TYPES {
+        int id PK
+        string name
+        int defaultUserId FK
+    }
+
+    TICKETS {
+        int id PK
+        string ticketNumber
+        string title
+        text description
+        enum status
+        enum priority
+        int ticketTypeId FK
+        int createdBy FK
+        int assignedTo FK
+        int departmentId FK
+        int parentTicketId FK
+    }
+
+    TICKET_PARTICIPANTS {
+        int id PK
+        int ticketId FK
+        int userId FK
+        enum role
+    }
+
+    TICKET_MESSAGES {
+        int id PK
+        int ticketId FK
+        int senderId FK
+        text content
+    }
+
+    TICKET_ATTACHMENTS {
+        int id PK
+        int ticketId FK
+        int messageId FK
+        int uploadedById FK
+        string filePath
+    }
+
+    TICKET_HISTORY {
+        int id PK
+        int ticketId FK
+        int userId FK
+        enum action
+    }
+
+    LIST_OPTIONS {
+        int id PK
+        int listId FK
+        string code
+        string displayText
+    }
+
+    GENERAL_LISTS {
+        int id PK
+        string code
+        string name
+    }
+
+    USERS ||--o{ ROLES : "roleId ->"
+    USERS }|--|| DEPARTMENTS : "departmentId ->"
+    USERS }|--o{ USERS : "managerId -> reports to"
+
+    TICKET_TYPES }|--|| USERS : "defaultUserId ->"
+    USERS }o--o{ TICKET_TYPES : "user_support_types (M:N)"
+
+    TICKETS }o--|| TICKET_TYPES : "ticketTypeId ->"
+    TICKETS }o--|| USERS : "createdBy ->"
+    TICKETS }o--|| USERS : "assignedTo ->"
+    TICKETS }o--|| DEPARTMENTS : "departmentId ->"
+    TICKETS }o--o{ TICKET_PARTICIPANTS : "ticketId ->"
+    TICKETS }o--o{ TICKET_MESSAGES : "ticketId ->"
+    TICKETS }o--o{ TICKET_ATTACHMENTS : "ticketId ->"
+    TICKETS }o--o{ TICKET_HISTORY : "ticketId ->"
+
+    TICKET_MESSAGES }o--o{ TICKET_ATTACHMENTS : "messageId ->"
+    TICKET_MESSAGES }o--|| USERS : "senderId ->"
+
+    TICKET_PARTICIPANTS }o--|| USERS : "userId ->"
+
+    LIST_OPTIONS }o--|| GENERAL_LISTS : "listId ->"
+
+%% End of ER diagram
