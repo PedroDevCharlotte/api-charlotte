@@ -5,6 +5,8 @@ import { TicketMessage, MessageType } from './Entity/ticket-message.entity';
 import { TicketMessageRead } from './Entity/ticket-message-read.entity';
 import { TicketParticipant } from './Entity/ticket-participant.entity';
 import { CreateTicketMessageDto, UpdateTicketMessageDto } from './Dto/ticket-message.dto';
+import { TicketStatus } from './Entity/ticket.entity';
+import { UpdateTicketDto } from './Dto/ticket.dto';
 import { TicketsService } from './tickets.service';
 
 export interface MessageFilters {
@@ -64,6 +66,45 @@ export class TicketMessagesService {
 
     // Marcar como leído por el remitente
     await this.markAsRead(savedMessage.id, currentUserId);
+
+    // Notificar por correo a destinatarios relevantes (participantes, assigned, creator)
+    try {
+      const recipients = await this.ticketsService.buildEmailRecipients(createMessageDto.ticketId, currentUserId);
+      const actor = await this.ticketsService['userRepository'].findOne({ where: { id: currentUserId } });
+      const ticketForEmail = await this.ticketsService.findOne(createMessageDto.ticketId, currentUserId);
+      const notificationService = this.ticketsService['ticketNotificationService'];
+      if (notificationService?.notifyTicketCommented) {
+        notificationService.notifyTicketCommented({
+          ticket: ticketForEmail,
+          action: 'commented',
+          user: actor || { id: currentUserId, firstName: '', lastName: '', email: '' } as any,
+          message: savedMessage,
+          attachments: [],
+          recipients
+        }).catch(err => console.error('Error enviando notificación por comentario:', err));
+      }
+    } catch (err) {
+      console.error('Error preparando notificación por comentario:', err);
+    }
+
+    // Si el remitente es el asignado, marcar FOLLOW_UP; si es el creador, marcar IN_PROGRESS.
+    try {
+      if (ticket) {
+        const assignedId = ticket.assignedTo && (typeof ticket.assignedTo === 'object' ? ticket.assignedTo.id : ticket.assignedTo);
+        const creatorId = ticket.createdBy && (typeof ticket.createdBy === 'object' ? ticket.createdBy.id : ticket.createdBy);
+
+        // Si el remitente es el asignado -> FOLLOW_UP (prioritario)
+        if (assignedId && savedMessage.senderId === assignedId && ticket.status !== TicketStatus.FOLLOW_UP) {
+          await this.ticketsService.update(ticket.id, { status: TicketStatus.FOLLOW_UP } as UpdateTicketDto, currentUserId);
+        // Si el remitente es el creador -> IN_PROGRESS
+        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS) {
+          await this.ticketsService.update(ticket.id, { status: TicketStatus.IN_PROGRESS } as UpdateTicketDto, currentUserId);
+        }
+      }
+    } catch (err) {
+      // No detener el flujo si la actualización de estado falla; loguear para diagnóstico
+      console.error('Error al intentar cambiar status tras crear mensaje:', err);
+    }
 
     return this.findOne(savedMessage.id, currentUserId);
   }
@@ -138,6 +179,22 @@ export class TicketMessagesService {
     // 5. Marcar como leído por el remitente
     await this.markAsRead(savedMessage.id, currentUserId);
 
+    // Si el remitente es el asignado, marcar FOLLOW_UP; si es el creador, marcar IN_PROGRESS.
+    try {
+      if (ticket) {
+        const assignedId = ticket.assignedTo && (typeof ticket.assignedTo === 'object' ? ticket.assignedTo.id : ticket.assignedTo);
+        const creatorId = ticket.createdBy && (typeof ticket.createdBy === 'object' ? ticket.createdBy.id : ticket.createdBy);
+
+        if (assignedId && savedMessage.senderId === assignedId && ticket.status !== TicketStatus.FOLLOW_UP) {
+          await this.ticketsService.update(ticket.id, { status: TicketStatus.FOLLOW_UP } as UpdateTicketDto, currentUserId);
+        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS) {
+          await this.ticketsService.update(ticket.id, { status: TicketStatus.IN_PROGRESS } as UpdateTicketDto, currentUserId);
+        }
+      }
+    } catch (err) {
+      console.error('Error al intentar cambiar status tras crear mensaje con adjuntos:', err);
+    }
+
     // 6. Notificar a los destinatarios (usuario, técnico asignado, participantes)
 
     // Notificar a los destinatarios (usuario, técnico asignado, participantes)
@@ -147,13 +204,20 @@ export class TicketMessagesService {
       const userRepo = this.ticketsService['userRepository'];
       const user = await userRepo.findOne({ where: { id: currentUserId } });
       if (!user) throw new NotFoundException('Usuario no encontrado para notificación');
-      await notificationService.notifyTicketCommented({
-        ticket,
-        action: 'commented',
-        user,
-        message: savedMessage,
-        recipients: { to: [] } // dejar que el servicio resuelva destinatarios reales
-      });
+      // Construir destinatarios y enviar notificación
+      try {
+        const recipients = await this.ticketsService.buildEmailRecipients(createMessageDto.ticketId, currentUserId);
+        await notificationService.notifyTicketCommented({
+          ticket,
+          action: 'commented',
+          user,
+          message: savedMessage,
+          attachments: [],
+          recipients
+        });
+      } catch (err) {
+        console.error('Error preparando o enviando notificación por comentario con adjuntos:', err);
+      }
     }
 
     return this.findOne(savedMessage.id, currentUserId);

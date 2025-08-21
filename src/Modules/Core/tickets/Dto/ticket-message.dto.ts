@@ -8,6 +8,7 @@ import {
   MinLength,
   IsObject
 } from 'class-validator';
+import { Transform } from 'class-transformer';
 import { MessageType } from '../Entity/ticket-message.entity';
 
 export class CreateTicketMessageDto {
@@ -59,6 +60,45 @@ export class UpdateTicketMessageDto {
 
   @ApiPropertyOptional({ description: 'Metadatos adicionales del mensaje' })
   @IsOptional()
+  @IsObject()
+  metadata?: Record<string, any>;
+}
+
+/**
+ * DTO para recibir FormData (multipart) en creación de mensajes.
+ * Convierte strings de formulario a tipos correctos y permite validación.
+ */
+export class CreateTicketMessageFormDto {
+  @ApiProperty({ description: 'Contenido del mensaje' })
+  @IsString()
+  @MinLength(1)
+  content: string;
+
+  @ApiPropertyOptional({ description: 'Tipo de mensaje', enum: MessageType })
+  @IsOptional()
+  @IsEnum(MessageType)
+  @Transform(({ value }) => (value === undefined || value === null ? undefined : (isNaN(Number(value)) ? value : Number(value))))
+  type?: MessageType | string | number;
+
+  @ApiPropertyOptional({ description: 'ID del mensaje al que responde' })
+  @IsOptional()
+  @Transform(({ value }) => (value === undefined || value === null || value === '' ? undefined : Number(value)))
+  @IsNumber()
+  replyToId?: number;
+
+  @ApiPropertyOptional({ description: 'Si el mensaje es interno', default: false })
+  @IsOptional()
+  @Transform(({ value }) => (value === 'true' || value === true))
+  @IsBoolean()
+  isInternal?: boolean;
+
+  @ApiPropertyOptional({ description: 'Metadatos adicionales (JSON string o object)' })
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value === undefined || value === null || value === '') return undefined;
+    if (typeof value === 'object') return value;
+    try { return JSON.parse(value); } catch { return value; }
+  })
   @IsObject()
   metadata?: Record<string, any>;
 }

@@ -30,3 +30,19 @@ Pruebas sugeridas
 Notas operativas
 - Usa el enum `TicketStatus` con los valores: OPEN, IN_PROGRESS, FOLLOW_UP, COMPLETED, CLOSED, NON_CONFORMITY, CANCELLED.
 - Emite notificaciones vía `TicketNotificationService` para envío de emails de forma asíncrona.
+
+Comportamiento al crear mensajes
+-------------------------------
+- Cuando se crea un mensaje en un ticket:
+	- Si el remitente es el usuario asignado al ticket, el estado del ticket se actualiza a `FOLLOW_UP` (prioritario sobre la regla del creador).
+	- Si el remitente es el creador del ticket, el estado del ticket se actualiza a `IN_PROGRESS`.
+	- Ambos cambios de estado generan un mensaje del sistema y disparan notificaciones por correo a los participantes relevantes.
+
+Destinatarios de notificaciones por correo
+-----------------------------------------
+- Las notificaciones por email (tanto por cambios de estado como por nuevos comentarios) se envían a:
+	- participantes del ticket,
+	- el usuario asignado,
+	- el creador del ticket.
+- El actor que origina la acción (quien crea el mensaje o cambia el estado) se excluye de la lista de destinatarios.
+

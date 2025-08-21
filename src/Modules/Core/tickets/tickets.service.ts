@@ -171,11 +171,36 @@ export class TicketsService {
       queryBuilder.andWhere('ticket.createdAt <= :dateTo', { dateTo: filters.dateTo });
     }
 
-    // Filtro de participación: solo tickets donde el usuario es participante
-    queryBuilder.andWhere(
-      '(ticket.createdBy = :userId OR ticket.assignedTo = :userId OR participants.userId = :userId)',
-      { userId: currentUserId }
-    );
+    // Filtrado por rol del usuario
+    try {
+      const currentUser = await this.userRepository.findOne({ where: { id: currentUserId }, relations: ['role', 'subordinates'] });
+      const roleName = (currentUser?.role?.name || '').toLowerCase();
+
+      // Administrador: ver todos
+      if (roleName.includes('admin') || roleName.includes('administrador')) {
+        // no aplicar filtros adicionales
+      } else if (roleName.includes('gerente') || roleName.includes('manager') || roleName.includes('jefe')) {
+        // Gerente: ver los que genera, los que está asignado y los que sus subordinados están asignados
+        const subIds = (currentUser?.subordinates || []).map(s => s.id).filter(Boolean);
+        if (subIds.length > 0) {
+          queryBuilder.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId OR ticket.assignedTo IN (:...subIds))', { userId: currentUserId, subIds });
+        } else {
+          queryBuilder.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId)', { userId: currentUserId });
+        }
+      } else if (roleName.includes('tec') || roleName.includes('soporte') || roleName.includes('technician')) {
+        // Técnico: ver los creados por él y los que está asignado
+        queryBuilder.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId)', { userId: currentUserId });
+      } else {
+        // Usuario normal (por defecto): solo tickets que él generó
+        queryBuilder.andWhere('ticket.createdBy = :userId', { userId: currentUserId });
+      }
+    } catch (err) {
+      // Fallback: aplicar filtro por participación si hay error al obtener usuario
+      queryBuilder.andWhere(
+        '(ticket.createdBy = :userId OR ticket.assignedTo = :userId OR participants.userId = :userId)',
+        { userId: currentUserId }
+      );
+    }
 
     // Paginación
     const page = filters.page || 1;
@@ -294,25 +319,34 @@ export class TicketsService {
    * Actualizar un ticket
    */
   async update(id: number, updateTicketDto: UpdateTicketDto, currentUserId: number): Promise<Ticket> {
-    const ticket = await this.findOne(id, currentUserId);
-    
-    // Verificar permisos de edición
-    await this.checkEditPermissions(ticket, currentUserId);
+    // Cargar la entidad directamente desde el repositorio (no la versión "mapeada" que devuelve findOne())
+    const ticketEntity = await this.ticketRepository.findOne({
+      where: { id },
+      relations: ['participants', 'participants.user', 'creator', 'assignee', 'department']
+    });
 
-    const oldValues = { ...ticket };
-    
-    // Aplicar actualizaciones
-    Object.assign(ticket, {
+    if (!ticketEntity) {
+      throw new NotFoundException(`Ticket con ID ${id} no encontrado`);
+    }
+
+    // Verificar permisos de acceso y edición
+    await this.checkTicketAccess(ticketEntity, currentUserId);
+    await this.checkEditPermissions(ticketEntity, currentUserId);
+
+    const oldValues = { ...ticketEntity } as any;
+
+    // Aplicar actualizaciones al entity
+    Object.assign(ticketEntity, {
       ...updateTicketDto,
-      dueDate: updateTicketDto.dueDate ? new Date(updateTicketDto.dueDate) : ticket.dueDate,
+      dueDate: updateTicketDto.dueDate ? new Date(updateTicketDto.dueDate) : ticketEntity.dueDate,
     });
 
     // Manejar cambios de estado especiales
     if (updateTicketDto.status) {
-      await this.handleStatusChange(ticket, oldValues.status, updateTicketDto.status, currentUserId);
+      await this.handleStatusChange(ticketEntity, oldValues.status, updateTicketDto.status, currentUserId);
     }
 
-    const savedTicket = await this.ticketRepository.save(ticket);
+    const savedTicket = await this.ticketRepository.save(ticketEntity);
 
     // Crear registro de historial
     await this.createHistoryRecord(
@@ -323,6 +357,7 @@ export class TicketsService {
       this.extractRelevantFields(savedTicket)
     );
 
+    // Devolver la representación completa y mapeada
     return this.findOne(id, currentUserId);
   }
 
@@ -348,6 +383,18 @@ export class TicketsService {
 
     // Agregar como participante si no lo es
     await this.ensureParticipant(ticketId, assigneeId, ParticipantRole.ASSIGNEE, currentUserId);
+
+    // Eliminar al asesor anterior de los participantes relacionados si cambió
+    if (oldAssignee && oldAssignee !== assigneeId) {
+      try {
+        const prevParticipant = await this.participantRepository.findOne({ where: { ticketId, userId: oldAssignee } });
+        if (prevParticipant) {
+          await this.participantRepository.remove(prevParticipant);
+        }
+      } catch (err) {
+        console.error(`Error eliminando participante anterior (userId: ${oldAssignee}) del ticket ${ticketId}:`, err);
+      }
+    }
 
     // Crear mensaje del sistema
     const assignee = await this.userRepository.findOne({ where: { id: assigneeId } });
@@ -440,39 +487,140 @@ export class TicketsService {
    * Obtener estadísticas de tickets
    */
   async getStatistics(currentUserId: number): Promise<any> {
-    const queryBuilder = this.ticketRepository.createQueryBuilder('ticket')
-      .leftJoin('ticket.participants', 'participants')
-      .where('(ticket.createdBy = :userId OR ticket.assignedTo = :userId OR participants.userId = :userId)', 
-             { userId: currentUserId });
+    // Aplicar las mismas reglas de visibilidad que en findAll(), pero
+    // no usar la pertenencia como participante para incluir tickets.
+    const currentUser = await this.userRepository.findOne({ where: { id: currentUserId }, relations: ['role', 'subordinates'] });
+    const roleName = (currentUser?.role?.name || '').toLowerCase();
 
-    const total = await queryBuilder.getCount();
-    
-    const byStatus = await queryBuilder
+    const applyRoleFilters = (qb: any) => {
+      if (roleName.includes('admin') || roleName.includes('administrador')) {
+        // administrador: ver todos
+        return qb;
+      } else if (roleName.includes('gerente') || roleName.includes('manager') || roleName.includes('jefe')) {
+        const subIds = (currentUser?.subordinates || []).map((s: any) => s.id).filter(Boolean);
+        if (subIds.length > 0) {
+          return qb.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId OR ticket.assignedTo IN (:...subIds))', { userId: currentUserId, subIds });
+        }
+        return qb.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId)', { userId: currentUserId });
+      } else if (roleName.includes('tec') || roleName.includes('soporte') || roleName.includes('technician')) {
+        // técnico: ver los creados por él y los que está asignado
+        return qb.andWhere('(ticket.createdBy = :userId OR ticket.assignedTo = :userId)', { userId: currentUserId });
+      }
+      // Usuario normal (por defecto): solo tickets que él generó
+      return qb.andWhere('ticket.createdBy = :userId', { userId: currentUserId });
+    };
+
+    // Total y agrupados aplicando reglas de visibilidad (NO se incluye pertenencia como participante)
+    const total = await applyRoleFilters(this.ticketRepository.createQueryBuilder('ticket')).getCount();
+
+    const byStatusRaw = await applyRoleFilters(this.ticketRepository.createQueryBuilder('ticket'))
       .select('ticket.status', 'status')
       .addSelect('COUNT(*)', 'count')
       .groupBy('ticket.status')
       .getRawMany();
 
-    const byPriority = await queryBuilder
+    const byPriority = await applyRoleFilters(this.ticketRepository.createQueryBuilder('ticket'))
       .select('ticket.priority', 'priority')
       .addSelect('COUNT(*)', 'count')
       .groupBy('ticket.priority')
       .getRawMany();
 
-    const assigned = await queryBuilder
-      .andWhere('ticket.assignedTo = :userId', { userId: currentUserId })
-      .getCount();
+    // Contadores específicos: assigned => tickets realmente asignados (respetando subordinates para gerente)
+    let assignedQb = this.ticketRepository.createQueryBuilder('ticket');
+    if (roleName.includes('gerente') || roleName.includes('manager') || roleName.includes('jefe')) {
+      const subIds = (currentUser?.subordinates || []).map((s: any) => s.id).filter(Boolean);
+      if (subIds.length > 0) {
+        assignedQb = assignedQb.andWhere('(ticket.assignedTo = :userId OR ticket.assignedTo IN (:...subIds))', { userId: currentUserId, subIds });
+      } else {
+        assignedQb = assignedQb.andWhere('ticket.assignedTo = :userId', { userId: currentUserId });
+      }
+    } else {
+      assignedQb = assignedQb.andWhere('ticket.assignedTo = :userId', { userId: currentUserId });
+    }
+    const assigned = await assignedQb.getCount();
 
-    const created = await queryBuilder
+    // created => tickets creados por el usuario
+    const created = await this.ticketRepository.createQueryBuilder('ticket')
       .andWhere('ticket.createdBy = :userId', { userId: currentUserId })
       .getCount();
+
+  // Construir array de últimos 10 meses (desde el mes actual hacia atrás)
+    const months: string[] = [];
+    const now = new Date();
+    for (let i = 0; i < 10; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      months.push(ym);
+    }
+
+    // Fecha de inicio para la consulta (primer día del mes más antiguo)
+    const oldest = new Date(now.getFullYear(), now.getMonth() - 9, 1);
+
+    // Agrupar por status, ticketTypeId y mes en una sola consulta
+    const monthlyRaw = await applyRoleFilters(
+      this.ticketRepository.createQueryBuilder('ticket')
+    )
+      .select('ticket.status', 'status')
+      .addSelect('ticket.ticketTypeId', 'ticketTypeId')
+      .addSelect("DATE_FORMAT(ticket.createdAt, '%Y-%m')", 'ym')
+      .addSelect('COUNT(*)', 'count')
+      .andWhere('ticket.createdAt >= :oldest', { oldest })
+      .groupBy('ticket.status')
+      .addGroupBy('ticket.ticketTypeId')
+      .addGroupBy("ym")
+      .getRawMany();
+
+    // Obtener todos los tipos de ticket para devolver nombres
+    const ticketTypes = await this.ticketTypeRepository.find();
+    const typeMap = new Map<number, string>();
+    for (const t of ticketTypes) typeMap.set((t as any).id, (t as any).name || '');
+
+    // Construir byStatus enriquecido: para cada status, incluir tipos con conteo mensual
+    const byStatus: Array<any> = [];
+
+    // Inicializar entries de status a partir de byStatusRaw
+    for (const row of byStatusRaw) {
+      const status = String(row.status);
+      const count = Number(row.count) || 0;
+      // Inicializar types para cada status con zeroed months
+      const types = [] as Array<{ ticketTypeId: number; ticketTypeName: string; counts: Array<{ month: string; count: number }> }>;
+      for (const [id, name] of typeMap.entries()) {
+        types.push({ ticketTypeId: id, ticketTypeName: name, counts: months.map(m => ({ month: m, count: 0 })) });
+      }
+      byStatus.push({ status, count, types });
+    }
+
+    // Rellenar por status -> type -> month usando monthlyRaw
+    for (const row of monthlyRaw) {
+      const status = String(row.status);
+      const ticketTypeId = Number(row.ticketTypeId);
+      const ym = row.ym;
+      const cnt = Number(row.count) || 0;
+      const statusEntry = byStatus.find(s => s.status === status);
+      if (!statusEntry) {
+        // Si no existía (posible), crear uno nuevo con zeros
+        const types = [] as Array<{ ticketTypeId: number; ticketTypeName: string; counts: Array<{ month: string; count: number }> }>;
+        for (const [id, name] of typeMap.entries()) types.push({ ticketTypeId: id, ticketTypeName: name, counts: months.map(m => ({ month: m, count: 0 })) });
+        byStatus.push({ status, count: 0, types });
+      }
+      const targetStatus = byStatus.find(s => s.status === status)!;
+      const typeEntry = targetStatus.types.find((t: any) => t.ticketTypeId === ticketTypeId);
+      if (typeEntry) {
+        const idx = typeEntry.counts.findIndex((c: any) => c.month === ym);
+        if (idx >= 0) typeEntry.counts[idx].count = cnt;
+      } else {
+        // agregar nuevo typeEntry si no estaba en map
+        targetStatus.types.push({ ticketTypeId, ticketTypeName: typeMap.get(ticketTypeId) || '', counts: months.map(m => ({ month: m, count: m === ym ? cnt : 0 })) });
+      }
+    }
 
     return {
       total,
       assigned,
       created,
       byStatus,
-      byPriority
+      byPriority,
+      months // incluir meses de referencia en la respuesta
     };
   }
 
@@ -634,6 +782,64 @@ export class TicketsService {
       `Estado cambiado de ${oldStatus} a ${newStatus}`,
       { action: 'status_changed', oldStatus, newStatus }
     );
+
+    // Notificar por correo a participantes, asignado y creador (excluyendo al actor)
+    try {
+      const recipients = await this.buildEmailRecipients(ticket.id, userId);
+  const actor = (await this.userRepository.findOne({ where: { id: userId } })) || { id: userId, firstName: '', lastName: '', email: '' } as any;
+      const ticketForEmail = await this.findOne(ticket.id, userId);
+      // Enviar notificación de cambio de estado (no bloquear flujo)
+      this.ticketNotificationService.notifyTicketStatusChanged({
+        ticket: ticketForEmail,
+        action: 'status_changed',
+        user: actor as User,
+        previousValues: { status: oldStatus },
+        recipients,
+      }).catch(err => {
+        console.error('Error enviando notificación de cambio de estado:', err);
+      });
+    } catch (err) {
+      console.error('Error preparando notificación de cambio de estado:', err);
+    }
+  }
+
+  /**
+   * Construir lista de destinatarios de email para un ticket, excluyendo opcionalmente al actor
+   */
+  async buildEmailRecipients(ticketId: number, actorId?: number): Promise<{ to: string[]; cc?: string[] }> {
+    // Obtener ticket con creador y asignado
+    const ticket = await this.ticketRepository.findOne({ where: { id: ticketId }, relations: ['creator', 'assignee'] });
+    if (!ticket) throw new NotFoundException(`Ticket con ID ${ticketId} no encontrado`);
+
+    // Obtener participantes
+    const participants = await this.participantRepository.find({ where: { ticketId }, relations: ['user'] });
+
+    const emails: string[] = [];
+    // participantes
+    for (const p of participants) {
+      if (p.user && p.user.email) emails.push(p.user.email);
+    }
+    // assigned
+    if (ticket.assignee && ticket.assignee.email) emails.push(ticket.assignee.email);
+    // creator
+    if (ticket.creator && ticket.creator.email) emails.push(ticket.creator.email);
+
+    // Excluir actor si aplica
+    if (actorId) {
+      const actor = await this.userRepository.findOne({ where: { id: actorId } });
+      if (actor && actor.email) {
+        // remove all occurrences
+        for (let i = emails.length - 1; i >= 0; i--) {
+          if (emails[i] === actor.email) emails.splice(i, 1);
+        }
+      }
+    }
+
+    // Filtrar y deduplicar
+    const isValidEmail = (e: string) => typeof e === 'string' && /.+@.+\..+/.test(e.trim());
+    const to = Array.from(new Set(emails.map(e => (e || '').toString().trim()).filter(isValidEmail)));
+
+    return { to };
   }
 
   private extractRelevantFields(ticket: any): any {

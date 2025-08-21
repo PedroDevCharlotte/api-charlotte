@@ -24,15 +24,27 @@ import {
   ApiParam,
   ApiConsumes,
 } from '@nestjs/swagger';
-import { FilesInterceptor, AnyFilesInterceptor } from '@nestjs/platform-express';
+import {
+  FilesInterceptor,
+  AnyFilesInterceptor,
+} from '@nestjs/platform-express';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { Token } from '../../../Common/Decorators/token.decorator';
 import { TicketsService, TicketFilters } from './tickets.service';
 import { Ticket, TicketStatus, TicketPriority } from './Entity/ticket.entity';
-import { CreateTicketDto, UpdateTicketDto, TicketResponseDto, TicketListResponseDto } from './Dto/ticket.dto';
+import {
+  CreateTicketDto,
+  UpdateTicketDto,
+  TicketResponseDto,
+  TicketListResponseDto,
+} from './Dto/ticket.dto';
 import { AssignTicketDto } from './Dto/assign-ticket.dto';
-import { CreateCompleteTicketDto, CompleteTicketResponseDto } from './Dto/create-complete-ticket.dto';
+import {
+  CreateCompleteTicketDto,
+  CompleteTicketResponseDto,
+} from './Dto/create-complete-ticket.dto';
 import * as jwt from 'jsonwebtoken';
+import { CreateTicketMessageFormDto } from './Dto/ticket-message.dto';
 
 interface TicketQueryFilters {
   status?: TicketStatus | TicketStatus[];
@@ -59,19 +71,31 @@ export class TicketsController {
   constructor(private readonly ticketsService: TicketsService) {}
   @Get('attachments/:id/download')
   @ApiOperation({ summary: 'Descargar archivo adjunto por id' })
-  async downloadAttachmentById(@Param('id', ParseIntPipe) id: number, @Res() res) {
+  async downloadAttachmentById(
+    @Param('id', ParseIntPipe) id: number,
+    @Res() res,
+  ) {
     const attachment = await this.ticketsService.getAttachmentById(id);
     if (!attachment) {
       return res.status(404).json({ message: 'Archivo adjunto no encontrado' });
     }
     const path = require('path');
     const fs = require('fs');
-    const filePath = path.join(process.cwd(), attachment.filePath.replace(/\\/g, path.sep));
+    const filePath = path.join(
+      process.cwd(),
+      attachment.filePath.replace(/\\/g, path.sep),
+    );
     if (!fs.existsSync(filePath)) {
       return res.status(404).json({ message: 'Archivo físico no encontrado' });
     }
-    res.setHeader('Content-Type', attachment.mimeType || 'application/octet-stream');
-    res.setHeader('Content-Disposition', `attachment; filename="${attachment.originalFileName || attachment.fileName}"`);
+    res.setHeader(
+      'Content-Type',
+      attachment.mimeType || 'application/octet-stream',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="${attachment.originalFileName || attachment.fileName}"`,
+    );
     const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   }
@@ -84,12 +108,14 @@ export class TicketsController {
       return { statusCode: 404, message: 'Archivo adjunto no encontrado' };
     }
     // Mapear uploader
-    const uploader = attachment.uploadedBy ? {
-      id: attachment.uploadedBy.id,
-      firstName: attachment.uploadedBy.firstName,
-      lastName: attachment.uploadedBy.lastName,
-      email: attachment.uploadedBy.email
-    } : null;
+    const uploader = attachment.uploadedBy
+      ? {
+          id: attachment.uploadedBy.id,
+          firstName: attachment.uploadedBy.firstName,
+          lastName: attachment.uploadedBy.lastName,
+          email: attachment.uploadedBy.email,
+        }
+      : null;
     // Solo exponer campos relevantes
     return {
       id: attachment.id,
@@ -103,7 +129,7 @@ export class TicketsController {
       isPublic: attachment.isPublic,
       description: attachment.description,
       uploadedAt: attachment.uploadedAt,
-      uploadedBy: uploader
+      uploadedBy: uploader,
     };
   }
 
@@ -122,21 +148,23 @@ export class TicketsController {
     @Body(ValidationPipe) createTicketDto: CreateTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-  
     const ticket = await this.ticketsService.create(createTicketDto, userId);
     return new TicketResponseDto(ticket);
   }
 
   @Post('complete')
-  @ApiOperation({ 
-    summary: 'Crear un ticket completo con asignación automática y archivos adjuntos',
-    description: 'Crea un ticket con todas las funcionalidades: asignación automática basada en tipo de soporte, participantes, archivos adjuntos, mensajes iniciales y campos personalizados. Acepta FormData para archivos.'
+  @ApiOperation({
+    summary:
+      'Crear un ticket completo con asignación automática y archivos adjuntos',
+    description:
+      'Crea un ticket con todas las funcionalidades: asignación automática basada en tipo de soporte, participantes, archivos adjuntos, mensajes iniciales y campos personalizados. Acepta FormData para archivos.',
   })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AnyFilesInterceptor())
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Ticket completo creado exitosamente con asignación automática',
+    description:
+      'Ticket completo creado exitosamente con asignación automática',
     type: CompleteTicketResponseDto,
   })
   @ApiResponse({
@@ -155,7 +183,7 @@ export class TicketsController {
     console.log('FormData recibido:', formData);
     console.log('Archivos recibidos:', files);
     console.log('Cantidad de archivos:', files?.length || 0);
-    
+
     // Convertir FormData a DTO
     const createCompleteTicketDto: CreateCompleteTicketDto = {
       title: formData.title,
@@ -163,27 +191,43 @@ export class TicketsController {
       ticketTypeId: parseInt(formData.ticketTypeId),
       createdByUserId: parseInt(formData.createdByUserId),
       priority: formData.priority || 'MEDIUM',
-      assignedTo: formData.assignedTo ? parseInt(formData.assignedTo) : undefined,
-      departmentId: formData.departmentId ? parseInt(formData.departmentId) : undefined,
-      tags: formData.tags ? (Array.isArray(formData.tags) ? formData.tags : [formData.tags]) : undefined,
+      assignedTo: formData.assignedTo
+        ? parseInt(formData.assignedTo)
+        : undefined,
+      departmentId: formData.departmentId
+        ? parseInt(formData.departmentId)
+        : undefined,
+      tags: formData.tags
+        ? Array.isArray(formData.tags)
+          ? formData.tags
+          : [formData.tags]
+        : undefined,
       isUrgent: formData.isUrgent === 'true',
       isInternal: formData.isInternal === 'true',
       dueDate: formData.dueDate || undefined,
-      customFields: formData.customFields ? JSON.parse(formData.customFields) : undefined,
+      customFields: formData.customFields
+        ? JSON.parse(formData.customFields)
+        : undefined,
       initialMessage: formData.initialMessage || undefined,
-      participants: formData.participants ? JSON.parse(formData.participants) : undefined,
-      attachments: [] // Se llenará con los archivos procesados
+      participants: formData.participants
+        ? JSON.parse(formData.participants)
+        : undefined,
+      attachments: [], // Se llenará con los archivos procesados
     };
 
     console.log('DTO creado:', createCompleteTicketDto);
 
-    return await this.ticketsService.createCompleteTicketWithFiles(createCompleteTicketDto, files);
+    return await this.ticketsService.createCompleteTicketWithFiles(
+      createCompleteTicketDto,
+      files,
+    );
   }
 
   @Post('complete-debug')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Endpoint de debug para FormData',
-    description: 'Endpoint temporal para debuggear problemas con FormData y archivos'
+    description:
+      'Endpoint temporal para debuggear problemas con FormData y archivos',
   })
   @ApiConsumes('multipart/form-data')
   @UseInterceptors(AnyFilesInterceptor())
@@ -193,31 +237,39 @@ export class TicketsController {
   ): Promise<any> {
     return {
       formData,
-      files: files?.map(f => ({
-        fieldname: f.fieldname,
-        originalname: f.originalname,
-        encoding: f.encoding,
-        mimetype: f.mimetype,
-        size: f.size
-      })) || [],
+      files:
+        files?.map((f) => ({
+          fieldname: f.fieldname,
+          originalname: f.originalname,
+          encoding: f.encoding,
+          mimetype: f.mimetype,
+          size: f.size,
+        })) || [],
       filesCount: files?.length || 0,
       formDataKeys: Object.keys(formData || {}),
-      receivedAt: new Date().toISOString()
+      receivedAt: new Date().toISOString(),
     };
   }
 
   @Get('debug/users')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Listar usuarios disponibles para debugging',
-    description: 'Endpoint temporal para verificar qué usuarios existen en el sistema'
+    description:
+      'Endpoint temporal para verificar qué usuarios existen en el sistema',
   })
   async debugUsers(): Promise<any> {
     return await this.ticketsService.getAvailableUsers();
   }
 
   @Get('available-by-type/:ticketTypeId')
-  @ApiOperation({ summary: 'Obtener usuarios activos que pueden atender un tipo de ticket' })
-  @ApiParam({ name: 'ticketTypeId', description: 'ID del tipo de ticket', type: Number })
+  @ApiOperation({
+    summary: 'Obtener usuarios activos que pueden atender un tipo de ticket',
+  })
+  @ApiParam({
+    name: 'ticketTypeId',
+    description: 'ID del tipo de ticket',
+    type: Number,
+  })
   @ApiQuery({ name: 'page', required: false, type: Number })
   @ApiQuery({ name: 'limit', required: false, type: Number })
   async getUsersByTicketType(
@@ -227,24 +279,30 @@ export class TicketsController {
   ) {
     const p = page ? Number(page) : 1;
     const l = limit ? Number(limit) : 20;
-    const result = await this.ticketsService.getUsersByTicketType(ticketTypeId, p, l);
+    const result = await this.ticketsService.getUsersByTicketType(
+      ticketTypeId,
+      p,
+      l,
+    );
     return {
       ticketTypeId,
       total: result.total,
       page: result.page,
       limit: result.limit,
-      users: result.users
+      users: result.users,
     };
   }
 
   @Post('complete-json')
-  @ApiOperation({ 
+  @ApiOperation({
     summary: 'Crear un ticket completo con asignación automática (JSON)',
-    description: 'Crea un ticket con todas las funcionalidades usando JSON. Para casos donde no se necesitan archivos adjuntos.'
+    description:
+      'Crea un ticket con todas las funcionalidades usando JSON. Para casos donde no se necesitan archivos adjuntos.',
   })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    description: 'Ticket completo creado exitosamente con asignación automática',
+    description:
+      'Ticket completo creado exitosamente con asignación automática',
     type: CompleteTicketResponseDto,
   })
   @ApiResponse({
@@ -258,7 +316,9 @@ export class TicketsController {
   async createCompleteJson(
     @Body(ValidationPipe) createCompleteTicketDto: CreateCompleteTicketDto,
   ): Promise<CompleteTicketResponseDto> {
-    return await this.ticketsService.createCompleteTicket(createCompleteTicketDto);
+    return await this.ticketsService.createCompleteTicket(
+      createCompleteTicketDto,
+    );
   }
 
   @Get()
@@ -268,8 +328,18 @@ export class TicketsController {
     description: 'Lista de tickets obtenida exitosamente',
     type: TicketListResponseDto,
   })
-  @ApiQuery({ name: 'status', required: false, isArray: true, enum: TicketStatus })
-  @ApiQuery({ name: 'priority', required: false, isArray: true, enum: TicketPriority })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    isArray: true,
+    enum: TicketStatus,
+  })
+  @ApiQuery({
+    name: 'priority',
+    required: false,
+    isArray: true,
+    enum: TicketPriority,
+  })
   @ApiQuery({ name: 'assignedTo', required: false, type: Number })
   @ApiQuery({ name: 'createdBy', required: false, type: Number })
   @ApiQuery({ name: 'departmentId', required: false, type: Number })
@@ -286,30 +356,48 @@ export class TicketsController {
     @Token('id') userId: number,
   ): Promise<TicketListResponseDto> {
     // Convertir strings de query params a arrays y tipos apropiados
-    
+
     const processedFilters: TicketFilters = {
       ...filters,
-      status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
-      priority: filters.priority ? (Array.isArray(filters.priority) ? filters.priority : [filters.priority]) : undefined,
+      status: filters.status
+        ? Array.isArray(filters.status)
+          ? filters.status
+          : [filters.status]
+        : undefined,
+      priority: filters.priority
+        ? Array.isArray(filters.priority)
+          ? filters.priority
+          : [filters.priority]
+        : undefined,
       assignedTo: filters.assignedTo ? Number(filters.assignedTo) : undefined,
       createdBy: filters.createdBy ? Number(filters.createdBy) : undefined,
-      departmentId: filters.departmentId ? Number(filters.departmentId) : undefined,
-      ticketTypeId: filters.ticketTypeId ? Number(filters.ticketTypeId) : undefined,
+      departmentId: filters.departmentId
+        ? Number(filters.departmentId)
+        : undefined,
+      ticketTypeId: filters.ticketTypeId
+        ? Number(filters.ticketTypeId)
+        : undefined,
       page: filters.page ? Number(filters.page) : 1,
       limit: filters.limit ? Number(filters.limit) : 20,
-      isUrgent: filters.isUrgent !== undefined ? filters.isUrgent === 'true' : undefined,
-      isInternal: filters.isInternal !== undefined ? filters.isInternal === 'true' : undefined,
+      isUrgent:
+        filters.isUrgent !== undefined
+          ? filters.isUrgent === 'true'
+          : undefined,
+      isInternal:
+        filters.isInternal !== undefined
+          ? filters.isInternal === 'true'
+          : undefined,
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
       dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
     };
 
     const result = await this.ticketsService.findAll(processedFilters, userId);
-    
+
     return new TicketListResponseDto(
-      result.tickets.map(ticket => new TicketResponseDto(ticket)),
+      result.tickets.map((ticket) => new TicketResponseDto(ticket)),
       result.total,
       processedFilters.page || 1,
-      processedFilters.limit || 20
+      processedFilters.limit || 20,
     );
   }
 
@@ -326,30 +414,48 @@ export class TicketsController {
   ): Promise<TicketListResponseDto> {
     // Convertir query filters a TicketFilters y agregar createdBy
     // Decodificar el token JWT para obtener el userId
-    
+
     const processedFilters: TicketFilters = {
-      status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
-      priority: filters.priority ? (Array.isArray(filters.priority) ? filters.priority : [filters.priority]) : undefined,
+      status: filters.status
+        ? Array.isArray(filters.status)
+          ? filters.status
+          : [filters.status]
+        : undefined,
+      priority: filters.priority
+        ? Array.isArray(filters.priority)
+          ? filters.priority
+          : [filters.priority]
+        : undefined,
       assignedTo: filters.assignedTo ? Number(filters.assignedTo) : undefined,
       createdBy: userId, // Solo mis tickets
-      departmentId: filters.departmentId ? Number(filters.departmentId) : undefined,
-      ticketTypeId: filters.ticketTypeId ? Number(filters.ticketTypeId) : undefined,
+      departmentId: filters.departmentId
+        ? Number(filters.departmentId)
+        : undefined,
+      ticketTypeId: filters.ticketTypeId
+        ? Number(filters.ticketTypeId)
+        : undefined,
       search: filters.search,
       page: filters.page ? Number(filters.page) : 1,
       limit: filters.limit ? Number(filters.limit) : 20,
-      isUrgent: filters.isUrgent !== undefined ? filters.isUrgent === 'true' : undefined,
-      isInternal: filters.isInternal !== undefined ? filters.isInternal === 'true' : undefined,
+      isUrgent:
+        filters.isUrgent !== undefined
+          ? filters.isUrgent === 'true'
+          : undefined,
+      isInternal:
+        filters.isInternal !== undefined
+          ? filters.isInternal === 'true'
+          : undefined,
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
       dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
     };
 
     const result = await this.ticketsService.findAll(processedFilters, userId);
-    
+
     return new TicketListResponseDto(
-      result.tickets.map(ticket => new TicketResponseDto(ticket)),
+      result.tickets.map((ticket) => new TicketResponseDto(ticket)),
       result.total,
       processedFilters.page || 1,
-      processedFilters.limit || 20
+      processedFilters.limit || 20,
     );
   }
 
@@ -364,31 +470,48 @@ export class TicketsController {
     @Query() filters: TicketQueryFilters,
     @Token('id') userId: number,
   ): Promise<TicketListResponseDto> {
-    
     // Convertir query filters a TicketFilters y agregar assignedTo
     const processedFilters: TicketFilters = {
-      status: filters.status ? (Array.isArray(filters.status) ? filters.status : [filters.status]) : undefined,
-      priority: filters.priority ? (Array.isArray(filters.priority) ? filters.priority : [filters.priority]) : undefined,
+      status: filters.status
+        ? Array.isArray(filters.status)
+          ? filters.status
+          : [filters.status]
+        : undefined,
+      priority: filters.priority
+        ? Array.isArray(filters.priority)
+          ? filters.priority
+          : [filters.priority]
+        : undefined,
       assignedTo: userId, // Solo tickets asignados a mí
       createdBy: filters.createdBy ? Number(filters.createdBy) : undefined,
-      departmentId: filters.departmentId ? Number(filters.departmentId) : undefined,
-      ticketTypeId: filters.ticketTypeId ? Number(filters.ticketTypeId) : undefined,
+      departmentId: filters.departmentId
+        ? Number(filters.departmentId)
+        : undefined,
+      ticketTypeId: filters.ticketTypeId
+        ? Number(filters.ticketTypeId)
+        : undefined,
       search: filters.search,
       page: filters.page ? Number(filters.page) : 1,
       limit: filters.limit ? Number(filters.limit) : 20,
-      isUrgent: filters.isUrgent !== undefined ? filters.isUrgent === 'true' : undefined,
-      isInternal: filters.isInternal !== undefined ? filters.isInternal === 'true' : undefined,
+      isUrgent:
+        filters.isUrgent !== undefined
+          ? filters.isUrgent === 'true'
+          : undefined,
+      isInternal:
+        filters.isInternal !== undefined
+          ? filters.isInternal === 'true'
+          : undefined,
       dateFrom: filters.dateFrom ? new Date(filters.dateFrom) : undefined,
       dateTo: filters.dateTo ? new Date(filters.dateTo) : undefined,
     };
 
     const result = await this.ticketsService.findAll(processedFilters, userId);
-    
+
     return new TicketListResponseDto(
-      result.tickets.map(ticket => new TicketResponseDto(ticket)),
+      result.tickets.map((ticket) => new TicketResponseDto(ticket)),
       result.total,
       processedFilters.page || 1,
-      processedFilters.limit || 20
+      processedFilters.limit || 20,
     );
   }
 
@@ -398,11 +521,7 @@ export class TicketsController {
     status: HttpStatus.OK,
     description: 'Estadísticas obtenidas exitosamente',
   })
-  async getStatistics(
-        @Token('id') userId: number,
-
-  ) {
-
+  async getStatistics(@Token('id') userId: number) {
     return await this.ticketsService.getStatistics(userId);
   }
 
@@ -426,7 +545,6 @@ export class TicketsController {
     @Param('id', ParseIntPipe) id: number,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    
     const ticket = await this.ticketsService.findOne(id, userId);
     return new TicketResponseDto(ticket);
   }
@@ -452,8 +570,11 @@ export class TicketsController {
     @Body(ValidationPipe) updateTicketDto: UpdateTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    
-    const ticket = await this.ticketsService.update(id, updateTicketDto, userId);
+    const ticket = await this.ticketsService.update(
+      id,
+      updateTicketDto,
+      userId,
+    );
     return new TicketResponseDto(ticket);
   }
 
@@ -470,8 +591,11 @@ export class TicketsController {
     @Body(ValidationPipe) assignDto: AssignTicketDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    
-    const ticket = await this.ticketsService.assignTicket(id, assignDto.assigneeId, userId);
+    const ticket = await this.ticketsService.assignTicket(
+      id,
+      assignDto.assigneeId,
+      userId,
+    );
     return new TicketResponseDto(ticket);
   }
 
@@ -485,11 +609,14 @@ export class TicketsController {
   })
   async closeTicket(
     @Param('id', ParseIntPipe) id: number,
-    @Body('resolution') resolution: string,
+    @Body() resolution: CreateTicketMessageFormDto,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    
-    const ticket = await this.ticketsService.closeTicket(id, resolution, userId);
+    const ticket = await this.ticketsService.closeTicket(
+      id,
+      resolution.content,
+      userId,
+    );
     return new TicketResponseDto(ticket);
   }
 
@@ -512,7 +639,6 @@ export class TicketsController {
     @Param('id', ParseIntPipe) id: number,
     @Token('id') userId: number,
   ): Promise<void> {
-    
     await this.ticketsService.remove(id, userId);
   }
 }

@@ -11,6 +11,9 @@ import {
   ParseIntPipe,
   HttpStatus,
   ValidationPipe,
+  UseInterceptors,
+  UploadedFiles,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -19,13 +22,21 @@ import {
   ApiBearerAuth,
   ApiQuery,
   ApiParam,
+  ApiConsumes,
+  ApiBody,
+  ApiExtraModels,
+  getSchemaPath,
 } from '@nestjs/swagger';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { Token } from '../../../Common/Decorators/token.decorator';
 import { TicketMessagesService, MessageFilters } from './ticket-messages.service';
 import { MessageType } from './Entity/ticket-message.entity';
 import {
   CreateTicketMessageDto,
+  CreateTicketMessageFormDto,
   UpdateTicketMessageDto,
   TicketMessageResponseDto,
   TicketMessageListResponseDto,
@@ -33,6 +44,7 @@ import {
 
 @ApiTags('Ticket Messages')
 @ApiBearerAuth('Token')
+@ApiExtraModels(CreateTicketMessageFormDto)
 @UseGuards(AuthGuard)
 @Controller('tickets/:ticketId/messages')
 export class TicketMessagesController {
@@ -54,15 +66,69 @@ export class TicketMessagesController {
     status: HttpStatus.FORBIDDEN,
     description: 'No tienes permisos para escribir en este ticket',
   })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      allOf: [
+        { $ref: getSchemaPath(CreateTicketMessageFormDto) },
+        {
+          type: 'object',
+          properties: {
+            files: { type: 'array', items: { type: 'string', format: 'binary' }, description: 'Archivos adjuntos' },
+          },
+        },
+      ],
+    },
+  })
+  @UseInterceptors(AnyFilesInterceptor())
   async create(
     @Param('ticketId', ParseIntPipe) ticketId: number,
-    @Body(ValidationPipe) createMessageDto: CreateTicketMessageDto,
+    @Body() rawBody: any,
+    @UploadedFiles() files: any[],
     @Token('id') userId: number,
   ): Promise<TicketMessageResponseDto> {
-    // Asegurar que el ticketId del parámetro coincida con el del DTO
-    const messageDto = { ...createMessageDto, ticketId };
-    const message = await this.messagesService.create(messageDto, userId);
-    
+    // Construir un objeto plano para el DTO dependiendo de multipart o JSON
+    if (files && files.length > 0) {
+      const dtoForm = plainToInstance(CreateTicketMessageFormDto, rawBody);
+      const errorsForm = await validate(dtoForm as object);
+      if (errorsForm && errorsForm.length > 0) {
+        throw new BadRequestException(errorsForm);
+      }
+
+      const dtoPlain: CreateTicketMessageDto = {
+        ticketId,
+        content: dtoForm.content,
+        type: dtoForm.type as any,
+        replyToId: dtoForm.replyToId,
+        isInternal: dtoForm.isInternal,
+        metadata: dtoForm.metadata,
+      };
+
+      const message = await this.messagesService.createWithAttachments(dtoPlain, userId, files);
+      return {
+        id: message.id,
+        ticketId: message.ticketId,
+        senderId: message.senderId,
+        content: message.content,
+        type: message.type,
+        isInternal: message.isInternal,
+        metadata: message.metadata,
+        replyToId: message.replyToId,
+        createdAt: message.createdAt,
+        editedAt: message.editedAt,
+      } as TicketMessageResponseDto;
+    }
+
+    // JSON body path: normalize fields and validate using DTO
+    const maybeMetadata = rawBody.metadata ? (typeof rawBody.metadata === 'string' ? (() => { try { return JSON.parse(rawBody.metadata); } catch { throw new BadRequestException('metadata debe ser un JSON válido'); } })() : rawBody.metadata) : undefined;
+    const dtoPlain = { ...(rawBody as object), ticketId, metadata: maybeMetadata };
+    const dto = plainToInstance(CreateTicketMessageDto, dtoPlain);
+    const errors = await validate(dto);
+    if (errors && errors.length > 0) {
+      throw new BadRequestException(errors);
+    }
+
+    const message = await this.messagesService.create(dtoPlain as CreateTicketMessageDto, userId);
     return {
       id: message.id,
       ticketId: message.ticketId,
@@ -182,10 +248,6 @@ export class TicketMessagesController {
   @ApiResponse({
     status: HttpStatus.NOT_FOUND,
     description: 'Mensaje no encontrado',
-  })
-  @ApiResponse({
-    status: HttpStatus.FORBIDDEN,
-    description: 'No tienes permisos para ver este mensaje',
   })
   async findOne(
     @Param('ticketId', ParseIntPipe) ticketId: number,
