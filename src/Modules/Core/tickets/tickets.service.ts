@@ -814,32 +814,36 @@ export class TicketsService {
     // Obtener participantes
     const participants = await this.participantRepository.find({ where: { ticketId }, relations: ['user'] });
 
-    const emails: string[] = [];
-    // participantes
+    // Build participant emails excluding creator and assignee (they are actors)
+    const participantEmails: string[] = [];
     for (const p of participants) {
-      if (p.user && p.user.email) emails.push(p.user.email);
+      if (p.user && p.user.email) {
+        const email = (p.user.email || '').toString().trim();
+        if (email && email !== ticket.creator?.email && email !== ticket.assignee?.email) participantEmails.push(email);
+      }
     }
-    // assigned
-    if (ticket.assignee && ticket.assignee.email) emails.push(ticket.assignee.email);
-    // creator
-    if (ticket.creator && ticket.creator.email) emails.push(ticket.creator.email);
+
+    // Build primary 'to' - prefer assignee, otherwise creator
+    const to: string[] = [];
+    if (ticket.assignee && ticket.assignee.email) to.push(ticket.assignee.email.trim());
+    else if (ticket.creator && ticket.creator.email) to.push(ticket.creator.email.trim());
+
+    // Build cc from participants (deduplicated)
+    const isValidEmail = (e: string) => typeof e === 'string' && /.+@.+\..+/.test(e.trim());
+    const cc = Array.from(new Set(participantEmails.map(e => e.toString().trim()).filter(isValidEmail)));
 
     // Excluir actor si aplica
     if (actorId) {
       const actor = await this.userRepository.findOne({ where: { id: actorId } });
       if (actor && actor.email) {
-        // remove all occurrences
-        for (let i = emails.length - 1; i >= 0; i--) {
-          if (emails[i] === actor.email) emails.splice(i, 1);
-        }
+        const actorEmail = actor.email.trim();
+        // remove actor from 'to' and 'cc'
+        for (let i = to.length - 1; i >= 0; i--) if (to[i] === actorEmail) to.splice(i, 1);
+        for (let i = cc.length - 1; i >= 0; i--) if (cc[i] === actorEmail) cc.splice(i, 1);
       }
     }
 
-    // Filtrar y deduplicar
-    const isValidEmail = (e: string) => typeof e === 'string' && /.+@.+\..+/.test(e.trim());
-    const to = Array.from(new Set(emails.map(e => (e || '').toString().trim()).filter(isValidEmail)));
-
-    return { to };
+    return { to: Array.from(new Set(to)), cc: cc.length ? cc : undefined };
   }
 
   private extractRelevantFields(ticket: any): any {

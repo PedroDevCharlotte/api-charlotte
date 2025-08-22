@@ -44,7 +44,14 @@ async function bootstrap() {
     origin: 'http://localhost:3000', // o '*' para permitir todos los orígenes (no recomendado en producción)
     credentials: true
   });
-
-  await app.listen(AppModule.Port || 3006);
+  const port = AppModule.Port || 3006;
+  await app.listen(port);
+  // Log the actual port the app is listening on for easier debugging when started via npm
+  // This helps ensure the environment PORT is applied when npm spawns the process
+  // and aids automated tests that expect the server on a known port.
+  // Example output: "Server listening on port: 3006"
+  // Keep console.log intentionally (not logger) so it's visible in npm start piping.
+  // eslint-disable-next-line no-console
+  console.log(`Server listening on port: ${port}`);
 }
 bootstrap();

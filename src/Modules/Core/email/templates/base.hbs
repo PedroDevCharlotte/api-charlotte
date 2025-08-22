@@ -98,14 +98,22 @@
     <div class="email-container">
         <!-- Header con Logo -->
         <div class="header">
-            <!-- Logo de Charlotte - puedes cambiar esta URL por la URL real de tu logo -->
-            <img src="{{logoUrl}}" alt="Charlotte Logo" class="logo" />
+                        <!-- Logo de Charlotte: preferir imagen embebida (logoData) y fallback a logoUrl -->
+                        {{#if systemInfo.logoData}}
+                            <img src="{{systemInfo.logoData}}" alt="Charlotte Logo" class="logo" />
+                        {{else}}
+                            <img src="{{systemInfo.logoUrl}}" alt="Charlotte Logo" class="logo" />
+                        {{/if}}
             <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
         </div>
         
-        <!-- Contenido principal -->
+        <!-- Contenido principal: preferir inline partials (ej. {{#*inline "content"}}) definidos por la plantilla específica -->
         <div class="content">
-            {{{content}}}
+            {{#if (partialExists "content")}}
+                {{> content}}
+            {{else}}
+                {{{content}}}
+            {{/if}}
         </div>
         
         <!-- Footer -->

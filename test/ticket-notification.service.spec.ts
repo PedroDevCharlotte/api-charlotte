@@ -27,7 +27,7 @@ describe('TicketNotificationService', () => {
   });
 
   it('should filter invalid recipients and call emailService for valid ones', async () => {
-    const context: any = {
+  const ctx: any = {
       ticket: { ticketNumber: 'T-1', id: 1, title: 't', priority: 'MEDIUM', status: 'OPEN', createdAt: new Date().toISOString() },
       action: 'created',
       user: { id: 1, firstName: 'A', lastName: 'B', email: 'a@x.com' },
@@ -37,13 +37,17 @@ describe('TicketNotificationService', () => {
       }
     };
 
-    await service.notifyTicketCreated(context);
+  await service.notifyTicketCreated(ctx);
 
-    // Should call sendEmailWithTemplate for 'valid@x.com' and for 'cc@x.com'
-    expect(mockEmailService.sendEmailWithTemplate).toHaveBeenCalled();
-    const calls = (mockEmailService.sendEmailWithTemplate as jest.Mock).mock.calls.map(c => c[0]);
-    expect(calls).toContain('valid@x.com');
-    expect(calls).toContain('cc@x.com');
-    expect(calls).not.toContain('invalid-email');
+  // Should call sendEmailWithTemplate once with primary recipient 'valid@x.com'
+  expect(mockEmailService.sendEmailWithTemplate).toHaveBeenCalledTimes(1);
+  const call = (mockEmailService.sendEmailWithTemplate as jest.Mock).mock.calls[0];
+  const primary = call[0];
+  const emailCtx = call[3];
+  expect(primary).toBe('valid@x.com');
+  // CC should include the valid cc address
+  expect(Array.isArray(emailCtx.cc) && emailCtx.cc).toContain('cc@x.com');
+  // Ensure invalid entries are not present in cc
+  expect(emailCtx.cc).not.toContain('invalid-email');
   });
 });

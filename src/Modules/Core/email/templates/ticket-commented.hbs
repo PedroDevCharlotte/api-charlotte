@@ -1,218 +1,94 @@
-{{> base title="Nuevo Comentario en Ticket" headerColor="#6f42c1"}}
-
-{{#*inline "content"}}
-<div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
-  <div style="display: flex; align-items: center; margin-bottom: 16px;">
-    <div style="width: 48px; height: 48px; background-color: #6f42c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
-      <span style="color: white; font-size: 24px; font-weight: bold;">💬</span>
-    </div>
-    <div>
-      <h2 style="margin: 0; color: #6f42c1; font-size: 24px; font-weight: 600;">
-        {{#if isCopy}}CC: {{/if}}Nuevo comentario en ticket
-      </h2>
-      <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">
-        Ticket #{{ticket.ticketNumber}} • Comentario de {{user.fullName}}
-      </p>
-    </div>
-  </div>
-</div>
-
-<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow: hidden;">
-  <!-- Header del ticket -->
-  <div style="background: linear-gradient(135deg, #6f42c1, #5a2d91); padding: 24px; color: white;">
-    <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">
-      {{ticket.title}}
-    </h1>
-    <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
-      <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
-        #{{ticket.ticketNumber}}
-      </span>
-      <span style="background-color: {{ticket.priorityColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
-        {{ticket.priority}}
-      </span>
-      <span style="background-color: {{ticket.statusColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">
-        {{ticket.status}}
-      </span>
-    </div>
-  </div>
-
-  <!-- Comentario principal -->
-  <div style="padding: 24px;">
-    {{#if message}}
-    <div style="background-color: #f8f5ff; border: 2px solid #e0cffc; border-radius: 12px; padding: 20px; margin-bottom: 24px; position: relative;">
-      <!-- Header del comentario -->
-      <div style="display: flex; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #e0cffc;">
-        <div style="width: 40px; height: 40px; background-color: #6f42c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-          <span style="color: white; font-size: 18px; font-weight: bold;">
-            {{substring user.fullName 0 2}}
-          </span>
-        </div>
-        <div style="flex: 1;">
-          <h3 style="margin: 0 0 4px 0; color: #5a2d91; font-size: 16px; font-weight: 600;">
-            {{user.fullName}}
-          </h3>
-          <p style="margin: 0; color: #6f42c1; font-size: 14px;">{{user.email}}</p>
-        </div>
-        <div style="text-align: right;">
-          <span style="background-color: #6f42c1; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: 500;">
-            NUEVO
-          </span>
-          <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 12px;">
-            {{#if message.createdAt}}
-            {{formatDate message.createdAt}}
-            {{else}}
-            Hace unos momentos
-            {{/if}}
-          </p>
-        </div>
-      </div>
-
-      <!-- Contenido del comentario -->
-      <div style="margin-bottom: 16px;">
-        {{#if message.isInternal}}
-        <div style="background-color: #fff3cd; border: 1px solid #ffeeba; border-radius: 6px; padding: 8px 12px; margin-bottom: 12px;">
-          <span style="color: #856404; font-size: 12px; font-weight: 600;">🔒 COMENTARIO INTERNO</span>
-        </div>
-        {{/if}}
-        
-        <div style="color: #495057; line-height: 1.6; font-size: 15px;">
-          {{breaklines message.content}}
-        </div>
-      </div>
-
-      <!-- Archivos adjuntos del mensaje -->
-      {{#if message.attachments}}
-      <div style="border-top: 1px solid #e0cffc; padding-top: 16px;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-          <span style="font-size: 16px; margin-right: 8px;">📎</span>
-          <strong style="color: #5a2d91; font-size: 14px;">Archivos adjuntos:</strong>
-        </div>
-        <div style="background-color: white; border: 1px solid #e0cffc; border-radius: 6px; padding: 12px;">
-          {{#each message.attachments}}
-          <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0;">
-            <span style="margin-right: 8px;">📄</span>
-            <span style="color: #6f42c1; font-weight: 500;">{{this.filename}}</span>
-            <span style="margin-left: auto; color: #6c757d; font-size: 12px;">({{this.fileSize}})</span>
-          </div>
-          {{/each}}
-        </div>
-      </div>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{subject}}</title>
+  <style>
+    body { margin:0; padding:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f8f9fa; color:#333; }
+    .email-container { max-width:600px; margin:0 auto; background:#fff; box-shadow:0 4px 6px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #6f42c1, #5a2d91); padding:30px 20px; text-align:center; }
+    .logo { max-width:200px; height:auto; margin-bottom:10px; }
+    .company-name { color:white; font-size:24px; font-weight:bold; margin:0; }
+    .content { padding:40px 30px; }
+    .footer { background:#f8f9fa; padding:20px 30px; text-align:center; border-top:1px solid #e9ecef; }
+    .footer-text { color:#6c757d; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="email-container">
+    <div class="header">
+      {{#if systemInfo.logoData}}
+        <img src="{{systemInfo.logoData}}" alt="Charlotte Logo" class="logo" />
+      {{else}}
+        <img src="{{systemInfo.logoUrl}}" alt="Charlotte Logo" class="logo" />
       {{/if}}
+      <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
     </div>
-    {{/if}}
-
-    {{#if customMessage}}
-    <div style="background-color: #e7f3ff; border: 1px solid #b3d9ff; border-radius: 6px; padding: 16px; margin-bottom: 20px;">
-      <h4 style="margin: 0 0 8px 0; color: #0056b3; font-size: 14px;">Mensaje adicional:</h4>
-      <p style="margin: 0; color: #495057;">{{breaklines customMessage}}</p>
-    </div>
-    {{/if}}
-
-    <!-- Información del ticket -->
-    <div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border: 1px solid #e9ecef;">
-      <h3 style="margin: 0 0 16px 0; color: #495057; font-size: 16px; font-weight: 600;">Información del ticket:</h3>
-      
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-        <div>
-          <strong style="color: #495057; font-size: 14px;">Creado por:</strong>
-          <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.createdBy.fullName}}</p>
+    <div class="content">
+      {{#if content}}
+        <div style="margin-bottom:16px;">{{{content}}}</div>
+      {{/if}}
+      <div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; margin-bottom: 16px;">
+          <div style="width: 48px; height: 48px; background-color: #6f42c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
+            <span style="color: white; font-size: 24px; font-weight: bold;">💬</span>
+          </div>
+          <div>
+            <h2 style="margin: 0; color: #6f42c1; font-size: 24px; font-weight: 600;">{{#if isCopy}}CC: {{/if}}Nuevo comentario en ticket</h2>
+            <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">Ticket #{{ticket.ticketNumber}} • Comentario de {{user.fullName}}</p>
+          </div>
         </div>
-        
-        {{#if ticket.assignedTo}}
-        <div>
-          <strong style="color: #495057; font-size: 14px;">Asignado a:</strong>
-          <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
-        </div>
-        {{/if}}
-
-        <div>
-          <strong style="color: #495057; font-size: 14px;">Estado actual:</strong>
-          <span style="background-color: {{ticket.statusColor}}; color: white; padding: 2px 8px; border-radius: 12px; font-size: 12px; font-weight: 500;">
-            {{ticket.status}}
-          </span>
-        </div>
-
-        <div>
-          <strong style="color: #495057; font-size: 14px;">Tipo:</strong>
-          <p style="margin: 4px 0 0 0; color: #6f42c1;">{{ticket.ticketType.name}}</p>
-        </div>
-
-        {{#if ticket.formattedDueDate}}
-        <div>
-          <strong style="color: #495057; font-size: 14px;">Fecha límite:</strong>
-          <p style="margin: 4px 0 0 0; color: #fd7e14;">{{ticket.formattedDueDate}}</p>
-        </div>
-        {{/if}}
       </div>
+
+      <!-- Comentario principal y resto del contenido (igual que antes) -->
+
+      <div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow: hidden;">
+        <div style="background: linear-gradient(135deg, #6f42c1, #5a2d91); padding: 24px; color: white;">
+          <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">{{ticket.title}}</h1>
+          <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
+            <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">#{{ticket.ticketNumber}}</span>
+            <span style="background-color: {{ticket.priorityColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">{{ticket.priority}}</span>
+            <span style="background-color: {{ticket.statusColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">{{ticket.status}}</span>
+          </div>
+        </div>
+        <div style="padding:24px;">
+          {{#if message}}
+            <div style="background-color: #f8f5ff; border: 2px solid #e0cffc; border-radius: 12px; padding: 20px; margin-bottom: 24px; position: relative;">
+              <div style="display:flex; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e0cffc;">
+                <div style="width:40px; height:40px; background-color:#6f42c1; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:12px;">
+                  <span style="color:white; font-size:18px; font-weight:bold;">{{substring user.fullName 0 2}}</span>
+                </div>
+                <div style="flex:1;">
+                  <h3 style="margin:0 0 4px 0; color:#5a2d91; font-size:16px; font-weight:600;">{{user.fullName}}</h3>
+                  <p style="margin:0; color:#6f42c1; font-size:14px;">{{user.email}}</p>
+                </div>
+                <div style="text-align:right;">
+                  <span style="background-color:#6f42c1; color:white; padding:4px 8px; border-radius:12px; font-size:11px; font-weight:500;">NUEVO</span>
+                  <p style="margin:4px 0 0 0; color:#6c757d; font-size:12px;">{{#if message.createdAt}}{{formatDate message.createdAt}}{{else}}Hace unos momentos{{/if}}</p>
+                </div>
+              </div>
+              <div style="margin-bottom:16px; color:#495057; line-height:1.6; font-size:15px;">{{breaklines message.content}}</div>
+              {{#if message.attachments}}
+                <div style="border-top:1px solid #e0cffc; padding-top:16px;">
+                  <div style="display:flex; align-items:center; margin-bottom:8px;"><span style="font-size:16px; margin-right:8px;">📎</span><strong style="color:#5a2d91; font-size:14px;">Archivos adjuntos:</strong></div>
+                  <div style="background:white; border:1px solid #e0cffc; border-radius:6px; padding:12px;">
+                    {{#each message.attachments}}<div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;"><span style="margin-right:8px;">📄</span><span style="color:#6f42c1; font-weight:500;">{{this.filename}}</span><span style="margin-left:auto; color:#6c757d; font-size:12px;">({{this.fileSize}})</span></div>{{/each}}
+                  </div>
+                </div>
+              {{/if}}
+            </div>
+          {{/if}}
+
+          {{#if customMessage}}<div style="background-color:#e7f3ff; border:1px solid #b3d9ff; border-radius:6px; padding:16px; margin-bottom:20px;"><h4 style="margin:0 0 8px 0; color:#0056b3; font-size:14px;">Mensaje adicional:</h4><p style="margin:0; color:#495057;">{{breaklines customMessage}}</p></div>{{/if}}
+
+          <div style="background-color:#fff; border:1px solid #e9ecef; border-radius:8px; padding:16px; margin-bottom:20px;"><h4 style="margin:0 0 8px 0; color:#495057; font-size:16px;">Resumen rápido</h4><p style="margin:0 0 8px 0; color:#6c757d; font-size:14px;">#{{ticket.ticketNumber}} • {{ticket.title}}</p><p style="margin:0 0 12px 0; color:#6c757d; font-size:13px;">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> — Prioridad: <strong style="color:{{ticket.priorityColor}}">{{ticket.priority}}</strong></p>{{#if message}}<div style="background:#f8f9fa; padding:12px; border-radius:6px; margin-bottom:12px;">{{breaklines message.content}}</div>{{/if}}<div style="text-align:center; margin-top:8px;"><a href="{{ticket.url}}" style="display:inline-block; background:#6f42c1; color:white; padding:10px 18px; border-radius:6px; text-decoration:none;">Ver caso</a></div></div>
+
+          <!-- Información del ticket -->
+          <div style="background-color:#f8f9fa; border-radius:8px; padding:20px; border:1px solid #e9ecef;"><h3 style="margin:0 0 16px 0; color:#495057; font-size:16px; font-weight:600;">Información del ticket:</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;"><div><strong style="color:#495057; font-size:14px;">Creado por:</strong><p style="margin:4px 0 0 0; color:#007bff;">{{ticket.createdBy.fullName}}</p></div>{{#if ticket.assignedTo}}<div><strong style="color:#495057; font-size:14px;">Asignado a:</strong><p style="margin:4px 0 0 0; color:#28a745;">{{ticket.assignedTo.fullName}}</p></div>{{/if}}<div><strong style="color:#495057; font-size:14px;">Estado actual:</strong><span style="background-color: {{ticket.statusColor}}; color:white; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500;">{{ticket.status}}</span></div><div><strong style="color:#495057; font-size:14px;">Tipo:</strong><p style="margin:4px 0 0 0; color:#6f42c1;">{{ticket.ticketType.name}}</p></div>{{#if ticket.formattedDueDate}}<div><strong style="color:#495057; font-size:14px;">Fecha límite:</strong><p style="margin:4px 0 0 0; color:#fd7e14;">{{ticket.formattedDueDate}}</p></div>{{/if}}</div></div>
+
+        </div>
+        <div class="footer"><p class="footer-text">Este es un correo automático generado por el sistema Charlotte Chemical.<br>Por favor, no responder a este mensaje.<br>© {{systemInfo.year}} Charlotte Chemical Internacional, S.A. de C.V. Todos los derechos reservados.</p></div>
     </div>
-  </div>
-</div>
-
-<!-- Botón de acción principal -->
-<div style="text-align: center; margin: 32px 0;">
-  <a href="{{ticket.url}}" 
-     style="display: inline-block; background: linear-gradient(135deg, #6f42c1, #5a2d91); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(111, 66, 193, 0.3); transition: all 0.2s;">
-    💬 Ver Conversación Completa
-  </a>
-</div>
-
-{{#unless isCopy}}
-<div style="background-color: #f8f9fa; border-radius: 8px; padding: 20px; border-left: 4px solid #6f42c1;">
-  <h3 style="margin: 0 0 12px 0; color: #5a2d91; font-size: 16px;">Sobre este comentario:</h3>
-  <ul style="margin: 0; padding-left: 20px; color: #495057;">
-    <li style="margin-bottom: 8px;">{{#if message.isInternal}}Este es un comentario interno del equipo de soporte{{else}}Este comentario es visible para todos los participantes{{/if}}</li>
-    <li style="margin-bottom: 8px;">Puedes responder desde el sistema de tickets</li>
-    <li style="margin-bottom: 8px;">Todas las respuestas quedan registradas en el historial</li>
-    <li>Recibirás notificaciones de nuevos comentarios automáticamente</li>
-  </ul>
-</div>
-{{/unless}}
-
-<!-- Historial reciente -->
-{{#if ticket.recentMessages}}
-<div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; padding: 20px; margin-top: 20px;">
-  <h3 style="margin: 0 0 16px 0; color: #495057; font-size: 16px; font-weight: 600;">📜 Actividad reciente:</h3>
-  
-  {{#each ticket.recentMessages}}
-  <div style="display: flex; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0;">
-    <div style="width: 32px; height: 32px; background-color: #e9ecef; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 12px;">
-      <span style="color: #6c757d; font-size: 12px; font-weight: bold;">
-        {{substring this.user.fullName 0 2}}
-      </span>
-    </div>
-    <div style="flex: 1;">
-      <p style="margin: 0; color: #495057; font-size: 14px;">
-        <strong>{{this.user.fullName}}</strong> 
-        {{#if this.isInternal}}agregó un comentario interno{{else}}agregó un comentario{{/if}}
-      </p>
-      <p style="margin: 2px 0 0 0; color: #6c757d; font-size: 12px;">
-        {{formatDate this.createdAt}}
-      </p>
-    </div>
-  </div>
-  {{/each}}
-  
-  <div style="text-align: center; margin-top: 16px;">
-    <a href="{{ticket.url}}" style="color: #6f42c1; text-decoration: none; font-size: 14px;">
-      Ver historial completo →
-    </a>
-  </div>
-</div>
-{{/if}}
-{{/inline}}
-
-{{#*inline "footer"}}
-<div style="text-align: center; color: #6c757d; font-size: 12px; margin-top: 24px;">
-  <p style="margin: 0 0 8px 0;">
-    {{#if isCopy}}Recibiste este correo como copia de un nuevo comentario{{else}}{{#if isMainRecipient}}Recibiste este correo porque estás relacionado con este ticket{{else}}Recibiste este correo porque eres participante en este ticket{{/if}}{{/if}}
-  </p>
-  <p style="margin: 0;">
-    Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}
-  </p>
-  {{#if systemInfo.supportEmail}}
-  <p style="margin: 8px 0 0 0;">
-    ¿Necesitas ayuda? Contacta: <a href="mailto:{{systemInfo.supportEmail}}" style="color: #007bff;">{{systemInfo.supportEmail}}</a>
-  </p>
-  {{/if}}
-</div>
-{{/inline}}
+  </body>
+</html>

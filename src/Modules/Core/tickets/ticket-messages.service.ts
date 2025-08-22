@@ -74,14 +74,31 @@ export class TicketMessagesService {
       const ticketForEmail = await this.ticketsService.findOne(createMessageDto.ticketId, currentUserId);
       const notificationService = this.ticketsService['ticketNotificationService'];
       if (notificationService?.notifyTicketCommented) {
-        notificationService.notifyTicketCommented({
-          ticket: ticketForEmail,
-          action: 'commented',
-          user: actor || { id: currentUserId, firstName: '', lastName: '', email: '' } as any,
-          message: savedMessage,
-          attachments: [],
-          recipients
-        }).catch(err => console.error('Error enviando notificación por comentario:', err));
+        try {
+          const attachmentRepo = this.ticketsService['attachmentRepository'];
+          let messageAttachments: any[] = [];
+          if (attachmentRepo) {
+            messageAttachments = await attachmentRepo.find({ where: { messageId: savedMessage.id } });
+          }
+          notificationService.notifyTicketCommented({
+            ticket: ticketForEmail,
+            action: 'commented',
+            user: actor || { id: currentUserId, firstName: '', lastName: '', email: '' } as any,
+            message: savedMessage,
+            attachments: messageAttachments,
+            recipients
+          }).catch(err => console.error('Error enviando notificación por comentario:', err));
+        } catch (err) {
+          console.error('Error obteniendo attachments para notificación:', err);
+          notificationService.notifyTicketCommented({
+            ticket: ticketForEmail,
+            action: 'commented',
+            user: actor || { id: currentUserId, firstName: '', lastName: '', email: '' } as any,
+            message: savedMessage,
+            attachments: [],
+            recipients
+          }).catch(err2 => console.error('Error enviando notificación por comentario (fallback):', err2));
+        }
       }
     } catch (err) {
       console.error('Error preparando notificación por comentario:', err);
