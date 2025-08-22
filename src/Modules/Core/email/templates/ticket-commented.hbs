@@ -26,9 +26,7 @@
       <h1 class="company-name">CHARLOTTE CHEMICAL</h1>
     </div>
     <div class="content">
-      {{#if content}}
-        <div style="margin-bottom:16px;">{{{content}}}</div>
-      {{/if}}
+      
       <div style="padding: 32px 24px; background-color: #f8f9fa; border-radius: 8px; margin-bottom: 24px;">
         <div style="display: flex; align-items: center; margin-bottom: 16px;">
           <div style="width: 48px; height: 48px; background-color: #6f42c1; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 16px;">
@@ -36,7 +34,7 @@
           </div>
           <div>
             <h2 style="margin: 0; color: #6f42c1; font-size: 24px; font-weight: 600;">{{#if isCopy}}CC: {{/if}}Nuevo comentario en ticket</h2>
-            <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">Ticket #{{ticket.ticketNumber}} • Comentario de {{user.fullName}}</p>
+            <p style="margin: 4px 0 0 0; color: #6c757d; font-size: 14px;">Ticket #{{ticket.ticketNumber}} • Comentario de {{user.firstName}} {{user.lastName}}</p>
           </div>
         </div>
       </div>
@@ -57,10 +55,10 @@
             <div style="background-color: #f8f5ff; border: 2px solid #e0cffc; border-radius: 12px; padding: 20px; margin-bottom: 24px; position: relative;">
               <div style="display:flex; align-items:center; margin-bottom:16px; padding-bottom:12px; border-bottom:1px solid #e0cffc;">
                 <div style="width:40px; height:40px; background-color:#6f42c1; border-radius:50%; display:flex; align-items:center; justify-content:center; margin-right:12px;">
-                  <span style="color:white; font-size:18px; font-weight:bold;">{{substring user.fullName 0 2}}</span>
+                  <span style="color:white; font-size:18px; font-weight:bold;">{{substring user.firstName 0 1}}{{substring user.lastName 0 1}}</span>
                 </div>
                 <div style="flex:1;">
-                  <h3 style="margin:0 0 4px 0; color:#5a2d91; font-size:16px; font-weight:600;">{{user.fullName}}</h3>
+                  <h3 style="margin:0 0 4px 0; color:#5a2d91; font-size:16px; font-weight:600;">{{user.firstName}} {{user.lastName}}</h3>
                   <p style="margin:0; color:#6f42c1; font-size:14px;">{{user.email}}</p>
                 </div>
                 <div style="text-align:right;">
@@ -73,7 +71,7 @@
                 <div style="border-top:1px solid #e0cffc; padding-top:16px;">
                   <div style="display:flex; align-items:center; margin-bottom:8px;"><span style="font-size:16px; margin-right:8px;">📎</span><strong style="color:#5a2d91; font-size:14px;">Archivos adjuntos:</strong></div>
                   <div style="background:white; border:1px solid #e0cffc; border-radius:6px; padding:12px;">
-                    {{#each message.attachments}}<div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;"><span style="margin-right:8px;">📄</span><span style="color:#6f42c1; font-weight:500;">{{this.filename}}</span><span style="margin-left:auto; color:#6c757d; font-size:12px;">({{this.fileSize}})</span></div>{{/each}}
+                    {{#each message.attachments}}<div style="display:flex; align-items:center; padding:8px 0; border-bottom:1px solid #f0f0f0;"><span style="margin-right:8px;">📄</span><span style="color:#6f42c1; font-weight:500;">{{this.fileName}}</span><span style="margin-left:auto; color:#6c757d; font-size:12px;">({{this.fileSize}})</span></div>{{/each}}
                   </div>
                 </div>
               {{/if}}
@@ -85,7 +83,7 @@
           <div style="background-color:#fff; border:1px solid #e9ecef; border-radius:8px; padding:16px; margin-bottom:20px;"><h4 style="margin:0 0 8px 0; color:#495057; font-size:16px;">Resumen rápido</h4><p style="margin:0 0 8px 0; color:#6c757d; font-size:14px;">#{{ticket.ticketNumber}} • {{ticket.title}}</p><p style="margin:0 0 12px 0; color:#6c757d; font-size:13px;">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> — Prioridad: <strong style="color:{{ticket.priorityColor}}">{{ticket.priority}}</strong></p>{{#if message}}<div style="background:#f8f9fa; padding:12px; border-radius:6px; margin-bottom:12px;">{{breaklines message.content}}</div>{{/if}}<div style="text-align:center; margin-top:8px;"><a href="{{ticket.url}}" style="display:inline-block; background:#6f42c1; color:white; padding:10px 18px; border-radius:6px; text-decoration:none;">Ver caso</a></div></div>
 
           <!-- Información del ticket -->
-          <div style="background-color:#f8f9fa; border-radius:8px; padding:20px; border:1px solid #e9ecef;"><h3 style="margin:0 0 16px 0; color:#495057; font-size:16px; font-weight:600;">Información del ticket:</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;"><div><strong style="color:#495057; font-size:14px;">Creado por:</strong><p style="margin:4px 0 0 0; color:#007bff;">{{ticket.createdBy.fullName}}</p></div>{{#if ticket.assignedTo}}<div><strong style="color:#495057; font-size:14px;">Asignado a:</strong><p style="margin:4px 0 0 0; color:#28a745;">{{ticket.assignedTo.fullName}}</p></div>{{/if}}<div><strong style="color:#495057; font-size:14px;">Estado actual:</strong><span style="background-color: {{ticket.statusColor}}; color:white; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500;">{{ticket.status}}</span></div><div><strong style="color:#495057; font-size:14px;">Tipo:</strong><p style="margin:4px 0 0 0; color:#6f42c1;">{{ticket.ticketType.name}}</p></div>{{#if ticket.formattedDueDate}}<div><strong style="color:#495057; font-size:14px;">Fecha límite:</strong><p style="margin:4px 0 0 0; color:#fd7e14;">{{ticket.formattedDueDate}}</p></div>{{/if}}</div></div>
+          <div style="background-color:#f8f9fa; border-radius:8px; padding:20px; border:1px solid #e9ecef;"><h3 style="margin:0 0 16px 0; color:#495057; font-size:16px; font-weight:600;">Información del ticket:</h3><div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:16px;"><div><strong style="color:#495057; font-size:14px;">Creado por:</strong><p style="margin:4px 0 0 0; color:#007bff;">{{ticket.creator.firstName}} {{ticket.creator.lastName}}</p></div>{{#if ticket.assignee}}<div><strong style="color:#495057; font-size:14px;">Asignado a:</strong><p style="margin:4px 0 0 0; color:#28a745;">{{ticket.assignee.firstName}} {{ticket.assignee.lastName}}</p></div>{{/if}}<div><strong style="color:#495057; font-size:14px;">Estado actual:</strong><span style="background-color: {{ticket.statusColor}}; color:white; padding:2px 8px; border-radius:12px; font-size:12px; font-weight:500;">{{ticket.status}}</span></div><div><strong style="color:#495057; font-size:14px;">Tipo:</strong><p style="margin:4px 0 0 0; color:#6f42c1;">{{ticket.ticketType.name}}</p></div>{{#if ticket.formattedDueDate}}<div><strong style="color:#495057; font-size:14px;">Fecha límite:</strong><p style="margin:4px 0 0 0; color:#fd7e14;">{{ticket.formattedDueDate}}</p></div>{{/if}}</div></div>
 
         </div>
         <div class="footer"><p class="footer-text">Este es un correo automático generado por el sistema Charlotte Chemical.<br>Por favor, no responder a este mensaje.<br>© {{systemInfo.year}} Charlotte Chemical Internacional, S.A. de C.V. Todos los derechos reservados.</p></div>

@@ -108,7 +108,7 @@ export class EmailController {
     description: 'Email personalizado enviado exitosamente',
     type: EmailResponseDto
   })
-  @ApiBadRequestResponse({ 
+  @ApiBadRequestResponse({  
     description: 'Error en los datos enviados',
     type: EmailErrorResponseDto
   })

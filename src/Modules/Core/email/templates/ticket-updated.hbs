@@ -21,11 +21,10 @@
     </div>
 
     <div class="content">
-      {{#if content}}<div style="margin-bottom:16px">{{{content}}}</div>{{/if}}
 
       <div style="background:#fff;border-radius:8px;border:1px solid #e9ecef;padding:18px;margin-bottom:16px">
         <h3 style="margin:0 0 8px 0;color:#17a2b8">Ticket actualizado</h3>
-        <p style="margin:0 0 12px 0;color:#6c757d">El ticket ha recibido una actualización por <strong>{{user.fullName}}</strong>.</p>
+  <p style="margin:0 0 12px 0;color:#6c757d">El ticket ha recibido una actualización por <strong>{{user.firstName}} {{user.lastName}}</strong>.</p>
 
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:12px">
           <div style="background:#f8f9fa;padding:12px;border-radius:8px;text-align:center">

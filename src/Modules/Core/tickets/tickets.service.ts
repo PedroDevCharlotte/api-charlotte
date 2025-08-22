@@ -357,6 +357,24 @@ export class TicketsService {
       this.extractRelevantFields(savedTicket)
     );
 
+    // Enviar notificación de actualización (no bloquear la respuesta)
+    try {
+      const recipients = await this.buildEmailRecipients(savedTicket.id, currentUserId);
+      const actor = (await this.userRepository.findOne({ where: { id: currentUserId } })) || { id: currentUserId, firstName: '', lastName: '', email: '' } as any;
+      const ticketForEmail = await this.findOne(savedTicket.id, currentUserId);
+      this.ticketNotificationService.notifyTicketUpdated({
+        ticket: ticketForEmail,
+        action: 'updated',
+        user: actor as User,
+        previousValues: this.extractRelevantFields(oldValues),
+        recipients,
+      }).catch(err => {
+        console.error('Error enviando notificación de actualización:', err);
+      });
+    } catch (err) {
+      console.error('Error preparando notificación de actualización:', err);
+    }
+
     // Devolver la representación completa y mapeada
     return this.findOne(id, currentUserId);
   }
@@ -418,6 +436,25 @@ export class TicketsService {
       { assignedTo: assigneeId }
     );
 
+    // Enviar notificación de reasignación siempre al nuevo asignado (no bloquear la respuesta)
+    try {
+      const actor = (await this.userRepository.findOne({ where: { id: currentUserId } })) || { id: currentUserId, firstName: '', lastName: '', email: '' } as any;
+      const ticketForEmail = await this.findOne(ticketId, currentUserId);
+      const assigneeEmail = assignee.email;
+      const recipients = assigneeEmail ? { to: [assigneeEmail] } : { to: [] };
+      this.ticketNotificationService.notifyTicketAssigned({
+        ticket: ticketForEmail,
+        action: 'assigned',
+        user: actor as User,
+        previousValues: { assignedTo: oldAssignee },
+        recipients,
+      }).catch(err => {
+        console.error('Error enviando notificación de reasignación:', err);
+      });
+    } catch (err) {
+      console.error('Error preparando notificación de reasignación:', err);
+    }
+
     return this.findOne(ticketId, currentUserId);
   }
 
@@ -432,6 +469,8 @@ export class TicketsService {
 
     ticket.status = TicketStatus.CLOSED;
     ticket.closedAt = new Date();
+  // Persist the resolution text so templates can display it
+  ticket.resolution = resolution;
     
     if (!ticket.resolvedAt) {
       ticket.resolvedAt = new Date();
@@ -455,6 +494,27 @@ export class TicketsService {
       { status: TicketStatus.COMPLETED },
       { status: TicketStatus.CLOSED, closedAt: ticket.closedAt }
     );
+
+    // Enviar notificación de cierre solo al creador (no bloquear respuesta)
+    try {
+      const actor = (await this.userRepository.findOne({ where: { id: currentUserId } })) || { id: currentUserId, firstName: '', lastName: '', email: '' } as any;
+      const ticketForEmail = await this.findOne(ticketId, currentUserId);
+      const creatorEmail = ticketForEmail?.creator?.email;
+      const recipients = creatorEmail ? { to: [creatorEmail] } : { to: [] };
+      this.ticketNotificationService.notifyTicketClosed({
+        ticket: ticketForEmail,
+        action: 'closed',
+        user: actor as User,
+        previousValues: { status: TicketStatus.COMPLETED },
+        recipients,
+        // include the resolution as customMessage so templates render the closure message
+        customMessage: resolution,
+      }).catch(err => {
+        console.error('Error enviando notificación de cierre:', err);
+      });
+    } catch (err) {
+      console.error('Error preparando notificación de cierre:', err);
+    } 
 
     return this.findOne(ticketId, currentUserId);
   }

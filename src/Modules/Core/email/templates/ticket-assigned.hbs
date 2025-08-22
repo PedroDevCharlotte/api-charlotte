@@ -26,17 +26,17 @@
         <div style="display:flex;align-items:center;gap:12px">
           <div style="width:48px;height:48px;border-radius:50%;background:#28a745;display:flex;align-items:center;justify-content:center;color:#fff;font-size:20px">👤</div>
           <div>
-            <div style="font-weight:600;color:#28a745">{{#if isCopy}}CC: {{/if}}Ticket asignado</div>
-            <div style="color:#6c757d;font-size:13px">#{{ticket.ticketNumber}} • Asignado por {{user.fullName}}</div>
+              <div style="font-weight:600;color:#28a745">{{#if isCopy}}CC: {{/if}}Ticket asignado</div>
+              <div style="color:#6c757d;font-size:13px">#{{ticket.ticketNumber}} • Asignado por {{user.firstName}} {{user.lastName}}</div>
           </div>
         </div>
       </div>
 
       <div style="background:#fff;border:1px solid #e9ecef;border-radius:8px;padding:18px;margin-bottom:18px">
-        {{#if ticket.assignedTo}}
+        {{#if ticket.assignee}}
           <div style="text-align:center;margin-bottom:12px">
-            <h3 style="margin:0">{{ticket.assignedTo.fullName}}</h3>
-            <div style="color:#386641">{{ticket.assignedTo.email}}</div>
+              <h3 style="margin:0">{{ticket.assignee.firstName}} {{ticket.assignee.lastName}}</h3>
+              <div style="color:#386641">{{ticket.assignee.email}}</div>
           </div>
         {{/if}}
         {{#if customMessage}}<div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-top:12px">{{breaklines customMessage}}</div>{{/if}}

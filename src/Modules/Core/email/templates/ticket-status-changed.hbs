@@ -20,7 +20,6 @@
       <h2 style="margin:0">Cambio de estado del ticket</h2>
     </div>
     <div class="content">
-      {{#if content}}<div style="margin-bottom:16px">{{{content}}}</div>{{/if}}
 
       <div style="background:#fff;border-radius:8px;border:1px solid #e9ecef;padding:18px;margin-bottom:16px">
         <h3 style="margin:0 0 8px 0;color:{{statusChange.newStatusColor}}">Estado del ticket actualizado</h3>
@@ -39,7 +38,7 @@
 
           <div style="background:#f8f9fa;padding:12px;border-radius:8px;text-align:center">
             <strong style="display:block;color:#495057">Responsable</strong>
-            <div style="color:#6c757d">{{#if ticket.assignedTo}}{{ticket.assignedTo.fullName}}{{else}}Sin asignar{{/if}}</div>
+            <div style="color:#6c757d">{{#if ticket.assignee}}{{ticket.assignee.firstName}} {{ticket.assignee.lastName}}{{else}}Sin asignar{{/if}}</div>
           </div>
         </div>
 

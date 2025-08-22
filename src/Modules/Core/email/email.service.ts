@@ -179,9 +179,10 @@ export class EmailService {
         context || {},
       );
       if (!safeContext.subject) safeContext.subject = subject;
-      // Provide common safe defaults used by many templates to avoid Handlebars missing-variable errors
-      if (safeContext.content === undefined) safeContext.content = '';
-      if (safeContext.ticket === undefined) safeContext.ticket = {};
+  // Provide common safe defaults used by many templates to avoid Handlebars missing-variable errors
+  if (safeContext.content === undefined) safeContext.content = '';
+  // Keep ticket minimal default; do not coerce caller primitives into objects here.
+  if (safeContext.ticket === undefined) safeContext.ticket = {};
       if (safeContext.user === undefined)
         safeContext.user = { id: null, firstName: '', lastName: '', email: '' };
       if (safeContext.attachments === undefined) safeContext.attachments = [];
@@ -212,22 +213,8 @@ export class EmailService {
           safeContext.systemInfo = this.getEmailBaseConfig();
       }
 
-      // Ensure user.fullName exists (templates expect fullName)
-      try {
-        if (safeContext.user) {
-          if (!safeContext.user.fullName) {
-            const fn = (safeContext.user.firstName || '').toString().trim();
-            const ln = (safeContext.user.lastName || '').toString().trim();
-            safeContext.user.fullName =
-              fn || ln ? `${fn} ${ln}`.trim() : safeContext.user.email || '';
-          }
-        }
-      } catch (err) {
-        this.logger.debug(
-          'Could not normalize user.fullName for email context:',
-          err?.message || err,
-        );
-      }
+  // Note: templates should use `user.firstName` and `user.lastName`.
+  // We intentionally avoid injecting or mutating a `user.fullName` property here.
 
       // Ensure ticket.url exists for CTA links used by templates (fallback to frontend /apps/ticket/details/:id)
       try {
@@ -297,6 +284,9 @@ export class EmailService {
         context: safeContext,
       };
 
+  // Pre-render check removed: avoid mutating caller context at render-time.
+  // Let the mailer/Handlebars surface template/runtime errors upstream.
+
       try {
         const fs = require('fs');
         if (
@@ -320,6 +310,8 @@ export class EmailService {
           err?.message || err,
         );
       }
+
+  // Final sanitization removed: avoid implicit coercions of primitives to objects here.
 
   // Send email using configured mailer service
   // Debug rendering to disk has been removed; use the mailerService to actually send emails.

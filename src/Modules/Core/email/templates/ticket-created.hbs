@@ -28,9 +28,6 @@
 
         <div class="content">
           {{!-- si existe 'content' plano (p.ej. texto del mensaje), mostrarlo antes del layout detallado --}}
-          {{#if content}}
-            <div style="margin-bottom:16px;">{{{content}}}</div>
-          {{/if}}
 
           <!-- Resumen rápido: información esencial + CTA -->
           <div style="background-color:#fff; border:1px solid #e9ecef; border-radius:8px; padding:16px; margin-bottom:20px;">
@@ -81,14 +78,14 @@
               <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px;">
                 <div>
                   <strong style="color: #495057; font-size: 14px;">Creado por:</strong>
-                  <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.createdBy.fullName}}</p>
-                  <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.createdBy.email}}</p>
+                  <p style="margin: 4px 0 0 0; color: #007bff;">{{ticket.creator.firstName}} {{ticket.creator.lastName}}</p>
+                  <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.creator.email}}</p>
                 </div>
-                {{#if ticket.assignedTo}}
+                {{#if ticket.assignee}}
                 <div>
                   <strong style="color: #495057; font-size: 14px;">Asignado a:</strong>
-                  <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignedTo.fullName}}</p>
-                  <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.assignedTo.email}}</p>
+                  <p style="margin: 4px 0 0 0; color: #28a745;">{{ticket.assignee.firstName}} {{ticket.assignee.lastName}}</p>
+                  <p style="margin: 0; color: #6c757d; font-size: 12px;">{{ticket.assignee.email}}</p>
                 </div>
                 {{/if}}
 
@@ -124,10 +121,10 @@
                   <strong style="color: #495057; font-size: 14px;">Archivos adjuntos ({{ticket.attachmentCount}}):</strong>
                 </div>
                 <div style="background-color: #f8f9fa; padding: 12px; border-radius: 6px;">
-                  {{#each attachments}}
-                  <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
+                    {{#each attachments}}
+                    <div style="display: flex; align-items: center; padding: 8px 0; border-bottom: 1px solid #e9ecef;">
                     <span style="margin-right: 8px;">📄</span>
-                    <span style="color: #007bff; font-weight: 500;">{{this.filename}}</span>
+                    <span style="color: #007bff; font-weight: 500;">{{this.fileName}}</span>
                     <span style="margin-left: auto; color: #6c757d; font-size: 12px;">({{this.fileSize}})</span>
                   </div>
                   {{/each}}
@@ -154,7 +151,7 @@
             <h3 style="margin: 0 0 12px 0; color: #155724; font-size: 16px;">¿Qué sigue?</h3>
             <ul style="margin: 0; padding-left: 20px; color: #495057;">
               <li style="margin-bottom: 8px;">Revisa los detalles del ticket haciendo clic en el enlace anterior</li>
-              <li style="margin-bottom: 8px;">{{#if ticket.assignedTo}}El agente asignado se pondrá en contacto contigo pronto{{else}}El ticket será asignado a un agente especializado{{/if}}</li>
+              <li style="margin-bottom: 8px;">{{#if ticket.assignee}}El agente asignado se pondrá en contacto contigo pronto{{else}}El ticket será asignado a un agente especializado{{/if}}</li>
               <li style="margin-bottom: 8px;">Recibirás notificaciones automáticas sobre cualquier actualización</li>
               <li>Puedes agregar comentarios o información adicional desde el sistema</li>
             </ul>

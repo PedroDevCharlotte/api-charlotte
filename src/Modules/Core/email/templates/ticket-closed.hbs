@@ -11,6 +11,12 @@
     .logo{max-width:200px;height:auto;margin-bottom:8px}
     .content{padding:28px}
     .footer{padding:18px;text-align:center;background:#f8f9fa;color:#6c757d;font-size:12px}
+    /* Estilos para el botón de encuesta: más visible y responsive */
+    .survey-btn{display:inline-block;background:linear-gradient(135deg,#28a745,#1e7e34);color:#ffffff;padding:14px 22px;border-radius:8px;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(40,167,69,0.18);font-size:16px;line-height:1.2;letter-spacing:0.2px;border:1px solid rgba(0,0,0,0.04)}
+    @media only screen and (max-width:480px){
+      .content{padding:16px}
+      .survey-btn{display:block;width:100%;box-sizing:border-box}
+    }
   </style>
 </head>
 <body>
@@ -20,7 +26,6 @@
       <h2 style="margin:0">Ticket cerrado</h2>
     </div>
     <div class="content">
-      {{#if content}}<div style="margin-bottom:16px">{{{content}}}</div>{{/if}}
 
       <div style="background:linear-gradient(135deg,#28a745,#1e7e34);color:white;padding:24px;border-radius:8px;text-align:center;margin-bottom:20px">
         <div style="font-size:56px">✅</div>
@@ -38,13 +43,23 @@
 
         <div style="background:#f8f9fa;padding:14px;border-radius:8px;border-left:4px solid #28a745;margin-bottom:14px">
           <div style="font-weight:600;color:#155724">Cerrado por:</div>
-          <div style="color:#28a745;font-size:16px;font-weight:600">{{user.fullName}}</div>
+            <div style="color:#28a745;font-size:16px;font-weight:600">{{user.firstName}} {{user.lastName}}</div>
           <div style="color:#6c757d;font-size:13px">{{user.email}}</div>
         </div>
 
-        {{#if customMessage}}<div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{breaklines customMessage}}</div>{{/if}}
+        {{#if customMessage}}
+          <div style="margin-top:12px">
+            <div style="font-weight:600;color:#155724;margin-bottom:6px">Mensaje adicional</div>
+            <div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{breaklines customMessage}}</div>
+          </div>
+        {{/if}}
 
-        {{#if ticket.resolution}}<div style="margin-top:12px;background:#d4edda;padding:12px;border-radius:6px;border-left:4px solid #28a745">{{breaklines ticket.resolution}}</div>{{/if}}
+        {{#if ticket.resolution}}
+          <div style="margin-top:12px">
+            <div style="font-weight:600;color:#155724;margin-bottom:6px">Mensaje de resolución</div>
+            <div style="background:#d4edda;padding:12px;border-radius:6px;border-left:4px solid #28a745">{{breaklines ticket.resolution}}</div>
+          </div>
+        {{/if}}
 
         <div style="text-align:center;margin-top:16px"><a href="{{ticket.url}}" style="background:#6c757d;color:#fff;padding:10px 18px;border-radius:6px;text-decoration:none;display:inline-block">📋 Ver Historial Completo</a></div>
       </div>
@@ -54,6 +69,15 @@
         <p style="margin:0 0 8px 0;color:#6c757d">#{{ticket.ticketNumber}} • {{ticket.title}}</p>
         <p style="margin:0 0 12px 0;color:#6c757d">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> — Prioridad: <strong style="color:{{ticket.priorityColor}}">{{ticket.priority}}</strong></p>
       </div>
+
+      <!-- Encuesta breve -->
+      {{#unless isCopy}}
+      <div style="background:#fff;border:1px solid #e9ecef;border-radius:8px;padding:16px;margin-bottom:18px;text-align:center">
+        <h4 style="margin:0 0 8px 0;color:#232f3e">Tu opinión nos importa</h4>
+        <p style="margin:0 0 12px 0;color:#495057">Ayúdanos calificando la atención recibida. Esto nos permite mejorar continuamente.</p>
+  <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}" target="_blank" rel="noopener noreferrer" role="button" aria-label="Completar encuesta" class="survey-btn">Completar encuesta (60s)</a>
+      </div>
+      {{/unless}}
 
       {{#unless isCopy}}
       <div style="background:#d4edda;border:1px solid #c3e6cb;border-radius:8px;padding:18px;margin-bottom:18px">
@@ -65,7 +89,7 @@
       </div>
       {{/unless}}
     </div>
-    <div class="footer">Este ticket fue cerrado el {{ticket.formattedClosedAt}}. • Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}</div>
+    <div class="footer">Este ticket fue cerrado el {{ticket.closedAt}}. • Sistema de Tickets • Charlotte Chemical Internacional • {{systemInfo.year}}</div>
   </div>
 </body>
 </html>
