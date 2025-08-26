@@ -11,7 +11,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     permissions:
       contents: read #This is required for actions/checkout
 
@@ -23,11 +23,12 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: npm install and build
+      - name: npm install, build, and test
         run: |
           npm install
           npm run build --if-present
-
+          npm run test --if-present
+      
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
@@ -50,16 +51,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_64E98ED034994FE5BBABCFBB718173E2 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_E0641DF5427144A2956D912FA608EE2D }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_90AB2D6D171A4907B9BCA652368D0F44 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_1A0AC8151D544467A7D5A888A8D30DA4 }}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_26195D4697C44C3FAD8466F639FCDFB2 }}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_F730E3A9CF9A4CE9817630AC5B9E7576 }}
 
       - name: 'Deploy to Azure Web App'
-        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
+        id: deploy-to-webapp
         with:
           app-name: 'apiconecta'
           slot-name: 'Production'
           package: .
-
           
