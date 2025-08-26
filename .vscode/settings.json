@@ -1,3 +1,5 @@
 {
-    "postman.settings.dotenv-detection-notification-visibility": false
+    "postman.settings.dotenv-detection-notification-visibility": false,
+    "appService.defaultWebAppToDeploy": "/subscriptions/4f7adfdc-c963-4aec-a55a-cc9f5a957a20/resourceGroups/CharlotteAzure/providers/Microsoft.Web/sites/apiconecta",
+    "appService.deploySubpath": "."
 }
