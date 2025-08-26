@@ -11,28 +11,47 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     permissions:
       contents: read #This is required for actions/checkout
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js version
-        uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '20.x'
+          node-version: '20'
 
-      - name: npm install and build
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Prune dev dependencies
+        run: npm prune --production
+
+      - name: Prepare release folder
         run: |
-          npm install
-          npm run build --if-present
-      
+          rm -rf release || true
+          mkdir release
+          cp package.json package-lock.json release/ || true
+          cp -R dist release/dist || true
+          cp -R node_modules release/node_modules || true
+          # exclude local uploads/tmp to keep package small
+
+      - name: Zip release
+        run: |
+          cd release
+          zip -r ../release.zip .
+          cd ..
+
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: node-app
-          path: .
+          path: release.zip
 
   deploy:
     runs-on: ubuntu-latest
@@ -46,7 +65,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: node-app
-      
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -60,6 +79,6 @@ jobs:
         with:
           app-name: 'apiconecta'
           slot-name: 'Production'
-          package: .
+          package: 'release.zip'
 
           
