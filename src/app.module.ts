@@ -21,6 +21,8 @@ import { Department } from './Modules/Core/departments/Entity/department.entity'
 import { User } from './Modules/Core/users/Entity/user.entity';
 import { TicketType } from './Modules/Core/ticket-types/Entity/ticket-type.entity';
 import { Ticket } from './Modules/Core/tickets/Entity/ticket.entity';
+import { Banner } from './Modules/Core/banners/Entity/banner.entity';
+import { BannersModule } from './Modules/Core/banners/banners.module';
 import { TicketParticipant } from './Modules/Core/tickets/Entity/ticket-participant.entity';
 import { TicketMessage } from './Modules/Core/tickets/Entity/ticket-message.entity';
 import { GeneralList } from './Modules/Core/general-lists/Entity/general-list.entity';
@@ -43,6 +45,7 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
       Ticket, 
       TicketParticipant, 
       TicketMessage,
+  Banner,
       GeneralList,
       ListOption,
       EntityDefinition,
@@ -57,8 +60,10 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
     RolesModule,
     DepartmentsModule,
     TicketTypesModule,
-    TicketsModule,
-    GeneralListsModule
+  TicketsModule,
+  // Banners module for managing homepage banners
+  BannersModule,
+  GeneralListsModule
   ],
   controllers: [HierarchyTestController],
   providers: [DataSeederService, UserHierarchySeederService],

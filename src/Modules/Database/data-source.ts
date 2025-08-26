@@ -10,6 +10,6 @@ export const AppDataSource = new DataSource({
   database: 'charlottecore',
   entities: [join(__dirname, '../**/*.Entity{.ts,.js}')],
   migrations: [join(__dirname, 'Migrations/*{.ts,.js}')],
-  synchronize: false,
+  synchronize: true,
   logging: true,
 });
