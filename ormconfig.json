@@ -6,7 +6,7 @@
   "password": "r3O#&qLLG#t;",
   "database": "u821827014_conectadb",
   "autoLoadEntities": true,
-  "synchronize": true,
+  "synchronize": false,
   "migrations": [
     "dist/Modules/Database/Migrations/*.js"
   ],

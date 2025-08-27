@@ -40,7 +40,7 @@ export class UserController {
     return this.usersService.findById(id);
   }
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @HttpCode(HttpStatus.CREATED)
   @Post('insert')
   @ApiOperation({ summary: 'Crear un nuevo usuario (formato moderno)' })

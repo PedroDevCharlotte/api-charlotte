@@ -27,6 +27,7 @@ import { UsersModule } from '../users/users.module';
 import { DepartmentsModule } from '../departments/departments.module';
 import { TicketTypesModule } from '../ticket-types/ticket-types.module';
 import { EmailModule } from '../email/email.module';
+import { EntraIdModule } from '../../Services/EntraID/entra-id.module';
 
 @Module({
   imports: [
@@ -41,10 +42,11 @@ import { EmailModule } from '../email/email.module';
       User,
     ]),
     // Importar otros módulos necesarios
-    forwardRef(() => UsersModule),
-    forwardRef(() => DepartmentsModule),
-    forwardRef(() => TicketTypesModule),
-    forwardRef(() => EmailModule),
+  forwardRef(() => UsersModule),
+  forwardRef(() => DepartmentsModule),
+  forwardRef(() => TicketTypesModule),
+  forwardRef(() => EmailModule),
+  forwardRef(() => EntraIdModule),
   ],
   controllers: [
     TicketsController,

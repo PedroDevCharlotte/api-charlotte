@@ -7,7 +7,7 @@ function mapUser(user: any) {
     email: user.email,
   };
 }
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, FindManyOptions, ILike } from 'typeorm';
 import { Ticket, TicketStatus, TicketPriority } from './Entity/ticket.entity';
@@ -16,6 +16,7 @@ import { TicketMessage, MessageType } from './Entity/ticket-message.entity';
 import { TicketHistory, HistoryAction } from './Entity/ticket-history.entity';
 import { TicketAttachment } from './Entity/ticket-attachment.entity';
 import { CreateTicketDto, UpdateTicketDto } from './Dto/ticket.dto';
+import { GraphService } from '../../Services/EntraID/graph.service';
 import { CreateCompleteTicketDto, CompleteTicketResponseDto } from './Dto/create-complete-ticket.dto';
 import { User } from '../users/Entity/user.entity';
 import { TicketType } from '../ticket-types/Entity/ticket-type.entity';
@@ -56,6 +57,8 @@ export class TicketsService {
     @InjectRepository(TicketType)
     private ticketTypeRepository: Repository<TicketType>,
     private ticketNotificationService: TicketNotificationService,
+  @Inject(forwardRef(() => GraphService))
+  private readonly graphService: GraphService,
   ) {}
 
   async getAttachmentById(id: number) {
@@ -1199,54 +1202,51 @@ export class TicketsService {
    * Crear un ticket completo con archivos adjuntos desde FormData
    */
   async createCompleteTicketWithFiles(
-    createCompleteTicketDto: CreateCompleteTicketDto, 
+    createCompleteTicketDto: CreateCompleteTicketDto,
     files: any[] = []
   ): Promise<CompleteTicketResponseDto> {
     try {
-      // Procesar archivos si existen
+      // --- OneDrive integration for ticket attachments ---
       if (files && files.length > 0) {
         const attachments: any[] = [];
-        
+        const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+        if (!userEmail) throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
+        const rootFolder = process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
+        // 1. Buscar userId
+        const userRes = await this.graphService.getUserByEmail(userEmail);
+        const userId = userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+        if (!userId) throw new BadRequestException('No se encontró el usuario de OneDrive');
+        // 2. Validar/crear carpeta raíz
+        let folder = await this.graphService.validateFolder(userId, rootFolder);
+        if (!folder) folder = await this.graphService.createFolder(userId, rootFolder);
+        // 3. Crear subcarpeta por ticket (usa timestamp temporal, luego se puede actualizar con el ticketId real)
+        const ticketFolderName = `ticket_${Date.now()}`;
+        let ticketFolder = await this.graphService.validateFolder(userId, `${rootFolder}/${ticketFolderName}`);
+        if (!ticketFolder) ticketFolder = await this.graphService.createFolder(userId, `${rootFolder}/${ticketFolderName}`);
+
         for (const file of files) {
-          // Crear directorio para archivos si no existe
-          const uploadDir = 'uploads/tickets';
-          const fs = require('fs');
-          const path = require('path');
-          
-          if (!fs.existsSync(uploadDir)) {
-            fs.mkdirSync(uploadDir, { recursive: true });
-          }
-
-          // Generar nombre único para el archivo
-          const timestamp = Date.now();
-          const randomStr = Math.random().toString(36).substring(2, 15);
-          const fileExtension = path.extname(file.originalname);
-          const fileName = `${timestamp}_${randomStr}${fileExtension}`;
-          const filePath = path.join(uploadDir, fileName);
-
-          // Guardar archivo
-          fs.writeFileSync(filePath, file.buffer);
-
-          // Agregar a la lista de adjuntos
+          const ext = file.originalname ? file.originalname.split('.').pop() : 'dat';
+          const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+          const filePath = `${rootFolder}/${ticketFolderName}/${fileName}`;
+          // Subir archivo a OneDrive
+          const uploadRes = await this.graphService.uploadFile(userId, filePath, file.buffer);
+          // Obtener link de vista previa
+          const previewRes = await this.graphService.getFilePreview(userId, uploadRes.id);
           attachments.push({
             fileName: fileName,
             originalFileName: file.originalname,
-            filePath: filePath,
+            filePath: previewRes?.link?.webUrl || '',
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`
           });
         }
-
-        // Agregar archivos al DTO
         createCompleteTicketDto.attachments = attachments;
       }
-
       // Llamar al método original
       return await this.createCompleteTicket(createCompleteTicketDto);
-
     } catch (error) {
-      console.error('Error creando ticket con archivos:', error);
+      console.error('Error creando ticket con archivos (OneDrive):', error);
       throw error;
     }
   }

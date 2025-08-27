@@ -1,14 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Inject, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Banner } from './Entity/banner.entity';
 import { CreateBannerDto, UpdateBannerDto } from './Dto/banner.dto';
+import { GraphService } from '../../Services/EntraID/graph.service';
 
 @Injectable()
 export class BannersService {
   constructor(
     @InjectRepository(Banner)
     private bannerRepository: Repository<Banner>,
+    @Inject(forwardRef(() => GraphService))
+    private readonly graphService: GraphService,
   ) {}
 
   async create(createDto: CreateBannerDto, file?: any): Promise<Banner> {
@@ -34,9 +37,26 @@ export class BannersService {
     });
 
     if (file) {
-      const saved = await this.saveFile(file);
-      banner.imagePath = saved.path;
-      banner.imageFileName = saved.fileName;
+      // --- OneDrive integration ---
+  const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+  if (!userEmail) throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
+      const rootFolder = process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
+      // 1. Buscar userId
+      const userRes = await this.graphService.getUserByEmail(userEmail);
+      const userId = userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+      if (!userId) throw new BadRequestException('No se encontró el usuario de OneDrive');
+      // 2. Validar/crear carpeta raíz
+      let folder = await this.graphService.validateFolder(userId, rootFolder);
+      if (!folder) folder = await this.graphService.createFolder(userId, rootFolder);
+      // 3. Subir archivo
+      const ext = file.originalname ? file.originalname.split('.').pop() : 'jpg';
+      const fileName = `banner_${Date.now()}.${ext}`;
+      const filePath = `${rootFolder}/${fileName}`;
+      const uploadRes = await this.graphService.uploadFile(userId, filePath, file.buffer);
+      // 4. Obtener link de vista previa
+      const previewRes = await this.graphService.getFilePreview(userId, uploadRes.id);
+      banner.imagePath = previewRes?.link?.webUrl || '';
+      banner.imageFileName = fileName;
     }
 
     return this.bannerRepository.save(banner);
@@ -56,22 +76,11 @@ export class BannersService {
     return b;
   }
 
-  // Attach imageBase64 property to banner if imagePath exists
+  // Attach preview link property to banner if imagePath exists
   private async attachImageBase64(banner: Banner): Promise<void> {
     if (!banner || !banner.imagePath) return;
-    try {
-      const fs = require('fs');
-      const path = require('path');
-      if (!fs.existsSync(banner.imagePath)) return;
-      const buffer: Buffer = fs.readFileSync(banner.imagePath);
-      const ext = path.extname(banner.imagePath).toLowerCase();
-      const mime = this.getMimeByExt(ext);
-      const dataUrl = `data:${mime};base64,${buffer.toString('base64')}`;
-      (banner as any).imageBase64 = dataUrl;
-    } catch (err) {
-      // don't fail the request if image reading fails
-      return;
-    }
+    // Ahora imagePath es el link de vista previa
+    (banner as any).imagePreviewUrl = banner.imagePath;
   }
 
   private getMimeByExt(ext: string): string {
@@ -119,9 +128,22 @@ export class BannersService {
     banner.active = computedActive2;
     banner.status = updateDto.status || (computedActive2 ? 'active' : 'inactive');
     if (file) {
-      const saved = await this.saveFile(file);
-      banner.imagePath = saved.path;
-      banner.imageFileName = saved.fileName;
+      // --- OneDrive integration ---
+  const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+  if (!userEmail) throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
+      const rootFolder = process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
+      const userRes = await this.graphService.getUserByEmail(userEmail);
+      const userId = userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+      if (!userId) throw new BadRequestException('No se encontró el usuario de OneDrive');
+      let folder = await this.graphService.validateFolder(userId, rootFolder);
+      if (!folder) folder = await this.graphService.createFolder(userId, rootFolder);
+      const ext = file.originalname ? file.originalname.split('.').pop() : 'jpg';
+      const fileName = `banner_${Date.now()}.${ext}`;
+      const filePath = `${rootFolder}/${fileName}`;
+      const uploadRes = await this.graphService.uploadFile(userId, filePath, file.buffer);
+      const previewRes = await this.graphService.getFilePreview(userId, uploadRes.id);
+      banner.imagePath = previewRes?.link?.webUrl || '';
+      banner.imageFileName = fileName;
     }
     return this.bannerRepository.save(banner);
   }
@@ -131,22 +153,5 @@ export class BannersService {
     await this.bannerRepository.remove(b);
   }
 
-  // helper to persist file to uploads/banners/YYYY/MM
-  private async saveFile(file: any): Promise<{ path: string; fileName: string }> {
-    if (!file || !file.buffer) throw new BadRequestException('Archivo inválido');
-    const fs = require('fs');
-    const path = require('path');
-    const now = new Date();
-    const year = now.getFullYear().toString();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const uploadDir = path.join('uploads', 'banners', year, month);
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-    const timestamp = Date.now();
-    const randomStr = Math.random().toString(36).substring(2, 12);
-    const ext = path.extname(file.originalname) || '';
-    const fileName = `${timestamp}_${randomStr}${ext}`;
-    const filePath = path.join(uploadDir, fileName);
-    fs.writeFileSync(filePath, file.buffer);
-    return { path: filePath.replace(/\\/g, '/'), fileName };
-  }
+  // saveFile eliminado: ahora todo se guarda en OneDrive
 }

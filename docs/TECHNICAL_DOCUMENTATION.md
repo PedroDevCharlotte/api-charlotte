@@ -1,4 +1,35 @@
+
 # Documentación técnica del proyecto API Charlotte
+
+## Cambios recientes: Integración con OneDrive para archivos
+
+- Todos los archivos subidos (banners y adjuntos de tickets) se almacenan en OneDrive usando Microsoft Graph API.
+- Se utiliza un usuario y carpeta raíz configurables por variables de entorno (`ONEDRIVE_USER_EMAIL`, `ONEDRIVE_ROOT_FOLDER`).
+- Para tickets, los archivos se guardan en subcarpetas por ticket (`<root>/<ticket_xxx>/archivo.ext`).
+- El campo `filePath` en la base de datos ahora almacena el enlace de vista previa de OneDrive (no la ruta local).
+- No se almacena ningún archivo en disco local.
+- El servicio `GraphService` centraliza la lógica de integración con OneDrive (búsqueda de usuario, validación/creación de carpetas, subida de archivos, obtención de links de vista previa).
+- Se validan las variables de entorno requeridas al inicio y en cada operación de subida.
+
+### Variables de entorno relevantes
+
+- `ONEDRIVE_USER_EMAIL` — email del usuario de OneDrive donde se almacenan los archivos.
+- `ONEDRIVE_ROOT_FOLDER` — nombre de la carpeta raíz en OneDrive (por ejemplo, `FilesConectaCCI`).
+
+### Ejemplo de flujo para adjuntos de tickets
+
+1. El usuario sube archivos al crear un ticket (endpoint `/tickets/complete`).
+2. El backend crea una subcarpeta en OneDrive para el ticket si no existe.
+3. Cada archivo se sube a esa subcarpeta y se obtiene un enlace de vista previa.
+4. El enlace se guarda en la base de datos y se expone en la API.
+
+### Ejemplo de flujo para banners
+
+1. El usuario sube una imagen al crear/editar un banner.
+2. El backend valida la carpeta raíz y sube la imagen a OneDrive.
+3. El enlace de vista previa se guarda en el campo `imagePath` del banner.
+
+---
 
 Este documento resume la documentación técnica por módulo generada por el asistente.
 
