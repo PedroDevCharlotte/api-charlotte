@@ -14,11 +14,18 @@ export class Banner {
   @Column({ type: 'varchar', length: 500, nullable: true })
   link?: string;
 
+
   @Column({ type: 'varchar', length: 500, nullable: true })
   imagePath?: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })
   imageFileName?: string;
+
+  /**
+   * Id del archivo en OneDrive (file.id), para obtener la vista previa o descargar el archivo correctamente.
+   */
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  oneDriveFileId?: string;
 
   @Column({ type: 'boolean', default: true })
   active: boolean;

@@ -216,37 +216,24 @@ export class TicketsService {
     queryBuilder.orderBy('ticket.createdAt', 'DESC');
 
     const [tickets, total] = await queryBuilder.getManyAndCount();
-    const formattedTickets = tickets.map(ticket => ({
-      ...ticket,
-      creator: mapUser(ticket.creator),
-      assignee: mapUser(ticket.assignee),
-      participants: ticket.participants?.map(p => ({
-        ...p,
-        user: mapUser(p.user)
-      })),
-      messages: ticket.messages?.map(msg => ({
-        ...msg,
-        sender: mapUser(msg.sender),
-        editedByUser: mapUser(msg.editedByUser),
-        // Si hay replyTo, mapear su sender
-        replyTo: msg.replyTo ? {
-          ...msg.replyTo,
-          sender: mapUser(msg.replyTo.sender)
-        } : null,
-        // Mapear uploadedBy en attachments
-        attachments: msg.attachments?.map(att => ({
-          ...att,
-          uploadedBy: mapUser(att.uploadedBy)
+    const formattedTickets = await Promise.all(tickets.map(async ticket => {
+      const messages = await Promise.all((ticket.messages || []).map(msg => this.mapMessage(msg)));
+      const attachments = await Promise.all((ticket.attachments || []).map(att => this.mapAttachment(att)));
+      return {
+        ...ticket,
+        creator: mapUser(ticket.creator),
+        assignee: mapUser(ticket.assignee),
+        participants: ticket.participants?.map(p => ({
+          ...p,
+          user: mapUser(p.user)
+        })),
+        messages,
+        attachments,
+        history: ticket.history?.map(h => ({
+          ...h,
+          user: mapUser(h.user)
         }))
-      })),
-      attachments: ticket.attachments?.map(att => ({
-        ...att,
-        uploadedBy: mapUser(att.uploadedBy)
-      })),
-      history: ticket.history?.map(h => ({
-        ...h,
-        user: mapUser(h.user)
-      }))
+      };
     }));
     return { tickets: formattedTickets, total };
   }
@@ -255,35 +242,11 @@ export class TicketsService {
    * Obtener un ticket por ID
    */
   async findOne(id: number, currentUserId: number): Promise<any> {
-    console.log("Id del usuario",currentUserId)
-    const ticket = await this.ticketRepository.findOne({
-      where: { id },
-      relations: [
-        'ticketType',
-        'creator',
-        'assignee',
-        'department',
-        'participants',
-        'participants.user',
-        'messages',
-        'messages.sender',
-        'messages.replyTo',
-        'messages.attachments',
-        'attachments',
-        'attachments.uploadedBy',
-        'history',
-        'history.user'
-      ],
-    });
-
-    if (!ticket) {
-      throw new NotFoundException(`Ticket con ID ${id} no encontrado`);
-    }
-
-    // Verificar permisos de acceso
-    await this.checkTicketAccess(ticket, currentUserId);
-
-    // Mapear usuarios en la respuesta
+    console.log("Id del usuario", currentUserId);
+    const ticket = await this.ticketRepository.findOne({ where: { id } });
+    if (!ticket) return null;
+    const messages = await Promise.all((ticket.messages || []).map(msg => this.mapMessage(msg)));
+    const attachments = await Promise.all((ticket.attachments || []).map(att => this.mapAttachment(att)));
     return {
       ...ticket,
       creator: mapUser(ticket.creator),
@@ -292,30 +255,53 @@ export class TicketsService {
         ...p,
         user: mapUser(p.user)
       })),
-      messages: ticket.messages?.map(msg => ({
-        ...msg,
-        sender: mapUser(msg.sender),
-        editedByUser: mapUser(msg.editedByUser),
-        // Si hay replyTo, mapear su sender
-        replyTo: msg.replyTo ? {
-          ...msg.replyTo,
-          sender: mapUser(msg.replyTo.sender)
-        } : null,
-        // Mapear uploadedBy en attachments
-        attachments: msg.attachments?.map(att => ({
-          ...att,
-          uploadedBy: mapUser(att.uploadedBy)
-        }))
-      })),
-      attachments: ticket.attachments?.map(att => ({
-        ...att,
-        uploadedBy: mapUser(att.uploadedBy)
-      })),
+      messages,
+      attachments,
       history: ticket.history?.map(h => ({
         ...h,
         user: mapUser(h.user)
       }))
     };
+  }
+
+  private async mapAttachment(att: any): Promise<any> {
+    return {
+      ...att,
+      uploadedBy: mapUser(att.uploadedBy),
+      previewUrl: att.oneDriveFileId
+        ? (await this.getAttachmentPreviewUrl(att.oneDriveFileId))
+        : att.filePath || null
+    };
+  }
+
+  private async mapMessage(msg: any): Promise<any> {
+    const attachments = await Promise.all((msg.attachments || []).map(att => this.mapAttachment(att)));
+    return {
+      ...msg,
+      sender: mapUser(msg.sender),
+      editedByUser: mapUser(msg.editedByUser),
+      replyTo: msg.replyTo ? {
+        ...msg.replyTo,
+        sender: mapUser(msg.replyTo.sender)
+      } : null,
+      attachments
+    };
+  }
+  /**
+   * Obtiene el enlace de vista previa de un archivo adjunto en OneDrive
+   */
+  private async getAttachmentPreviewUrl(oneDriveFileId: string): Promise<string | null> {
+    try {
+      const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+      if (!userEmail) return null;
+      const userRes = await this.graphService.getUserByEmail(userEmail);
+      const userId = userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+      if (!userId) return null;
+      const previewRes = await this.graphService.getFilePreview(userId, oneDriveFileId);
+      return previewRes?.link?.webUrl || null;
+    } catch {
+      return null;
+    }
   }
 
   /**

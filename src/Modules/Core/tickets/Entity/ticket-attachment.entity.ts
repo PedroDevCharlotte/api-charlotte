@@ -47,8 +47,15 @@ export class TicketAttachment {
   @Column({ length: 255 })
   originalFileName: string;
 
+
   @Column({ length: 500 })
   filePath: string;
+
+  /**
+   * Id del archivo en OneDrive (file.id), para obtener la vista previa o descargar el archivo correctamente.
+   */
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  oneDriveFileId?: string;
 
   @Column({ length: 100 })
   mimeType: string;
