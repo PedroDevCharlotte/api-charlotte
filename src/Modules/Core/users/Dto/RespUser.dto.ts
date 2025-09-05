@@ -36,6 +36,18 @@ export class RespUserDto {
   isBlocked?: boolean;
   @ApiPropertyOptional()
   active?: boolean;
+  @ApiPropertyOptional({ description: 'Emoji generado por el usuario' })
+  emoji?: string;
+  @ApiPropertyOptional({ description: 'Avatar serializado (JSON or dataURL) disponible en perfil' })
+  avatar?: string;
+    @ApiPropertyOptional({
+      description: 'Tipos de soporte asignados al usuario',
+      type: 'array',
+      isArray: true,
+      example: [{ id: 1, name: 'Soporte' }]
+    })
+    @IsOptional()
+    supportTypes?: { id: number; name: string }[];
 }
 
 export class ReqDeleteUserDto {

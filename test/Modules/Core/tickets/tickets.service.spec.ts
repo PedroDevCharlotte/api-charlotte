@@ -28,6 +28,7 @@ describe('TicketsService (unit)', () => {
   let userRepo: any;
   let ticketTypeRepo: any;
   const ticketNotificationService = { notifyTicketCreated: jest.fn(), notifyTicketAssigned: jest.fn() } as any;
+  const graphService = {} as any;
 
   beforeEach(() => {
     ticketRepo = mockRepo();
@@ -47,6 +48,7 @@ describe('TicketsService (unit)', () => {
       userRepo,
       ticketTypeRepo,
       ticketNotificationService,
+  graphService,
     );
   });
 

@@ -1,19 +1,19 @@
 {
   "type": "mysql",
-  "host": "srv1104.hstgr.io",
+  "host": "localhost",
   "port": 3306,
-  "username": "u821827014_conctusr1",
-  "password": "r3O#&qLLG#t;",
-  "database": "u821827014_conectadb",
+  "username": "CharlotteAdmin",
+  "password": "1234567",
+  "database": "charlottecore",
   "autoLoadEntities": true,
-  "synchronize": true,
+  "synchronize": false,
   "migrations": [
     "dist/Modules/Database/Migrations/*.js"
   ],
   "entities": [
     "dist/**/*.Entity.js"
   ],
-  "migrationsTableName": "",
+  "migrationsTableName": "migrations",
   "cli": {
     "migrationsDir": "../../Modules/Database/Migrations"
   },

@@ -1,3 +1,4 @@
+
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { 
   IsString, 
@@ -13,6 +14,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { TicketStatus, TicketPriority, Ticket } from '../Entity/ticket.entity';
+import { ParticipantRole } from '../Entity/ticket-participant.entity';
 
 export class CreateTicketDto {
   @ApiProperty({ description: 'Título del ticket', example: 'Error en el sistema de login' })
@@ -162,6 +164,19 @@ export class UpdateTicketDto {
   @IsOptional()
   @IsObject()
   customFields?: Record<string, any>;
+
+  @ApiPropertyOptional({ description: 'Lista completa de participantes para sincronizar (reemplaza la lista actual)', type: [Object] })
+  @IsOptional()
+  @IsArray()
+  participants?: {
+    userId: number;
+    role?: ParticipantRole;
+    canComment?: boolean;
+    canEdit?: boolean;
+    canClose?: boolean;
+    canAssign?: boolean;
+    receiveNotifications?: boolean;
+  }[];
 }
 
 export class TicketResponseDto {
@@ -283,4 +298,62 @@ export class TicketListResponseDto {
     this.limit = limit;
     this.totalPages = Math.ceil(total / limit);
   }
+}
+
+
+
+
+export class TicketListItemDto {
+  @ApiProperty()
+  id: number;
+
+  @ApiProperty()
+  ticketNumber: string;
+
+  @ApiProperty()
+  title: string;
+
+  @ApiProperty()
+  status: string;
+
+  @ApiProperty({ description: 'Etiqueta de estatus en español' })
+  statusLabel: string;
+
+  @ApiProperty()
+  ticketTypeId: number;
+
+  @ApiProperty({ nullable: true })
+  ticketTypeName: string | null;
+
+  @ApiProperty()
+  createdBy: number;
+
+  @ApiProperty({ nullable: true })
+  creatorName: string | null;
+
+  @ApiProperty()
+  assignedTo: number;
+
+  @ApiProperty({ nullable: true })
+  assigneeName: string | null;
+
+  @ApiProperty()
+  createdAt: Date;
+}
+
+export class TicketListSummaryResponseDto {
+  @ApiProperty({ type: [TicketListItemDto] })
+  tickets: TicketListItemDto[];
+
+  @ApiProperty()
+  total: number;
+
+  @ApiProperty()
+  page: number;
+
+  @ApiProperty()
+  limit: number;
+
+  @ApiProperty()
+  totalPages: number;
 }

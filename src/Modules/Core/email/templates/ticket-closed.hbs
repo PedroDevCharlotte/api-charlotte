@@ -37,7 +37,6 @@
         <h1 style="margin:0 0 12px 0;font-size:20px;color:#495057;text-align:center">{{ticket.title}}</h1>
         <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:16px">
           <span style="background:#f8f9fa;border:1px solid #e9ecef;padding:6px 12px;border-radius:16px;font-size:12px;color:#6c757d">#{{ticket.ticketNumber}}</span>
-          <span style="background:{{ticket.priorityColor}};color:white;padding:6px 12px;border-radius:16px;font-size:12px">{{ticket.priority}}</span>
           <span style="background:#6c757d;color:white;padding:6px 12px;border-radius:16px;font-size:12px">CERRADO</span>
         </div>
 
@@ -47,17 +46,17 @@
           <div style="color:#6c757d;font-size:13px">{{user.email}}</div>
         </div>
 
-        {{#if customMessage}}
+        {{#if content}}
           <div style="margin-top:12px">
-            <div style="font-weight:600;color:#155724;margin-bottom:6px">Mensaje adicional</div>
-            <div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{breaklines customMessage}}</div>
+            <div style="font-weight:600;color:#155724;margin-bottom:6px">Detalles</div>
+            <div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{breaklines content}}</div>
           </div>
         {{/if}}
 
-        {{#if ticket.resolution}}
+        {{#if responseTimeFormatted}}
           <div style="margin-top:12px">
-            <div style="font-weight:600;color:#155724;margin-bottom:6px">Mensaje de resolución</div>
-            <div style="background:#d4edda;padding:12px;border-radius:6px;border-left:4px solid #28a745">{{breaklines ticket.resolution}}</div>
+            <div style="font-weight:600;color:#155724;margin-bottom:6px">Tiempo de respuesta</div>
+            <div style="background:#fff3cd;padding:12px;border-radius:6px;border-left:4px solid #ffc107">{{responseTimeFormatted}}</div>
           </div>
         {{/if}}
 
@@ -67,7 +66,7 @@
       <div style="background:#fff;border:1px solid #e9ecef;border-radius:8px;padding:16px;margin-bottom:18px">
         <h4 style="margin:0 0 8px 0;color:#495057">Resumen rápido</h4>
         <p style="margin:0 0 8px 0;color:#6c757d">#{{ticket.ticketNumber}} • {{ticket.title}}</p>
-        <p style="margin:0 0 12px 0;color:#6c757d">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> — Prioridad: <strong style="color:{{ticket.priorityColor}}">{{ticket.priority}}</strong></p>
+        <p style="margin:0 0 12px 0;color:#6c757d">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong></p>
       </div>
 
       <!-- Encuesta breve -->

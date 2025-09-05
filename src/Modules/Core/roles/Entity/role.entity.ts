@@ -22,7 +22,9 @@ export class Role {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ type: 'json', nullable: true })
+  // Almacenar permissions como simple-json (TEXT) para evitar límites de tamaño de fila en MySQL
+  // TypeORM serializa/deserializa automáticamente el array.
+  @Column('simple-json', { nullable: true })
   permissions: string[]; // Array de permisos
 
   @CreateDateColumn({ name: 'createdAt' })

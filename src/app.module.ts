@@ -22,9 +22,11 @@ import { User } from './Modules/Core/users/Entity/user.entity';
 import { TicketType } from './Modules/Core/ticket-types/Entity/ticket-type.entity';
 import { Ticket } from './Modules/Core/tickets/Entity/ticket.entity';
 import { Banner } from './Modules/Core/banners/Entity/banner.entity';
+import { Favorite } from './Modules/Core/favorites/Entity/favorite.entity';
 import { BannersModule } from './Modules/Core/banners/banners.module';
 import { TicketParticipant } from './Modules/Core/tickets/Entity/ticket-participant.entity';
 import { TicketMessage } from './Modules/Core/tickets/Entity/ticket-message.entity';
+import { FavoritesModule } from './Modules/Core/favorites/favorites.module';
 import { GeneralList } from './Modules/Core/general-lists/Entity/general-list.entity';
 import { ListOption } from './Modules/Core/general-lists/Entity/list-option.entity';
 import { EntityDefinition } from './Modules/Core/general-lists/Entity/entity.entity';
@@ -46,6 +48,7 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
       TicketParticipant, 
       TicketMessage,
   Banner,
+  Favorite,
       GeneralList,
       ListOption,
       EntityDefinition,
@@ -61,9 +64,13 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
     DepartmentsModule,
     TicketTypesModule,
   TicketsModule,
+  // Favorites module
+  // lazy add
+  // will import module below
   // Banners module for managing homepage banners
   BannersModule,
   GeneralListsModule
+  , FavoritesModule
   ],
   controllers: [HierarchyTestController],
   providers: [DataSeederService, UserHierarchySeederService],

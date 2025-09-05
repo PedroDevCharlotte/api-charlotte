@@ -1,11 +1,18 @@
+
 import { Controller, Get, Post, Put, Delete, Param, Body, UploadedFile, UseInterceptors, HttpCode, HttpStatus } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { BannersService } from './banners.service';
-import { CreateBannerDto, UpdateBannerDto } from './Dto/banner.dto';
+import { CreateBannerDto, UpdateBannerDto, ReorderBannersDtoArray } from './Dto/banner.dto';
 
 @Controller('banners')
 export class BannersController {
   constructor(private readonly bannersService: BannersService) {}
+
+  @Post('reorder')
+  @HttpCode(HttpStatus.OK)
+  async reorder(@Body() body: ReorderBannersDtoArray) {
+    return this.bannersService.reorderBanners(body.order);
+  }
 
   @Get()
   async findAll() {

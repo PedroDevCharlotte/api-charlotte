@@ -109,7 +109,15 @@ export class TicketParticipantsService {
     // Actualizar campos permitidos
     Object.assign(participant, updateParticipantDto);
 
-    await this.participantRepository.save(participant);
+    await this.participantRepository.update({ id: participant.id }, {
+      role: participant.role,
+      canComment: participant.canComment,
+      canEdit: participant.canEdit,
+      canClose: participant.canClose,
+      canAssign: participant.canAssign,
+      receiveNotifications: participant.receiveNotifications,
+      addedBy: participant.addedBy,
+    });
 
     return this.findOne(id, currentUserId);
   }
@@ -134,7 +142,7 @@ export class TicketParticipantsService {
       throw new BadRequestException('No se puede remover al usuario asignado. Primero reasigna el ticket.');
     }
 
-    await this.participantRepository.remove(participant);
+  await this.participantRepository.delete({ id: participant.id });
   }
 
   /**
@@ -181,7 +189,16 @@ export class TicketParticipantsService {
     // Ajustar permisos según el nuevo rol
     this.setPermissionsByRole(participant, newRole);
 
-    await this.participantRepository.save(participant);
+    // Use update(...) to avoid touching relations/FK columns (ticketId)
+    await this.participantRepository.update({ id: participant.id }, {
+      role: participant.role,
+      canEdit: participant.canEdit,
+      canComment: participant.canComment,
+      canAssign: participant.canAssign,
+      canClose: participant.canClose,
+      receiveNotifications: participant.receiveNotifications,
+      addedBy: participant.addedBy,
+    });
 
     return this.findOne(id, currentUserId);
   }
@@ -254,7 +271,16 @@ export class TicketParticipantsService {
       // Cambiar a colaborador
       currentCreatorParticipant.role = ParticipantRole.COLLABORATOR;
       this.setPermissionsByRole(currentCreatorParticipant, ParticipantRole.COLLABORATOR);
-      await this.participantRepository.save(currentCreatorParticipant);
+      // Use update to avoid accidental FK changes
+      await this.participantRepository.update({ id: currentCreatorParticipant.id }, {
+        role: currentCreatorParticipant.role,
+        canEdit: currentCreatorParticipant.canEdit,
+        canComment: currentCreatorParticipant.canComment,
+        canAssign: currentCreatorParticipant.canAssign,
+        canClose: currentCreatorParticipant.canClose,
+        receiveNotifications: currentCreatorParticipant.receiveNotifications,
+        addedBy: currentCreatorParticipant.addedBy,
+      });
     }
 
     // Buscar si el nuevo owner ya es participante
@@ -266,7 +292,16 @@ export class TicketParticipantsService {
       // Actualizar a creador
       newCreatorParticipant.role = ParticipantRole.CREATOR;
       this.setPermissionsByRole(newCreatorParticipant, ParticipantRole.CREATOR);
-      await this.participantRepository.save(newCreatorParticipant);
+      // Use update to avoid accidental FK changes
+      await this.participantRepository.update({ id: newCreatorParticipant.id }, {
+        role: newCreatorParticipant.role,
+        canEdit: newCreatorParticipant.canEdit,
+        canComment: newCreatorParticipant.canComment,
+        canAssign: newCreatorParticipant.canAssign,
+        canClose: newCreatorParticipant.canClose,
+        receiveNotifications: newCreatorParticipant.receiveNotifications,
+        addedBy: newCreatorParticipant.addedBy,
+      });
     } else {
       // Crear nuevo participante como creador
       newCreatorParticipant = this.participantRepository.create({

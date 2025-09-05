@@ -25,7 +25,9 @@ export class SessionLog {
   @Column({ type: 'varchar', length: 100, nullable: true })
   userEmail: string; // Email del usuario para referencia
 
-  @Column({ type: 'varchar', length: 500, unique: true })
+  // sessionToken puede ser grande (JWT) — se usa TEXT para evitar límites de fila.
+  // No se indexa/unique por su longitud; si necesitas búsqueda/validación, guarda un hash corto indexado.
+  @Column({ type: 'text' })
   sessionToken: string; // JWT token o session ID
 
   @Column({ type: 'varchar', length: 45, nullable: true })

@@ -1,9 +1,27 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsString, IsEmail, IsOptional, IsBoolean, IsArray, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsEmail,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsNumber,
+} from 'class-validator';
 
 export class UserDto {
   @ApiPropertyOptional()
   id?: number;
+
+  @ApiPropertyOptional({ description: 'ID del jefe directo del usuario (para jerarquía)' })
+  @IsOptional()
+  @IsNumber()
+  managerId?: number;
+
+  @ApiPropertyOptional({ description: 'Array de IDs de subordinados asignados al usuario' })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  subordinateIds?: number[];
 
   @ApiProperty()
   @IsString()
@@ -26,14 +44,14 @@ export class UserDto {
   @IsNumber()
   departmentId: number;
 
-  @ApiPropertyOptional({ description: 'ID del jefe directo del usuario (para jerarquía)' })
-  @IsOptional()
-  @IsNumber()
-  managerId?: number;
-
-  @ApiPropertyOptional({ description: 'Array de IDs de tipos de soporte que puede manejar' })
+  @ApiPropertyOptional({
+    description: 'ID del jefe directo del usuario (para jerarquía)',
+  })
   @IsOptional()
   @IsArray()
+  @ApiPropertyOptional({
+    description: 'Array de IDs de subordinados asignados al usuario',
+  })
   @IsNumber({}, { each: true })
   supportTypeIds?: number[];
 

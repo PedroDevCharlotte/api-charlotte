@@ -1,11 +1,35 @@
+
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsString, IsEmail, IsOptional, IsBoolean, IsNumber } from 'class-validator';
 
 export class UpdateUserDto {
+  @ApiPropertyOptional({ description: 'ID del rol asignado al usuario' })
+  @IsOptional()
+  @IsNumber()
+  roleId?: number;
+
+  @ApiPropertyOptional({ description: 'ID del departamento asignado al usuario' })
+  @IsOptional()
+  @IsNumber()
+  departmentId?: number;
+
+  @ApiPropertyOptional({ description: 'Si el usuario está activo' })
+  @IsOptional()
+  @IsBoolean()
+  active?: boolean;
   @ApiPropertyOptional({ description: 'Id del usuario' })
   @IsOptional()
   @IsNumber()
   id?: number;
+
+  @ApiPropertyOptional({ description: 'ID del jefe directo del usuario (para jerarquía)' })
+  @IsOptional()
+  @IsNumber()
+  managerId?: number;
+
+  @ApiPropertyOptional({ description: 'Array de IDs de subordinados asignados al usuario' })
+  @IsOptional()
+  subordinateIds?: number[];
 
   @ApiPropertyOptional({ description: 'Nombre del usuario' })
   @IsOptional()
@@ -13,7 +37,6 @@ export class UpdateUserDto {
   firstName?: string;
 
   @ApiPropertyOptional({ description: 'Dias de expiracion de contraseña' })
-  
   @IsOptional()
   @IsNumber()
   daysToPasswordExpiration?: number;
@@ -33,22 +56,6 @@ export class UpdateUserDto {
   @IsString()
   password?: string;
 
-  @ApiPropertyOptional({ description: 'ID del rol asignado al usuario' })
-  @IsOptional()
-  @IsNumber()
-  roleId?: number;
-
-  @ApiPropertyOptional({ description: 'ID del departamento asignado al usuario' })
-  @IsOptional()
-  @IsNumber()
-  departmentId?: number;
-
-  @ApiPropertyOptional({ description: 'Si el usuario está activo' })
-  @IsOptional()
-  @IsBoolean()
-  active?: boolean;
-
-  @ApiPropertyOptional({ description: 'Si el usuario está bloqueado' })
   @IsOptional()
   @IsBoolean()
   isBlocked?: boolean;
@@ -58,8 +65,20 @@ export class UpdateUserDto {
   @IsBoolean()
   isTwoFactorEnabled?: boolean;
 
+  @ApiPropertyOptional({ description: 'Emoji generado del usuario' })
+  @IsOptional()
+  @IsString()
+  emoji?: string;
+
+  @ApiPropertyOptional({ description: 'Avatar serializado (JSON or dataURL) para personalización desde UI' })
+  @IsOptional()
+  @IsString()
+  avatar?: string;
+
   @ApiPropertyOptional({ description: 'Rol del usuario (campo legacy, usar roleId)' })
   @IsOptional()
   @IsString()
   role?: string;
+
+
 }

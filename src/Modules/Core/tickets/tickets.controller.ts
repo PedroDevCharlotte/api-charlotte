@@ -1,3 +1,4 @@
+
 import {
   Controller,
   Get,
@@ -37,6 +38,8 @@ import {
   UpdateTicketDto,
   TicketResponseDto,
   TicketListResponseDto,
+  TicketListItemDto,
+  TicketListSummaryResponseDto,
 } from './Dto/ticket.dto';
 import { AssignTicketDto } from './Dto/assign-ticket.dto';
 import {
@@ -68,6 +71,8 @@ interface TicketQueryFilters {
 @UseGuards(AuthGuard)
 @Controller('tickets')
 export class TicketsController {
+
+
   constructor(private readonly ticketsService: TicketsService) {}
   @Get('attachments/:id/download')
   @ApiOperation({ summary: 'Descargar archivo adjunto por id' })
@@ -354,7 +359,7 @@ export class TicketsController {
   async findAll(
     @Query() filters: TicketQueryFilters,
     @Token('id') userId: number,
-  ): Promise<TicketListResponseDto> {
+  ): Promise<TicketListSummaryResponseDto> {
     // Convertir strings de query params a arrays y tipos apropiados
 
     const processedFilters: TicketFilters = {
@@ -393,12 +398,38 @@ export class TicketsController {
 
     const result = await this.ticketsService.findAll(processedFilters, userId);
 
-    return new TicketListResponseDto(
-      result.tickets.map((ticket) => new TicketResponseDto(ticket)),
-      result.total,
-      processedFilters.page || 1,
-      processedFilters.limit || 20,
-    );
+    // Solo devolver los campos solicitados
+    const statusLabels: Record<string, string> = {
+      OPEN: 'Abierto',
+      IN_PROGRESS: 'En Proceso',
+      FOLLOW_UP: 'En Seguimiento',
+      COMPLETED: 'Finalizado',
+      CLOSED: 'Cerrado',
+      NON_CONFORMITY: 'No Conformidad',
+      CANCELLED: 'Cancelado',
+    };
+    const tickets: TicketListItemDto[] = result.tickets.map((ticket) => ({
+      id: ticket.id,
+      ticketNumber: ticket.ticketNumber,
+      title: ticket.title,
+      status: ticket.status,
+      statusLabel: statusLabels[ticket.status] || ticket.status,
+      ticketTypeId: ticket.ticketTypeId,
+      ticketTypeName: ticket.ticketType?.name || null,
+      createdBy: ticket.createdBy,
+      creatorName: ticket.creator ? `${ticket.creator.firstName} ${ticket.creator.lastName}`.trim() : null,
+      assignedTo: ticket.assignedTo,
+      assigneeName: ticket.assignee ? `${ticket.assignee.firstName} ${ticket.assignee.lastName}`.trim() : null,
+      createdAt: ticket.createdAt,
+    }));
+
+    return {
+      tickets,
+      total: result.total,
+      page: processedFilters.page || 1,
+      limit: processedFilters.limit || 20,
+      totalPages: Math.ceil(result.total / (processedFilters.limit || 20)),
+    };
   }
 
   @Get('my-tickets')
@@ -525,6 +556,35 @@ export class TicketsController {
     return await this.ticketsService.getStatistics(userId);
   }
 
+  @Get('statistics/advisors')
+  @ApiOperation({ summary: 'Resumen de tickets por estatus para cada asesor técnico' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Resumen por asesor obtenido exitosamente',
+  })
+  async getSummaryByAdvisor(@Token('id') userId: number) {
+    return await this.ticketsService.getSummaryByAdvisor(userId);
+  }
+    /**
+   * Endpoint: GET /tickets/semaforo-respuesta
+   * Query params: dateFrom, dateTo (ISO string opcional)
+   * Devuelve estadística de semáforo de respuesta para tickets de soporte
+   */
+  @Get('support-response-stats')
+  @ApiOperation({ summary: 'Estadística de semáforo de respuesta para tickets de soporte' })
+  @ApiQuery({ name: 'dateFrom', required: false, type: String, description: 'Fecha inicio (ISO)(YYYY/MM/DD)' })
+  @ApiQuery({ name: 'dateTo', required: false, type: String, description: 'Fecha fin (ISO)(YYYY/MM/DD)' })
+  async getSupportTicketsResponseStats(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    let from: Date | undefined;
+    let to: Date | undefined;
+    if (dateFrom) from = new Date(dateFrom);
+    if (dateTo) to = new Date(dateTo);
+    return this.ticketsService.getSupportTicketsResponseStats(from, to);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Obtener un ticket por ID' })
   @ApiParam({ name: 'id', description: 'ID del ticket', type: Number })
@@ -578,24 +638,29 @@ export class TicketsController {
     return new TicketResponseDto(ticket);
   }
 
-  @Patch(':id/assign')
-  @ApiOperation({ summary: 'Asignar un ticket a un usuario' })
+
+  @Patch(':id/cancel')
+  @ApiOperation({ summary: 'Cancelar un ticket' })
   @ApiParam({ name: 'id', description: 'ID del ticket', type: Number })
   @ApiResponse({
     status: HttpStatus.OK,
-    description: 'Ticket asignado exitosamente',
+    description: 'Ticket cancelado exitosamente',
     type: TicketResponseDto,
   })
-  async assignTicket(
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Ticket no encontrado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'No tienes permisos para cancelar este ticket',
+  })
+  async cancelTicket(
     @Param('id', ParseIntPipe) id: number,
-    @Body(ValidationPipe) assignDto: AssignTicketDto,
+    @Body('justification') justification: string,
     @Token('id') userId: number,
   ): Promise<TicketResponseDto> {
-    const ticket = await this.ticketsService.assignTicket(
-      id,
-      assignDto.assigneeId,
-      userId,
-    );
+    const ticket = await this.ticketsService.cancelTicket(id, justification, userId);
     return new TicketResponseDto(ticket);
   }
 

@@ -20,7 +20,8 @@ export interface TicketEmailContext {
     | 'status_changed'
     | 'assigned'
     | 'commented'
-    | 'closed';
+    | 'closed'
+    | 'cancelled';
   user: User; // Usuario que realizó la acción
   message?: TicketMessage;
   previousValues?: Partial<Ticket>;
@@ -31,6 +32,44 @@ export interface TicketEmailContext {
 
 @Injectable()
 export class TicketNotificationService implements OnModuleInit {
+  /**
+   * Notificación de cancelación de ticket
+   */
+  async notifyTicketCancelled(context: TicketEmailContext): Promise<void> {
+    try {
+      this.logger.log(
+        `Sending cancellation notification for ticket #${context.ticket.ticketNumber}`,
+      );
+
+      const subject = `❌ Ticket Cancelado: ${context.ticket.title} (#${context.ticket.ticketNumber})`;
+
+      const emailContext = this.getTicketEmailContext(context);
+      const toList = Array.isArray(context.recipients.to)
+        ? context.recipients.to
+        : [];
+      const ccList = Array.isArray(context.recipients.cc)
+        ? context.recipients.cc
+        : [];
+      const exclude = [
+        context.ticket.creator?.email,
+        context.user?.email,
+      ].filter(Boolean);
+
+      // Enviar correo usando el servicio de email
+      await this.emailService.sendEmail(
+        toList.join(','),
+        subject,
+        context.customMessage || `El ticket ha sido cancelado. Justificación: ${context.customMessage}`
+      );
+
+      this.logger.log(
+        `Cancellation notifications sent successfully for #${context.ticket.ticketNumber}`,
+      );
+    } catch (error) {
+      this.logger.error(`Error sending cancellation notification: ${error.message}`);
+      throw error;
+    }
+  }
   private readonly logger = new Logger(TicketNotificationService.name);
   // in-memory cache for logo data URI to avoid repeated disk I/O
   private logoDataCache?: string | undefined;
@@ -84,6 +123,26 @@ export class TicketNotificationService implements OnModuleInit {
    * Obtener el contexto base para emails de tickets
    */
   private getTicketEmailContext(context: TicketEmailContext) {
+    // helper to escape HTML so user-provided messages don't render as HTML in emails
+    const escapeHtml = (input: any) => {
+      if (input === null || input === undefined) return '';
+      const s = String(input);
+      return s
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    };
+
+    // compute response time from stored customFields.workingHours if available
+    let responseTimeHours: number | null = null;
+    try {
+      const cf = (context.ticket as any).customFields;
+      if (cf && typeof cf.workingHours === 'number') responseTimeHours = cf.workingHours;
+    } catch (err) {
+      // ignore
+    }
     return {
       ticket: {
         ...context.ticket,
@@ -118,11 +177,10 @@ export class TicketNotificationService implements OnModuleInit {
       action: context.action,
       // normalize message content so templates can use either 'message' or 'content'
       message: context.message,
-      content:
-        context.message?.content ||
-        context.customMessage ||
-        context.ticket.description ||
-        '',
+      // ensure content used in templates is escaped to avoid HTML rendering
+      content: escapeHtml(
+        context.message?.content || context.customMessage || context.ticket.description || '',
+      ),
       previousValues: context.previousValues,
       attachments: context.attachments || [],
       customMessage: context.customMessage,
@@ -141,6 +199,13 @@ export class TicketNotificationService implements OnModuleInit {
         supportEmail:
           this.configService.get('SUPPORT_EMAIL') || 'soporte@charlotte.com',
       },
+      // add response time info if present
+      responseTimeHours,
+      responseTimeFormatted: responseTimeHours !== null ? `${parseFloat(responseTimeHours.toFixed(2))} horas` : null,
+      // also include a sanitized version of the message for templates that render message fields
+      sanitizedMessage: context.message
+        ? { ...context.message, content: escapeHtml(context.message.content || '') }
+        : null,
     };
   }
 

@@ -1,3 +1,4 @@
+// ...existing code...
 import {
   Injectable,
   NotFoundException,
@@ -19,6 +20,25 @@ export class BannersService {
     @Inject(forwardRef(() => GraphService))
     private readonly graphService: GraphService,
   ) {}
+
+  async reorderBanners(order: { id: number; order: number }[]): Promise<{ success: boolean }> {
+    if (!Array.isArray(order) || order.length === 0) {
+      throw new BadRequestException('El payload debe ser un arreglo de banners.');
+    }
+    const ids = order.map(b => b.id);
+    const found = await this.bannerRepository.findByIds(ids);
+    if (found.length !== order.length) {
+      throw new NotFoundException('Uno o más banners no existen.');
+    }
+    for (const b of order) {
+      const banner = found.find(f => f.id === b.id);
+      if (banner) {
+        banner.order = b.order;
+      }
+    }
+    await this.bannerRepository.save(found);
+    return { success: true };
+  }
 
   async create(createDto: CreateBannerDto, file?: any): Promise<Banner> {
     const now = new Date();
@@ -81,13 +101,52 @@ export class BannersService {
       banner.imageFileName = fileName;
     }
 
-    return this.bannerRepository.save(banner);
+    const saved = await this.bannerRepository.save(banner);
+    // Ajustar imagePath a la ruta estándar si hay oneDriveFileId
+    if (saved.oneDriveFileId) {
+      saved.imagePath = `/onedrive/file/${saved.oneDriveFileId}/content`;
+      await this.bannerRepository.save(saved);
+    }
+    return saved;
   }
 
   async findAll(): Promise<any[]> {
     const list = await this.bannerRepository.find({
       order: { order: 'ASC', id: 'ASC' } as any,
     });
+
+    const now = new Date();
+    const toSave: Banner[] = [];
+
+    // Recalcular active/status según startDate/endDate y persistir cambios si aplica
+    for (const b of list) {
+      const start = b.startDate ? new Date(b.startDate) : undefined;
+      const end = b.endDate ? new Date(b.endDate) : undefined;
+
+      const computedActive = (() => {
+        if (end && end < now) return false;
+        if (start && start > now) return false;
+        return true;
+      })();
+
+      const computedStatus = computedActive ? 'active' : 'inactive';
+
+      // Si el estado calculado difiere del almacenado, actualizar y marcar para guardar
+      if (b.active !== computedActive || b.status !== computedStatus) {
+        b.active = computedActive;
+        b.status = computedStatus as any;
+        toSave.push(b);
+      }
+    }
+
+    if (toSave.length > 0) {
+      try {
+        await this.bannerRepository.save(toSave);
+      } catch (err) {
+        console.error('Error guardando estado recalculado de banners:', err);
+      }
+    }
+
     // Adjuntar enlace de vista previa si hay archivo en OneDrive
     await Promise.all(
       list.map(async (b) => {
@@ -95,13 +154,23 @@ export class BannersService {
       }),
     );
 
-    return list;
+    // Ajustar imagePath a la ruta estándar si hay oneDriveFileId
+    return list.map(b => {
+      if (b.oneDriveFileId) {
+        return { ...b, imagePath: `/onedrive/file/${b.oneDriveFileId}/content` };
+      }
+      return b;
+    });
   }
 
   async findOne(id: number): Promise<any> {
     const b = await this.bannerRepository.findOne({ where: { id } });
     if (!b) throw new NotFoundException('Banner no encontrado');
     await this.attachImagePreviewUrl(b);
+    // Ajustar imagePath a la ruta estándar si hay oneDriveFileId
+    if (b && b.oneDriveFileId) {
+      return { ...b, imagePath: `/onedrive/file/${b.oneDriveFileId}/content` };
+    }
     return b;
   }
 
@@ -216,7 +285,13 @@ export class BannersService {
       banner.imagePath = previewRes?.link?.webUrl || '';
       banner.imageFileName = fileName;
     }
-    return this.bannerRepository.save(banner);
+    const saved = await this.bannerRepository.save(banner);
+    // Ajustar imagePath a la ruta estándar si hay oneDriveFileId
+    if (saved.oneDriveFileId) {
+      saved.imagePath = `/onedrive/file/${saved.oneDriveFileId}/content`;
+      await this.bannerRepository.save(saved);
+    }
+    return saved;
   }
 
   async remove(id: number): Promise<void> {

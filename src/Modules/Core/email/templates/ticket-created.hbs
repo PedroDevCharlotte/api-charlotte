@@ -33,7 +33,7 @@
           <div style="background-color:#fff; border:1px solid #e9ecef; border-radius:8px; padding:16px; margin-bottom:20px;">
             <h4 style="margin:0 0 8px 0; color:#495057; font-size:16px;">Resumen rápido</h4>
             <p style="margin:0 0 8px 0; color:#6c757d; font-size:14px;">#{{ticket.ticketNumber}} • {{ticket.title}}</p>
-            <p style="margin:0 0 12px 0; color:#6c757d; font-size:13px;">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> — Prioridad: <strong style="color:{{ticket.priorityColor}}">{{ticket.priority}}</strong></p>
+            <p style="margin:0 0 12px 0; color:#6c757d; font-size:13px;">Estado: <strong style="color:{{ticket.statusColor}}">{{ticket.status}}</strong> </p>
             {{#if content}}
             <div style="background:#f8f9fa; padding:12px; border-radius:6px; margin-bottom:12px;">{{{content}}}</div>
             {{else}}
@@ -63,7 +63,6 @@
               <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">{{ticket.title}}</h1>
               <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
                 <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">#{{ticket.ticketNumber}}</span>
-                <span style="background-color: {{ticket.priorityColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">{{ticket.priority}}</span>
                 <span style="background-color: {{ticket.statusColor}}; padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">{{ticket.status}}</span>
               </div>
             </div>

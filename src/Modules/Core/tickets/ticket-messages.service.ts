@@ -303,7 +303,7 @@ export class TicketMessagesService {
   /**
    * Obtener un mensaje específico
    */
-  async findOne(id: number, currentUserId: number): Promise<TicketMessage> {
+  async findOne(id: number, currentUserId: number): Promise<any> {
     const message = await this.messageRepository.findOne({
       where: { id },
       relations: [
@@ -331,6 +331,16 @@ export class TicketMessagesService {
       if (!canView) {
         throw new ForbiddenException('No tienes permisos para ver este mensaje');
       }
+    }
+
+    // Ajustar imagePath en los attachments si tienen oneDriveFileId
+    if (Array.isArray(message.attachments)) {
+      message.attachments = message.attachments.map(att => {
+        if (att.oneDriveFileId) {
+          return { ...att, imagePath: `/onedrive/file/${att.oneDriveFileId}/content` };
+        }
+        return att;
+      });
     }
 
     return message;

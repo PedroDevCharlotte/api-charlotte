@@ -15,6 +15,9 @@ export const ProviderDBService: DynamicModule = TypeOrmModule.forRootAsync({
   inject: [ConfigService],
   async useFactory(config: ConfigService) {
     const isDevelopmentEnv = config.get('NODE_ENV') !== Environment.Production;
+    // Controlar synchronize vía variable de entorno para evitar cambios no deseados en producción
+    const dbSynchronizeEnv = config.get('DB_SYNCHRONIZE'); // 'true' para habilitar
+    const synchronize = dbSynchronizeEnv === 'true';
 
     const dbConfig = {
       type: 'mysql',
@@ -24,10 +27,11 @@ export const ProviderDBService: DynamicModule = TypeOrmModule.forRootAsync({
       password: config.get('DB_PASSWORD'),
       database: config.get('DB_NAME'),
       autoLoadEntities: true,
-      synchronize: true,
+      // Por seguridad: sincronización automática solo si DB_SYNCHRONIZE='true'
+      synchronize,
       migrations: ['dist/Modules/Database/Migrations/*.js'],
       entities: ['dist/**/*.Entity.js'],
-      migrationsTableName: '', 
+      migrationsTableName: 'migrations',
       cli: {
         migrationsDir: '../../Modules/Database/Migrations',
       },
@@ -36,6 +40,10 @@ export const ProviderDBService: DynamicModule = TypeOrmModule.forRootAsync({
       // },
       logging: 'all',
     } as DataSourceOptions;
+
+    if (synchronize) {
+      console.warn('TypeORM synchronize is ENABLED via DB_SYNCHRONIZE=true. This can alter database schema.');
+    }
 
     if (isDevelopmentEnv) {
       createOrmConfigFile(dbConfig);

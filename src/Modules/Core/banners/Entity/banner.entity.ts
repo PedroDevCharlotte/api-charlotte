@@ -8,14 +8,14 @@ export class Banner {
   @Column({ type: 'varchar', length: 200 })
   title: string;
 
-  @Column({ type: 'varchar', length: 1000, nullable: true })
+  @Column({ type: 'text', nullable: true })
   description?: string;
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   link?: string;
 
 
-  @Column({ type: 'varchar', length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   imagePath?: string;
 
   @Column({ type: 'varchar', length: 200, nullable: true })

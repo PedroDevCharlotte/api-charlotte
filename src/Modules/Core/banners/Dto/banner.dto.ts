@@ -1,3 +1,4 @@
+import { IsArray, ValidateNested } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
@@ -7,8 +8,28 @@ import {
   IsDateString,
   IsIn,
   IsInt,
+  IsNumber,
   IsBoolean,
 } from 'class-validator';
+export class ReorderBannerDto {
+  @ApiProperty({ example: 7 })
+  @IsInt()
+  id: number;
+
+  @ApiProperty({ example: 1 })
+  @IsInt()
+  order: number;
+}
+
+export class ReorderBannersDtoArray {
+  @ApiProperty({ type: [ReorderBannerDto] })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ReorderBannerDto)
+  order: ReorderBannerDto[];
+}
+// ...existing code...
+
 
 export class CreateBannerDto {
   @ApiProperty({ example: 'Promoción Julio' })

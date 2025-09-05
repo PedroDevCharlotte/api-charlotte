@@ -26,6 +26,7 @@ export enum HistoryAction {
   CLOSED = 'CLOSED',
   REOPENED = 'REOPENED',
   DELETED = 'DELETED',
+  CANCELLED = 'CANCELLED',
 }
 
 @Entity('ticket_history')

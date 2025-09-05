@@ -48,7 +48,7 @@ export class TicketAttachment {
   originalFileName: string;
 
 
-  @Column({ length: 500 })
+  @Column({ type: 'text' })
   filePath: string;
 
   /**

@@ -56,7 +56,7 @@ export class FieldDefinition {
   @Column('json', { nullable: true })
   validationRules: any; // Reglas de validación JSON
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   helpText: string;
 
   @Column({ default: 0 })

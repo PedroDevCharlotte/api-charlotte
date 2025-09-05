@@ -85,6 +85,15 @@ export class User {
   @CreateDateColumn({ name: 'CreatedAt' })
   CreatedAt: Date;
 
+  // Emoji generado a partir de foto (p. ej. un pequeño texto o unicode)
+  @Column({ nullable: true })
+  emoji?: string;
+
+  // Avatar personalizado: JSON con configuración y/o dataURL de la imagen generada por el cliente
+  // Almacena un objeto serializado (TEXT) con la forma { baseImage?: string, config?: {...} }
+  @Column({ type: 'text', nullable: true })
+  avatar?: string;
+
   // 🔗 Relaciones
   @ManyToOne(() => Role, (role) => role.users)
   @JoinColumn({ name: 'roleId' })

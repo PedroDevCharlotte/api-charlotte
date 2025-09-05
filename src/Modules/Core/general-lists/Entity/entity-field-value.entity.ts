@@ -27,7 +27,7 @@ export class EntityFieldValue {
   @Column({ length: 50 })
   entityRecordId: string; // ID del registro específico
 
-  @Column({ length: 500, nullable: true })
+  @Column({ type: 'text', nullable: true })
   value: string; // Valor simple
 
   @Column('json', { nullable: true })
