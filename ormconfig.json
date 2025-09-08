@@ -1,10 +1,10 @@
 {
   "type": "mysql",
-  "host": "localhost",
+  "host": "srv1104.hstgr.io",
   "port": 3306,
-  "username": "CharlotteAdmin",
-  "password": "1234567",
-  "database": "charlottecore",
+  "username": "u821827014_conctusr1",
+  "password": "r3O#&qLLG#t;",
+  "database": "u821827014_conectadb",
   "autoLoadEntities": true,
   "synchronize": false,
   "migrations": [
