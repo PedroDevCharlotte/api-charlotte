@@ -13,6 +13,17 @@ export class CreateUserDto {
   @Transform(({ obj }) => obj.lastName || obj.lastname)
   lastName: string;
 
+  @ApiPropertyOptional({ description: 'ID del jefe directo del usuario (para jerarquía)' })
+  @IsOptional()
+  @IsNumber()
+  managerId?: number;
+
+  @ApiPropertyOptional({ description: 'Array de IDs de subordinados asignados al usuario' })
+  @IsOptional()
+  @IsArray()
+  @IsNumber({}, { each: true })
+  subordinateIds?: number[];
+
   @ApiPropertyOptional({ description: 'Rol del usuario (campo legacy, usar roleId)' })
   @IsOptional()
   @IsString()

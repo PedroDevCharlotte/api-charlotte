@@ -136,13 +136,15 @@ export class AuthService {
     user: any,
   ): Promise<{ secret: string; otpauthUrl: string; qrCode: string }> {
     const secret = speakeasy.generateSecret({
-      name: `CharlotteIntranet (${user.email})`,
+      name: `Conecta CCI:${user.firstName} ${user.lastName} (${user.email})`,
+      label: 'Conecta CCI',
+      issuer: 'charlotte.com.mx',
       length: 20,
-    });
+    }) ;
     // Aquí podrías guardar el secret en la base de datos si lo necesitas
     await this.usersService.updateTwoFactorSecret(user.id, secret.base32, true);
-
-    const qr = await qrcode.toDataURL(secret.otpauth_url);
+ 
+    const qr = await qrcode.toDataURL(secret.otpauth_url + '&issuer=charlotte.com.mx');
     console.log('QR Code generated:', qr);
     // Retornar el secreto y la URL para el QR
 

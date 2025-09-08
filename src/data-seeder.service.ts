@@ -73,16 +73,16 @@ export class DataSeederService implements OnModuleInit {
       //   await this.seedDepartments();
       // }
 
-      // Seed de listas generales para tipos de ticket
+      // // Seed de listas generales para tipos de ticket
       // if (generalListCount === 0) {
       //   await this.seedTicketTypeLists();
       // }
 
-      // Seed de jerarquía de usuarios y tipos de soporte
+      // // Seed de jerarquía de usuarios y tipos de soporte
       // await this.userHierarchySeederService.seedUserHierarchyAndSupport();
-      // }
+      // // }
       
-      // Actualizar usuarios existentes que no tengan roleId
+      // // Actualizar usuarios existentes que no tengan roleId
       // await this.updateExistingUsers();
       
       console.log('✅ Seeding completado exitosamente');

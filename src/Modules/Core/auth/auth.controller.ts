@@ -178,28 +178,28 @@ export class AuthController {
         // Obtener dimensiones del QR
         const qrImage = sharp(qrBuffer);
         const { width: qrWidth, height: qrHeight } = await qrImage.metadata();
-        
         // Calcular tamaño del logo (20% del QR)
         const logoSize = Math.floor((qrWidth || 300) * 0.2);
-        
+        const logoSizeHeight = Math.floor((qrHeight || 300) * 0.2);
         // Redimensionar logo y crear fondo blanco
+
         const resizedLogo = await sharp(logoBuffer)
-          .resize(logoSize, logoSize)
+          .resize(logoSize, logoSizeHeight-20 )
           .toBuffer();
 
         // Crear fondo blanco para el logo
         const logoWithBackground = await sharp({
           create: {
             width: logoSize + 20,
-            height: logoSize + 20,
+            height: logoSizeHeight ,
             channels: 4,
             background: { r: 255, g: 255, b: 255, alpha: 1 }
           }
         })
         .composite([{
           input: resizedLogo,
-          left: 10,
-          top: 10
+          left: 11,
+          top: 11
         }])
         .png()
         .toBuffer();
