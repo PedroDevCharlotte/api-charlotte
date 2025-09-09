@@ -41,8 +41,8 @@ async function bootstrap() {
   }));
 
   app.enableCors({
-    // origin: "http://localhost:3000",
-    origin: 'https://conecta.charlottechemical.com', // o '*' para permitir todos los orígenes (no recomendado en producción)
+    origin: "http://localhost:3000",
+    // origin: 'https://conecta.charlottechemical.com', // o '*' para permitir todos los orígenes (no recomendado en producción)
     credentials: true
   });
   const port = AppModule.Port || 3006;

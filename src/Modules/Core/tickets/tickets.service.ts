@@ -2044,6 +2044,7 @@ export class TicketsService {
           process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
         // 1. Buscar userId
         const userRes = await this.graphService.getUserByEmail(userEmail);
+        console.log('User OneDrive encontrado:', userRes);
         const userId =
           userRes.value && userRes.value.length > 0
             ? userRes.value[0].id
@@ -2054,14 +2055,19 @@ export class TicketsService {
           );
         // 2. Validar/crear carpeta raíz
         let folder = await this.graphService.validateFolder(userId, rootFolder);
+        // console.log('Carpeta raíz no existe, creando:', rootFolder);
         if (!folder)
           folder = await this.graphService.createFolder(userId, rootFolder);
         // 3. Crear subcarpeta por ticket (usa timestamp temporal, luego se puede actualizar con el ticketId real)
+        // console.log('Carpeta folder:', folder);
+        
         const ticketFolderName = `ticket_${Date.now()}`;
         let ticketFolder = await this.graphService.validateFolder(
           userId,
           `${rootFolder}/${ticketFolderName}`,
         );
+        console.log('Carpeta ticketFolder :', ticketFolder);
+
         if (!ticketFolder)
           ticketFolder = await this.graphService.createFolder(
             userId,

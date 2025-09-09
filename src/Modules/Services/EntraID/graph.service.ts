@@ -15,6 +15,8 @@ export class GraphService {
 
   private async getAuthHeaders(): Promise<{ Authorization: string }> {
     const token = await this.entraIdTokenService.getToken();
+    // console.log('Getting Entra ID token...', token );
+
     return { Authorization: `Bearer ${token}` };
   }
 
@@ -42,6 +44,10 @@ export class GraphService {
       const response = await firstValueFrom(
         this.httpService.get(url, { headers }),
       );
+
+            // console.log("Error al validar carpeta en Graph:", response);
+
+
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {
@@ -53,23 +59,49 @@ export class GraphService {
     }
   }
 
-  // 3. Crear una carpeta
-  async createFolder(userId: string, folderName: string): Promise<any> {
-    const url = `${this.graphUrl}/users/${userId}/drive/root/children`;
-    const headers = await this.getAuthHeaders();
-    const body = {
-      name: folderName,
-      folder: {},
-      '@microsoft.graph.conflictBehavior': 'rename',
-    };
-    try {
-      const response = await firstValueFrom(
-        this.httpService.post(url, body, { headers }),
-      );
-      return response.data;
-    } catch (error) {
-      throw new InternalServerErrorException('Error al crear carpeta en Graph');
+  // 3. Crear una carpeta o subcarpeta en una ruta específica
+  /**
+   * Crea una carpeta (o subcarpeta) en la ruta especificada.
+   * @param userId ID del usuario de OneDrive
+   * @param folderPath Ruta completa donde crear la carpeta (ej: "Tickets/1234/Archivos")
+   * @returns Datos de la carpeta creada
+   */
+  async createFolder(userId: string, folderPath: string): Promise<any> {
+    // Separa la ruta en partes
+    const parts = folderPath.split('/').filter(Boolean);
+    if (parts.length === 0) {
+      throw new InternalServerErrorException('La ruta de la carpeta no puede estar vacía');
     }
+
+    let currentPath = '';
+    let lastCreated = null;
+    for (const part of parts) {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      // Verifica si la carpeta ya existe
+      const exists = await this.validateFolder(userId, currentPath);
+      if (!exists) {
+        // Crea la subcarpeta en la ruta actual
+        const url = `${this.graphUrl}/users/${userId}/drive/root:/${currentPath.substring(0, currentPath.lastIndexOf('/')) || ''}:/children`;
+        const headers = await this.getAuthHeaders();
+        const body = {
+          name: part,
+          folder: {},
+          '@microsoft.graph.conflictBehavior': 'rename',
+        };
+        try {
+          const response = await firstValueFrom(
+            this.httpService.post(url, body, { headers }),
+          );
+          lastCreated = response.data;
+        } catch (error) {
+          // Intenta obtener el error original de Graph para mayor detalle
+          const graphError = error?.response?.data || error;
+          console.error('Error al crear subcarpeta en Graph:', graphError);
+          throw new InternalServerErrorException('Error al crear carpeta en Graph');
+        }
+      }
+    }
+    return lastCreated;
   }
 
   // 4. Subir un archivo
