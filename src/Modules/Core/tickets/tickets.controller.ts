@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Get,
@@ -81,9 +80,36 @@ export class TicketsController {
     @Res() res,
   ) {
     const attachment = await this.ticketsService.getAttachmentById(id);
+    console.log("Descargando archivo adjunto:", attachment);
     if (!attachment) {
       return res.status(404).json({ message: 'Archivo adjunto no encontrado' });
     }
+    // Si tiene oneDriveFileId, descargar desde OneDrive
+    if (attachment.oneDriveFileId) {
+      try {
+        // Obtener el userId de OneDrive a partir del email configurado
+        const userEmail = process.env.ONEDRIVE_USER_EMAIL;
+        if (!userEmail) {
+          return res.status(400).json({ message: 'No se configuró ONEDRIVE_USER_EMAIL' });
+        }
+        const userRes = await this.ticketsService.graphService.getUserByEmail(userEmail);
+        const userId = userRes?.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+        if (!userId) {
+          return res.status(400).json({ message: 'No se encontró el usuario de OneDrive' });
+        }
+        await this.ticketsService.graphService.proxyFileContent(
+          userId,
+          attachment.oneDriveFileId,
+          res,
+          false
+        );
+      } catch (err) {
+        console.error('Error descargando archivo desde OneDrive:', err);
+        return res.status(500).json({ message: 'Error descargando archivo desde OneDrive' });
+      }
+      return;
+    }
+    // Si no, intentar descargar local
     const path = require('path');
     const fs = require('fs');
     const filePath = path.join(

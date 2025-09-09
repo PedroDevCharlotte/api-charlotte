@@ -162,21 +162,33 @@ export class TicketMessagesService {
     });
     const savedMessage = await this.messageRepository.save(message);
 
-    // 4. Guardar archivos adjuntos si existen
+    // 4. Guardar archivos adjuntos en OneDrive si existen
     if (files && files.length > 0) {
-      const fs = require('fs');
-      const path = require('path');
-      const uploadDir = 'uploads/ticket-messages';
-      if (!fs.existsSync(uploadDir)) {
-        fs.mkdirSync(uploadDir, { recursive: true });
+      // Obtener info de OneDrive
+      const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+      const rootFolder = process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
+      const userRes = await this.ticketsService.graphService.getUserByEmail(userEmail);
+      const userId = userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+      if (!userId) throw new BadRequestException('No se encontró el usuario de OneDrive');
+      // Carpeta del ticket
+      const ticketsFolder = `${rootFolder}/Tickets`;
+      const ticketFolderName = `ticket_${createMessageDto.ticketId}`;
+      const ticketFolderPath = `${ticketsFolder}/${ticketFolderName}`;
+      // Validar que la carpeta del ticket existe (si no, crearla)
+      let ticketFolder = await this.ticketsService.graphService.validateFolder(userId, ticketFolderPath);
+      if (!ticketFolder) {
+        ticketFolder = await this.ticketsService.graphService.createFolder(userId, ticketFolderPath);
       }
       for (const file of files) {
-        const timestamp = Date.now();
-        const randomStr = Math.random().toString(36).substring(2, 15);
-        const ext = path.extname(file.originalname);
-        const fileName = `${timestamp}_${randomStr}${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-        fs.writeFileSync(filePath, file.buffer);
+        const ext = file.originalname ? file.originalname.split('.').pop() : 'dat';
+        const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
+        const filePath = `${ticketFolderPath}/${fileName}`;
+        // Subir archivo a OneDrive
+        const uploadRes = await this.ticketsService.graphService.uploadFile(
+          userId,
+          filePath,
+          file.buffer,
+        );
         // Guardar registro en la base de datos (TicketAttachment)
         const attachmentRepo = this.ticketsService['attachmentRepository'];
         await attachmentRepo.save({
@@ -188,7 +200,8 @@ export class TicketMessagesService {
           filePath,
           mimeType: file.mimetype,
           fileSize: file.size,
-          description: file.originalname
+          description: file.originalname,
+          oneDriveFileId: uploadRes.id,
         });
       }
     }

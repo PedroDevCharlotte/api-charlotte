@@ -136,8 +136,8 @@ export class TicketsService {
     @InjectRepository(TicketType)
     private ticketTypeRepository: Repository<TicketType>,
     private ticketNotificationService: TicketNotificationService,
-    @Inject(forwardRef(() => GraphService))
-    private readonly graphService: GraphService,
+  @Inject(forwardRef(() => GraphService))
+  public readonly graphService: GraphService,
   ) {}
 
     /**
@@ -1933,6 +1933,7 @@ export class TicketsService {
             mimeType: attachmentDto.mimeType,
             fileSize: attachmentDto.fileSize,
             description: attachmentDto.description,
+            oneDriveFileId: attachmentDto.oneDriveFileId,
           }),
         );
         attachmentsCreated.push(attachment);
@@ -2053,39 +2054,44 @@ export class TicketsService {
           throw new BadRequestException(
             'No se encontró el usuario de OneDrive',
           );
-        // 2. Validar/crear carpeta raíz
-        let folder = await this.graphService.validateFolder(userId, rootFolder);
-        // console.log('Carpeta raíz no existe, creando:', rootFolder);
-        if (!folder)
-          folder = await this.graphService.createFolder(userId, rootFolder);
-        // 3. Crear subcarpeta por ticket (usa timestamp temporal, luego se puede actualizar con el ticketId real)
-        // console.log('Carpeta folder:', folder);
-        
-        const ticketFolderName = `ticket_${Date.now()}`;
+        // 2. Validar/crear carpeta raíz y subcarpetas para Tickets
+        const ticketsFolder = `${rootFolder}/Tickets`;
+        let folder = await this.graphService.validateFolder(userId, ticketsFolder);
+        if (!folder) {
+          folder = await this.graphService.createFolder(userId, ticketsFolder);
+        }
+
+        // 3. Crear subcarpeta por ticket (usa el ticketId si está disponible, si no, usa timestamp)
+        // Usar timestamp único para la carpeta del ticket
+        const ticketId = Date.now();
+        const ticketFolderName = `ticket_${ticketId}`;
+        const ticketFolderPath = `${ticketsFolder}/${ticketFolderName}`;
         let ticketFolder = await this.graphService.validateFolder(
           userId,
-          `${rootFolder}/${ticketFolderName}`,
+          ticketFolderPath,
         );
-        console.log('Carpeta ticketFolder :', ticketFolder);
-
-        if (!ticketFolder)
+        if (!ticketFolder) {
           ticketFolder = await this.graphService.createFolder(
             userId,
-            `${rootFolder}/${ticketFolderName}`,
+            ticketFolderPath,
           );
+        }
 
         for (const file of files) {
           const ext = file.originalname
             ? file.originalname.split('.').pop()
             : 'dat';
+          // Usa el nombre original del archivo si lo deseas, o genera uno único:
+          // const fileName = file.originalname;
           const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-          const filePath = `${rootFolder}/${ticketFolderName}/${fileName}`;
+          const filePath = `${ticketFolderPath}/${fileName}`;
           // Subir archivo a OneDrive
           const uploadRes = await this.graphService.uploadFile(
             userId,
             filePath,
             file.buffer,
           );
+          console.log('Archivo subido a OneDrive:', uploadRes);
           // Obtener link de vista previa
           const previewRes = await this.graphService.getFilePreview(
             userId,
@@ -2098,6 +2104,7 @@ export class TicketsService {
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`,
+            oneDriveFileId: uploadRes.id,
           });
         }
         createCompleteTicketDto.attachments = attachments;

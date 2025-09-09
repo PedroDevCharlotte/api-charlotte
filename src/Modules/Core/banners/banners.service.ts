@@ -63,7 +63,7 @@ export class BannersService {
     });
 
     if (file) {
-      // --- OneDrive integration ---
+      // --- OneDrive integration con carpetas por módulo y entidad ---
       const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
       if (!userEmail)
         throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
@@ -74,28 +74,39 @@ export class BannersService {
         userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
       if (!userId)
         throw new BadRequestException('No se encontró el usuario de OneDrive');
-      // 2. Validar/crear carpeta raíz
-      let folder = await this.graphService.validateFolder(userId, rootFolder);
-      if (!folder)
-        folder = await this.graphService.createFolder(userId, rootFolder);
-      // 3. Subir archivo
+
+      // 2. Validar/crear carpeta del módulo (Banners)
+      const moduleFolder = `${rootFolder}/Banners`;
+      let folder = await this.graphService.validateFolder(userId, moduleFolder);
+      if (!folder) {
+        folder = await this.graphService.createFolder(userId, moduleFolder);
+      }
+
+      // 3. Crear subcarpeta por banner (para banners nuevos, usa timestamp)
+      const bannerId = Date.now();
+      const bannerFolderName = `banner_${bannerId}`;
+      const bannerFolderPath = `${moduleFolder}/${bannerFolderName}`;
+      let bannerFolder = await this.graphService.validateFolder(userId, bannerFolderPath);
+      if (!bannerFolder) {
+        bannerFolder = await this.graphService.createFolder(userId, bannerFolderPath);
+      }
+
+      // 4. Subir archivo a la subcarpeta del banner
       const ext = file.originalname
         ? file.originalname.split('.').pop()
         : 'jpg';
       const fileName = `banner_${Date.now()}.${ext}`;
-      const filePath = `${rootFolder}/${fileName}`;
+      const filePath = `${bannerFolderPath}/${fileName}`;
       const uploadRes = await this.graphService.uploadFile(
         userId,
         filePath,
         file.buffer,
       );
-      // 4. Obtener link de vista previa
+      // 5. Obtener link de vista previa
       const previewRes = await this.graphService.getFilePreview(
         userId,
         uploadRes.id,
       );
-      console.log('Preview Res:', previewRes);
-      console.log('Preview Res:', previewRes.getUrl);
       banner.oneDriveFileId = uploadRes.id;
       banner.imagePath = previewRes?.getUrl || '';
       banner.imageFileName = fileName;
@@ -265,14 +276,28 @@ export class BannersService {
         userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
       if (!userId)
         throw new BadRequestException('No se encontró el usuario de OneDrive');
-      let folder = await this.graphService.validateFolder(userId, rootFolder);
-      if (!folder)
-        folder = await this.graphService.createFolder(userId, rootFolder);
+      // 2. Validar/crear carpeta del módulo (Banners)
+      const moduleFolder = `${rootFolder}/Banners`;
+      let folder = await this.graphService.validateFolder(userId, moduleFolder);
+      if (!folder) {
+        folder = await this.graphService.createFolder(userId, moduleFolder);
+      }
+
+      // 3. Crear subcarpeta por banner (usa el id del banner)
+      const bannerId = id;
+      const bannerFolderName = `banner_${bannerId}`;
+      const bannerFolderPath = `${moduleFolder}/${bannerFolderName}`;
+      let bannerFolder = await this.graphService.validateFolder(userId, bannerFolderPath);
+      if (!bannerFolder) {
+        bannerFolder = await this.graphService.createFolder(userId, bannerFolderPath);
+      }
+
+      // 4. Subir archivo a la subcarpeta del banner
       const ext = file.originalname
         ? file.originalname.split('.').pop()
         : 'jpg';
       const fileName = `banner_${Date.now()}.${ext}`;
-      const filePath = `${rootFolder}/${fileName}`;
+      const filePath = `${bannerFolderPath}/${fileName}`;
       const uploadRes = await this.graphService.uploadFile(
         userId,
         filePath,

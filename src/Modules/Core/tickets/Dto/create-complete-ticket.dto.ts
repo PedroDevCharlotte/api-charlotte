@@ -42,6 +42,11 @@ export class TicketAttachmentDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({ description: 'ID del archivo en OneDrive' })
+  @IsOptional()
+  @IsString()
+  oneDriveFileId?: string;
 }
 
 export class TicketParticipantDto {
