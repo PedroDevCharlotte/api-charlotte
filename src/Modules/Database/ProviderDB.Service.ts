@@ -19,6 +19,9 @@ export const ProviderDBService: DynamicModule = TypeOrmModule.forRootAsync({
     const dbSynchronizeEnv = config.get('DB_SYNCHRONIZE'); // 'true' para habilitar
     const synchronize = dbSynchronizeEnv === 'true';
 
+    console.log("config.get('DB_USER')", config.get('DB_USER'));
+    console.log("config.get('DB_PASSWORD')", config.get('DB_PASSWORD'));
+    console.log("config.get('DB_NAME')", config.get('DB_NAME'));
     const dbConfig = {
       type: 'mysql',
       host: config.get('DB_HOST'),

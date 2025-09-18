@@ -1,5 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
+import { RolesService } from '../roles/roles.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
@@ -12,6 +13,7 @@ export class AuthService {
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
+    private rolesService: RolesService,
   ) {}
 
   // Validación de usuario y contraseña
@@ -71,6 +73,10 @@ export class AuthService {
       throw new UnauthorizedException('La contraseña ha expirado. Por favor, restablezca su contraseña.');
     }
   
+  console.log('Generating token for user:',user.role);
+  // Load permissions separately using RolesService to ensure we have modulePath and freshest data
+  const roleEntity = user.roleId ? await this.rolesService.getRoleWithPermissionsEntity(user.roleId) : null;
+    
     return {
       access_token: await this.jwtService.signAsync(payload),
       requires2FA: requires2FA,
@@ -82,6 +88,14 @@ export class AuthService {
         department: user.department?.name || 'Sin departamento asignado',
         roleId: user.roleId,
         departmentId: user.departmentId,
+        // Map permissions from Role -> Permission[] to string[] for backward compatibility
+        permissions: (roleEntity && Array.isArray(roleEntity.permissions)) ? roleEntity.permissions.map(p => p.name) : [],
+        // menus: unique modulePath values from permissions (filter nulls and avoid duplicates)
+        menus: (() => {
+          const permArr = (roleEntity && Array.isArray(roleEntity.permissions)) ? roleEntity.permissions : [];
+          const paths = permArr.map((p:any) => p.modulePath).filter(Boolean);
+          return Array.from(new Set(paths));
+        })(),
       },
       register2FA: register2FA,
       isFirstLogin: user.isFirstLogin,

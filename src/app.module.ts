@@ -12,6 +12,7 @@ import { RolesModule } from './Modules/Core/roles/roles.module';
 import { DepartmentsModule } from './Modules/Core/departments/departments.module';
 import { TicketTypesModule } from './Modules/Core/ticket-types/ticket-types.module';
 import { TicketsModule } from './Modules/Core/tickets/tickets.module';
+import { TicketFeedbackModule } from './Modules/Core/ticket-feedback/ticket-feedback.module';
 import { GeneralListsModule } from './Modules/Core/general-lists/general-lists.module';
 import { DataSeederService } from './data-seeder.service';
 import { UserHierarchySeederService } from './Modules/user-hierarchy-seeder.service';
@@ -21,6 +22,7 @@ import { Department } from './Modules/Core/departments/Entity/department.entity'
 import { User } from './Modules/Core/users/Entity/user.entity';
 import { TicketType } from './Modules/Core/ticket-types/Entity/ticket-type.entity';
 import { Ticket } from './Modules/Core/tickets/Entity/ticket.entity';
+import { TicketFeedback } from './Modules/Core/ticket-feedback/Entity/ticket-feedback.entity';
 import { Banner } from './Modules/Core/banners/Entity/banner.entity';
 import { Favorite } from './Modules/Core/favorites/Entity/favorite.entity';
 import { BannersModule } from './Modules/Core/banners/banners.module';
@@ -31,12 +33,25 @@ import { GeneralList } from './Modules/Core/general-lists/Entity/general-list.en
 import { ListOption } from './Modules/Core/general-lists/Entity/list-option.entity';
 import { EntityDefinition } from './Modules/Core/general-lists/Entity/entity.entity';
 import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-definition.entity';
+import { NonConformity } from './Modules/Core/non-conformities/Entity/non-conformity.entity';
+import { ActionPlan } from './Modules/Core/non-conformities/Entity/action-plan.entity';
+import { FollowUp } from './Modules/Core/non-conformities/Entity/follow-up.entity';
+import { WhyRecord } from './Modules/Core/non-conformities/Entity/why-record.entity';
+import { NonConformitiesModule } from './Modules/Core/non-conformities/non-conformities.module';
+import { Permission } from './Modules/Core/permissions/Entity/permission.entity';
+import { PermissionsModule } from './Modules/Core/permissions/permissions.module';
 
 @Global()
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: join(__dirname, `../src/Configuration/.env`),
+      // Load .env from common locations so it works both when running TS (dev)
+      // and when running compiled JS from dist. Try src/Configuration/.env first,
+      // then fallback to project root .env.
+      envFilePath: [
+        join(process.cwd(), 'src/Configuration/.env'),
+        join(process.cwd(), '.env'),
+      ],
       isGlobal: true,
     }),
     TypeOrmModule.forFeature([
@@ -47,12 +62,20 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
       Ticket, 
       TicketParticipant, 
       TicketMessage,
+  TicketFeedback,
   Banner,
   Favorite,
       GeneralList,
       ListOption,
       EntityDefinition,
       FieldDefinition
+  ,
+  NonConformity,
+  ActionPlan,
+  FollowUp,
+  WhyRecord
+  ,
+  Permission
     ]),
     DatabaseModule,
     AuthModule,
@@ -64,6 +87,8 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
     DepartmentsModule,
     TicketTypesModule,
   TicketsModule,
+  PermissionsModule,
+  TicketFeedbackModule,
   // Favorites module
   // lazy add
   // will import module below
@@ -71,6 +96,7 @@ import { FieldDefinition } from './Modules/Core/general-lists/Entity/field-defin
   BannersModule,
   GeneralListsModule
   , FavoritesModule
+  , NonConformitiesModule
   ],
   controllers: [HierarchyTestController],
   providers: [DataSeederService, UserHierarchySeederService],

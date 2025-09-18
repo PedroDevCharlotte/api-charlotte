@@ -48,6 +48,9 @@ export class RespUserDto {
     })
     @IsOptional()
     supportTypes?: { id: number; name: string }[];
+  @ApiPropertyOptional({ description: 'ID del jefe directo (manager) del usuario' })
+  @IsOptional()
+  managerId?: number | null;
 }
 
 export class ReqDeleteUserDto {

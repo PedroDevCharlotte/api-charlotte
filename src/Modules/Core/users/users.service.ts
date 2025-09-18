@@ -101,6 +101,8 @@ export class UsersService {
           id: t.id,
           name: t.name,
         }));
+  // Añadir el id del jefe directo si está disponible
+  respUser.managerId = user.manager?.id ?? null;
 
         return respUser;
       });

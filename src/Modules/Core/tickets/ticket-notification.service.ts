@@ -42,31 +42,29 @@ export class TicketNotificationService implements OnModuleInit {
       );
 
       const subject = `❌ Ticket Cancelado: ${context.ticket.title} (#${context.ticket.ticketNumber})`;
+      // Reuse the ticket-status-changed template for cancellation (action = 'cancelled')
+      const emailContext = this.getTicketEmailContext({
+        ...context,
+        action: 'status_changed', 
+        previousValues: context.previousValues || { status: context.ticket.status },
+        customMessage: context.customMessage,
+      });
 
-      const emailContext = this.getTicketEmailContext(context);
-      const toList = Array.isArray(context.recipients.to)
-        ? context.recipients.to
-        : [];
-      const ccList = Array.isArray(context.recipients.cc)
-        ? context.recipients.cc
-        : [];
-      const exclude = [
-        context.ticket.creator?.email,
-        context.user?.email,
-      ].filter(Boolean);
+      const toList = Array.isArray(context.recipients.to) ? context.recipients.to : [];
+      const ccList = Array.isArray(context.recipients.cc) ? context.recipients.cc : [];
 
-      // Enviar correo usando el servicio de email
-      await this.emailService.sendEmail(
-        toList.join(','),
-        subject,
-        context.customMessage || `El ticket ha sido cancelado. Justificación: ${context.customMessage}`
-      );
+      await this.sendSingleEmail(subject, 'ticket-cancelled', {
+        ...emailContext,
+        ticket: emailContext.ticket,
+        action: 'cancelled',
+        previousValues: context.previousValues || { status: context.ticket.status },
+        customMessage: context.customMessage,
+      }, { to: toList, cc: ccList });
 
-      this.logger.log(
-        `Cancellation notifications sent successfully for #${context.ticket.ticketNumber}`,
-      );
+      this.logger.log(`Cancellation notifications sent successfully for #${context.ticket.ticketNumber}`);
     } catch (error) {
       this.logger.error(`Error sending cancellation notification: ${error.message}`);
+      console.log(`Error sending cancellation notification: ${error.message}`); 
       throw error;
     }
   }
@@ -218,6 +216,7 @@ export class TicketNotificationService implements OnModuleInit {
     try {
       const fs = require('fs');
       const path = require('path');
+      
       const configured =
         this.configService.get<string>('CHARLOTTE_LOGO_PATH') ||
         this.configService.get<string>('CHARLOTTE_LOGO_URL');
