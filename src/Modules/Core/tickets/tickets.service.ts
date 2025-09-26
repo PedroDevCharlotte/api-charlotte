@@ -80,8 +80,8 @@ export class TicketsService {
       .andWhere('ticket.closedAt BETWEEN :from AND :to', { from, to })
       .getMany();
 
-      console.log('Tickets encontrados para estadística:', tickets.length);
-      console.log('Informacion encontrados para estadística:', tickets);
+      // console.log('Tickets encontrados para estadística:', tickets.length);
+      // console.log('Informacion encontrados para estadística:', tickets);
 
     // Agrupar por usuario asignado
     const stats: Record<number, { user: any, total: number, sumHours: number }> = {};
@@ -193,6 +193,33 @@ export class TicketsService {
           action: 'cancelled',
           recipients: { to: [ticket.assignee.email] },
           customMessage: justification,
+        });
+      }
+
+      return ticket;
+    }
+
+    /**
+     * Solicita al creador del ticket que conteste la encuesta enviando un email con el enlace.
+     */
+    async requestFeedback(ticketId: number, currentUserId: number): Promise<Ticket> {
+      const ticket = await this.ticketRepository.findOne({
+        where: { id: ticketId },
+        relations: ['creator', 'assignee', 'participants']
+      });
+      if (!ticket) throw new NotFoundException('Ticket no encontrado');
+
+      // Verificar permisos: permitir a quien sea asignado o admin/creator según reglas existentes
+      await this.checkTicketAccess(ticket, currentUserId);
+
+      // Enviar email al creador usando TicketNotificationService.notifyTicketClosed (reuse template 'ticket-closed')
+      const creatorEmail = ticket.creator?.email;
+      if (creatorEmail) {
+        await this.ticketNotificationService.notifyTicketClosed({
+          ticket,
+          user: ticket.creator,
+          action: 'closed',
+          recipients: { to: [creatorEmail] }
         });
       }
 
@@ -1930,6 +1957,7 @@ export class TicketsService {
             fileName: attachmentDto.fileName,
             originalFileName: attachmentDto.originalFileName,
             filePath: attachmentDto.filePath,
+            oneDriveFileId: (attachmentDto as any).oneDriveFileId || null,
             mimeType: attachmentDto.mimeType,
             fileSize: attachmentDto.fileSize,
             description: attachmentDto.description,
@@ -2040,8 +2068,6 @@ export class TicketsService {
         const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
         if (!userEmail)
           throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
-        const rootFolder =
-          process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
         // 1. Buscar userId
         const userRes = await this.graphService.getUserByEmail(userEmail);
         const userId =
@@ -2052,33 +2078,25 @@ export class TicketsService {
           throw new BadRequestException(
             'No se encontró el usuario de OneDrive',
           );
-        // 2. Validar/crear carpeta raíz
-        let folder = await this.graphService.validateFolder(userId, rootFolder);
-        if (!folder)
-          folder = await this.graphService.createFolder(userId, rootFolder);
-        // 3. Crear subcarpeta por ticket (usa timestamp temporal, luego se puede actualizar con el ticketId real)
-        const ticketFolderName = `ticket_${Date.now()}`;
-        let ticketFolder = await this.graphService.validateFolder(
-          userId,
-          `${rootFolder}/${ticketFolderName}`,
-        );
-        if (!ticketFolder)
-          ticketFolder = await this.graphService.createFolder(
-            userId,
-            `${rootFolder}/${ticketFolderName}`,
-          );
+
+        // Determinar el nombre de carpeta del ticket. Si createCompleteTicketDto tiene ticketNumber
+        // (por ejemplo una cadena como 'SOP-2025-0011'), úsalo; si no, usar timestamp temporal.
+        const ticketFolderName =
+          ((createCompleteTicketDto as any)?.ticketNumber && String((createCompleteTicketDto as any).ticketNumber).trim()) ||
+          `ticket_${Date.now()}`;
 
         for (const file of files) {
           const ext = file.originalname
             ? file.originalname.split('.').pop()
             : 'dat';
           const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-          const filePath = `${rootFolder}/${ticketFolderName}/${fileName}`;
-          // Subir archivo a OneDrive
-          const uploadRes = await this.graphService.uploadFile(
+          // Subir archivo a FilesConectaCCI/Tickets/{ticketFolderName}/fileName
+          const uploadRes = await this.graphService.uploadToModule(
             userId,
-            filePath,
+            'Tickets',
+            fileName,
             file.buffer,
+            ticketFolderName,
           );
           // Obtener link de vista previa
           const previewRes = await this.graphService.getFilePreview(
@@ -2089,6 +2107,7 @@ export class TicketsService {
             fileName: fileName,
             originalFileName: file.originalname,
             filePath: previewRes?.link?.webUrl || '',
+            oneDriveFileId: uploadRes?.id || null,
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`,

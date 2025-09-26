@@ -15,6 +15,8 @@ import {
   UseInterceptors,
   UploadedFiles,
   Res,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -32,6 +34,7 @@ import {
 import { AuthGuard } from '../../../Common/Auth/auth.guard';
 import { Token } from '../../../Common/Decorators/token.decorator';
 import { TicketsService, TicketFilters } from './tickets.service';
+import { GraphService } from '../../Services/EntraID/graph.service';
 import { Ticket, TicketStatus, TicketPriority } from './Entity/ticket.entity';
 import {
   CreateTicketDto,
@@ -48,6 +51,8 @@ import {
 } from './Dto/create-complete-ticket.dto';
 import * as jwt from 'jsonwebtoken';
 import { CreateTicketMessageFormDto } from './Dto/ticket-message.dto';
+import { NonConformitiesService } from '../non-conformities/non-conformities.service';
+import { NonConformityResponseDto } from '../non-conformities/dto/non-conformity.dto';
 
 interface TicketQueryFilters {
   status?: TicketStatus | TicketStatus[];
@@ -73,7 +78,12 @@ interface TicketQueryFilters {
 export class TicketsController {
 
 
-  constructor(private readonly ticketsService: TicketsService) {}
+  constructor(
+    private readonly ticketsService: TicketsService,
+    @Inject(forwardRef(() => GraphService))
+    private readonly graphService: GraphService,
+    private readonly nonConformitiesService: NonConformitiesService,
+  ) {}
   @Get('attachments/:id/download')
   @ApiOperation({ summary: 'Descargar archivo adjunto por id' })
   async downloadAttachmentById(
@@ -84,6 +94,20 @@ export class TicketsController {
     if (!attachment) {
       return res.status(404).json({ message: 'Archivo adjunto no encontrado' });
     }
+
+    console.log("attachment", attachment);
+    // Si el attachment está almacenado en OneDrive, proxy al contenido desde Graph
+    if (attachment.oneDriveFileId) {
+      const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
+      if (!userEmail) return res.status(500).json({ message: 'ONEDRIVE_USER_EMAIL no configurado' });
+      const userRes = await this.graphService.getUserByEmail(userEmail);
+      const userId = userRes?.value && userRes.value.length > 0 ? userRes.value[0].id : null;
+      if (!userId) return res.status(500).json({ message: 'No se encontró el usuario de OneDrive' });
+      // Delegate proxy to GraphService which handles streaming and headers
+      return await this.graphService.proxyFileContent(userId, attachment.oneDriveFileId, res);
+    }
+
+    // Fallback: archivo local en disco
     const path = require('path');
     const fs = require('fs');
     const filePath = path.join(
@@ -638,6 +662,41 @@ export class TicketsController {
     return new TicketResponseDto(ticket);
   }
 
+  @Patch(':id/reassign')
+  @ApiOperation({ summary: 'Reasignar un ticket a otro usuario' })
+  @ApiParam({ name: 'id', description: 'ID del ticket', type: Number })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Ticket reasignado exitosamente',
+    type: TicketResponseDto,
+  })
+  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Ticket o usuario no encontrado' })
+  @ApiResponse({ status: HttpStatus.FORBIDDEN, description: 'No tienes permisos para reasignar este ticket' })
+  async reassign(
+    @Param('id', ParseIntPipe) id: number,
+    @Body(ValidationPipe) assignTicketDto: AssignTicketDto,
+    @Token('id') userId: number,
+  ): Promise<TicketResponseDto> {
+    const ticket = await this.ticketsService.assignTicket(
+      id,
+      assignTicketDto.assigneeId,
+      userId,
+    );
+    return new TicketResponseDto(ticket);
+  }
+
+  @Post(':id/request-feedback')
+  @ApiOperation({ summary: 'Solicitar que el creador conteste la encuesta del ticket (envía email con enlace)' })
+  @ApiParam({ name: 'id', description: 'ID del ticket', type: Number })
+  @ApiResponse({ status: HttpStatus.OK, description: 'Notificación de encuesta solicitada' })
+  async requestFeedback(
+    @Param('id', ParseIntPipe) id: number,
+    @Token('id') userId: number,
+  ) {
+    const ticket = await this.ticketsService.requestFeedback(id, userId);
+    return new TicketResponseDto(ticket);
+  }
+
 
   @Patch(':id/cancel')
   @ApiOperation({ summary: 'Cancelar un ticket' })
@@ -683,6 +742,53 @@ export class TicketsController {
       userId,
     );
     return new TicketResponseDto(ticket);
+  }
+
+  @Post(':id/non-conformity')
+  @ApiOperation({ summary: 'Crear una no conformidad desde un ticket' })
+  @ApiParam({ name: 'id', description: 'ID del ticket', type: Number })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'No conformidad creada exitosamente',
+    type: NonConformityResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Ticket no encontrado',
+  })
+  @ApiResponse({
+    status: HttpStatus.FORBIDDEN,
+    description: 'No tienes permisos para crear no conformidades desde este ticket',
+  })
+  async createNonConformityFromTicket(
+    @Param('id', ParseIntPipe) ticketId: number,
+    @Body() body: { motivo: string },
+    @Token('id') userId: number,
+  ): Promise<NonConformityResponseDto> {
+    // Obtener el ticket para extraer datos relevantes
+    const ticket = await this.ticketsService.findOne(ticketId, userId);
+    
+    // Generar número de no conformidad con formato NC-YY-XX
+    const currentYear = new Date().getFullYear();
+    const nonConformityNumber = await this.nonConformitiesService.getNextConsecutiveNumber(currentYear);
+    
+    // Mapear datos del ticket a la no conformidad
+    const createNonConformityDto = {
+      number: nonConformityNumber,
+      title: `No conformidad generada desde ticket: ${ticket.title}`,
+      description: body.motivo || 'No conformidad generada desde ticket',
+      findingDescription: ticket.description || '',
+      areaOrProcess: ticket.ticketType?.name || '',
+      detectedAt: new Date().toISOString(),
+      validFrom: new Date().toISOString(),
+      // Agregar referencia al ticket original
+      reference: `Ticket #${ticket.ticketNumber}`,
+      // Otros campos por defecto
+      hasSimilarCases: false,
+    };
+
+    const nonConformity = await this.nonConformitiesService.create(createNonConformityDto);
+    return new NonConformityResponseDto(nonConformity);
   }
 
   @Delete(':id')

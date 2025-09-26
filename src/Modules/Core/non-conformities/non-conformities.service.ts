@@ -17,7 +17,10 @@ export class NonConformitiesService {
   }
 
   async findAll(): Promise<NonConformity[]> {
-    return await this.ncRepository.find({ relations: ['actionPlans', 'followUps', 'whyRecords'] });
+    return await this.ncRepository.find({
+      select: ['id', 'number', 'status', 'createdAt', 'updatedAt'], // Eliminado 'title' porque no existe en la entidad
+      relations: ['actionPlans', 'followUps'],
+    });
   }
 
   async findOne(id: number): Promise<NonConformity> {
@@ -36,5 +39,45 @@ export class NonConformitiesService {
   async remove(id: number): Promise<void> {
     const nc = await this.findOne(id);
     await this.ncRepository.remove(nc);
+  }
+
+  async getNextConsecutiveNumber(year: number): Promise<string> {
+    // Obtener los últimos 2 dígitos del año
+    const yearSuffix = year.toString().slice(-2);
+    const prefix = `NC-${yearSuffix}`;
+     
+    // Buscar el último número consecutivo del año actual con el nuevo formato
+    const lastNC = await this.ncRepository
+      .createQueryBuilder('nc')
+      .where('nc.number LIKE :pattern', { pattern: `${prefix}-%` })
+      .orderBy('nc.number', 'DESC')
+      .getOne();
+
+    let nextNumber = 1;
+    if (lastNC && lastNC.number) {
+      // Extraer el número consecutivo del formato NC-YY-XX
+      const parts = lastNC.number.split('-');
+      if (parts.length === 3) {
+        const lastConsecutive = parseInt(parts[2], 10);
+        nextNumber = lastConsecutive + 1;
+      }
+    }
+    
+    // Formatear con ceros a la izquierda (2 dígitos)
+    const formattedNumber = nextNumber.toString().padStart(2, '0');
+    return `${prefix}-${formattedNumber}`;
+  }
+
+  async cancel(id: number, reason: string): Promise<NonConformity> {
+    // Buscar la no conformidad
+    const nc = await this.findOne(id);
+    
+    // Actualizar el estado a cancelado y agregar la razón
+    nc.status = 'cancelled';
+    nc.cancellationReason = reason; 
+    nc.cancelledAt = new Date();
+    
+    // Guardar los cambios
+    return await this.ncRepository.save(nc);
   }
 }

@@ -106,6 +106,12 @@ SUPPORT_EMAIL         // Email de soporte
 - **Destinatarios**: Usuario asignado, creador, participantes
 - **Información**: Detalles del agente asignado
 
+#### Reasignación (nuevo)
+- **Endpoint**: `PATCH /tickets/:id/reassign`
+- **Descripción**: Reasigna el ticket a otro usuario. Actualiza participantes e historial y envía una notificación al nuevo asignado y al creador.
+- **Request body**: `{ "assigneeId": <userId> }` (ver `AssignTicketDto`).
+- **Respuesta**: `TicketResponseDto`.
+
 #### 5. Nuevo Comentario
 - **Trigger**: Al agregar comentarios o respuestas
 - **Destinatarios**: Participantes según visibilidad del comentario
@@ -115,6 +121,25 @@ SUPPORT_EMAIL         // Email de soporte
 - **Trigger**: Al cerrar o resolver el ticket
 - **Destinatarios**: Todos los participantes
 - **Información**: Resumen completo y encuesta de satisfacción
+
+#### Solicitud manual de encuesta (nuevo)
+- **Endpoint**: `POST /tickets/:id/request-feedback`
+- **Descripción**: Endpoint para solicitar al creador del ticket que responda la encuesta de satisfacción. Envía un correo al creador con un enlace directo a la encuesta del ticket (`${FRONTEND_URL}/apps/ticket/feedback/{ticketId}`).
+- **Permisos**: Requiere autenticación; no necesariamente notifica a todos los participantes, únicamente al creador (configurable desde el servicio de notificaciones).
+- **Respuesta**: `TicketResponseDto` con el objeto ticket actualizado si aplica.
+
+### Cambios técnicos en manejo de plantillas (templates)
+- Para evitar errores en producción por rutas distintas entre `src` y `dist`, el `EmailService` implementa:
+  - Búsqueda multi-path de templates (`src/.../templates` y `dist/.../templates`).
+  - Fallback de renderizado con Handlebars si el adaptador nativo falla.
+  - Recomendación: incluir un script `postbuild` que copie las plantillas `.hbs` al `dist` para garantizar su disponibilidad.
+
+### Ejemplo: Solicitar encuesta (flujo)
+1. Frontend llama `POST /tickets/:id/request-feedback` (usuario autenticado).
+2. `TicketsController.requestFeedback` delega a `TicketsService.requestFeedback`.
+3. `TicketsService` valida permisos y obtiene el ticket + creator email.
+4. `TicketNotificationService` prepara el contexto y llama a `EmailService.sendEmailWithTemplate('ticket-closed', context, recipients)` o a una plantilla dedicada si existe.
+5. Email llega al creador con enlace: `${FRONTEND_URL}/apps/ticket/feedback/{ticketId}`.
 
 ### 🎨 Características del Diseño
 

@@ -112,6 +112,16 @@ export class NonConformity {
   @OneToMany(() => require('./why-record.entity').WhyRecord, (w: any) => w.nonConformity, { cascade: true })
   whyRecords: any[];
 
+  // Campos para manejo de estado y cancelación
+  @Column({ length: 50, default: 'open' })
+  status: string; // Estado: 'open', 'in_progress', 'closed', 'cancelled'
+
+  @Column('text', { nullable: true })
+  cancellationReason: string; // Razón de cancelación
+
+  @Column({ type: 'datetime', nullable: true })
+  cancelledAt: Date; // Fecha de cancelación
+
   @CreateDateColumn()
   createdAt: Date;
 

@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        font-size: 8pt;
+      }
+      tr {
+        height: 8px;
+      }
+
+      th,
+      td {
+        /* border: 1px solid black; */
+        padding: 2px;
+        text-align: left;
+        max-width: 10px;
+      }
+
+      .b1t {
+        border-top: 1px solid black;
+      }
+      .b1r {
+        border-right: 1px solid black;
+      }
+      .b1b {
+        border-bottom: 1px solid black;
+      }
+      .b1l {
+        border-left: 1px solid black;
+      }
+      .allb {
+        border: 1px solid black;
+      }
+      .b2t {
+        /* margin-top: 1em; */
+        border-top: 1px dashed #000;
+      }
+      .b2r {
+        border-right: 1px dashed #000;
+      }
+      .b2b {
+        border-bottom: 1px dashed #000;
+      }
+      .b2l {
+        border-left: 1px dashed #000;
+      }
+      .allb2 {
+        border: 1px dashed #000;
+      }
+
+      .b3t {
+        border-top: 3px double black;
+      }
+      .b3r {
+        border-right: 3px double black;
+      }
+      .b3b {
+        border-bottom: 3px double black;
+      }
+      .b3l {
+        border-left: 3px double black;
+      }
+      .allb3 {
+        border: 3px double black;
+      }
+
+      th {
+        background-color: #f2f2f2;
+      }
+      .tdc {
+        text-align: center;
+        vertical-align: middle;
+      }
+      .tdl {
+        text-align: left;
+        vertical-align: middle;
+      }
+      .tdr {
+        text-align: right;
+        vertical-align: middle;
+      }
+      th {
+        background: #44b3e1;
+      }
+      .lf5 {
+        color: #000000;
+        font-weight: bold;
+        font-size: 9pt;
+      }
+
+      .vertical-up {
+        writing-mode: vertical-lr;
+        transform: rotate(180deg);
+        white-space: nowrap;
+      }
+
+      .why{
+        color: #fff;
+        background-color: #000;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <table>
+      <!-- <tr>
+        <th class="column1 allb">&nbsp;</th>
+        <th class="column2 allb">&nbsp;</th>
+        <th class="column3 allb">&nbsp;</th>
+        <th class="column4 allb">&nbsp;</th>
+        <th class="column5 allb">&nbsp;</th>
+        <th class="column6 allb">&nbsp;</th>
+        <th class="column7 allb">&nbsp;</th>
+        <th class="column8 allb">&nbsp;</th>
+        <th class="column9 allb">&nbsp;</th>
+        <th class="column10 allb">&nbsp;</th>
+        <th class="column11 allb">&nbsp;</th>
+        <th class="column12 allb">&nbsp;</th>
+        <th class="column13 allb">&nbsp;</th>
+        <th class="column14 allb">&nbsp;</th>
+        <th class="column15 allb">&nbsp;</th>
+        <th class="column16 allb">&nbsp;</th>
+        <th class="column17 allb">&nbsp;</th>
+        <th class="column18 allb">&nbsp;</th>
+        <th class="column19 allb">&nbsp;</th>
+        <th class="column20 allb">&nbsp;</th>
+        <th class="column21 allb">&nbsp;</th>
+        <th class="column22 allb">&nbsp;</th>
+        <th class="column23 allb">&nbsp;</th>
+        <th class="column24 allb">&nbsp;</th>
+        <th class="column25 allb">&nbsp;</th>
+        <th class="column26 allb">&nbsp;</th>
+        <th class="column27 allb">&nbsp;</th>
+        <th class="column28 allb">&nbsp;</th>
+        <th class="column29 allb">&nbsp;</th>
+        <th class="column30 allb">&nbsp;</th>
+        <th class="column31 allb">&nbsp;</th>
+        <th class="column32 allb">&nbsp;</th>
+        <th class="column33 allb">&nbsp;</th>
+        <th class="column34 allb">&nbsp;</th>
+        <th class="column35 allb">&nbsp;</th>
+      </tr> -->
+      <tr>
+        <td class="column1 tdc allb" rowspan="5" colspan="8">A</td>
+        <td class="column8 tdl b1l b1r b1t" rowspan="1" colspan="19">
+          TIPO DE DOCUMENTO:
+        </td>
+        <td class="column27 tdc allb" rows pan="1" colspan="4">CÓDIGO:</td>
+        <td class="column36 tdc lf5 allb" rowspan="1" colspan="4">
+          FOR-CRI-20
+        </td>
+      </tr>
+      <tr>
+        <td class="column27 tdc lf5 b1b" rowspan="1" colspan="19">FORMATO</td>
+        <td class="column27 tdc allb" rowspan="1" colspan="4">VERSIÓN:</td>
+        <td class="column36 tdc lf5 allb" rowspan="1" colspan="4">0</td>
+      </tr>
+      <tr>
+        <td class="column8 tdl" rowspan="1" colspan="19">
+          TÍTULO DE DOCUMENTO:
+        </td>
+        <td class="column27 tdc allb" rowspan="1" colspan="4">PÁGINA:</td>
+        <td class="column36 tdc allb" rowspan="1" colspan="4">1 de 1</td>
+      </tr>
+      <tr>
+        <td class="column8 tdc lf5 b1b" rowspan="2" colspan="19">
+          HOJA DE TRABAJO 5 POR QUÉ
+        </td>
+        <td class="column27 tdc allb" rowspan="1" colspan="4">
+          VIGENTE A PARTIR DE:
+        </td>
+        <td class="column36 tdc allb" rowspan="1" colspan="4">ene-25</td>
+      </tr>
+      <tr>
+        <td class="column27 tdc allb" rowspan="1" colspan="4">VALIDO HASTA:</td>
+        <td class="column36 tdc allb" rowspan="1" colspan="4">ene-28</td>
+      </tr>
+
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc">&nbsp;</td>
+        <td class="column1 tdl" colspan="34">
+          (Generar 5 veces porque o deténgase antes si detecta la (s) causa (s)
+          raíz)
+        </td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+
+      <tr>
+        <td class="column1 tdc">&nbsp;</td>
+        <td class="column1 tdc" colspan="5">Referencia:</td>
+        <td class="column1 tdl b1b" colspan="4">SGC</td>
+        <td class="column1 tdl b1b" colspan="4">SGC</td>
+        <td class="column1 tdc" colspan="10">&nbsp;</td>
+        <td class="column1 tdc" colspan="4">FECHA:</td>
+        <td class="column9 tdc b1b" colspan="9">26/06/2025</td>
+      </tr>
+
+      <tr>
+        <td class="column1 tdc" colspan="35"></td>
+      </tr>
+      <tr>
+        <td class="column1  tdc">&nbsp;</td>
+        <td class="column1  tdc" colspan="13">Descripción de la NC:</td>
+        <td class="column1  tdl" colspan="1">&nbsp;</td>
+        <td class="column1  tdc" colspan="9">PERSONAL PARTICIPANTE</td>
+        <td class="column1  tdc">&nbsp;</td>
+        <td class="column1  tdc" colspan="10" rowspan="2">
+          ¿Existen casos similares o que potencialmente puedan ocurrir?
+        </td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" rowspan="8">&nbsp;</td>
+        <td class="column1 allb tdc" rowspan="8" colspan="13">
+          El cliente Piéles Sintéticas pidió levantar la queja debido a que, a
+          finales del mes de mayo, colocó un pedido por 20,000 M de VX-12. Se
+          programó la entrega de 10,000 M para el día 3 de junio y la segunda
+          entrega estaba programada para el día 17 de junio. El 19 de junio el
+          cliente notificó que no había recibido el producto y no se le informó
+          del cambio en la programación. Se le informó al cliente que esto era
+          por falta de stock disponible, por lo que, solicitó que se entregara
+          ASAP el rollo que se tenía disponible, mismo que fue entregado el día
+          26 de junio.
+        </td>
+        <td class="column1 tdc" rowspan="8">&nbsp;</td>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+        <td class="column1 tdc" rowspan="8">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdc" colspan="1"> Si</td>
+        <td class="column1 tdc allb" colspan="1">&nbsp;</td>
+        <td class="column1 tdc" colspan="2">&nbsp;</td>
+        <td class="column1 tdc" colspan="1">No</td>
+        <td class="column1 tdc allb" colspan="1">&nbsp;</td>
+        <td class="column1 tdc" colspan="2">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+        <td class="column1 tdc" colspan="10">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+        <td class="column1 tdc" colspan="10">En caso de Si, explique brevemente</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+        <td class="column1 tdc allb" colspan="10" rowspan="4">En caso de Si, explique brevemente</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc b1b" colspan="9">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc b1b" colspan="35">&nbsp;</td>
+      </tr>
+
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdl" colspan="35">¿Por qué tuvimos el problema ? </td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="35"></td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">1</td>
+        <td class="column1 tdl why" colspan="4">¿Por qué?</td>
+        <td class="column1 tdc" colspan="30">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdl b1b" colspan="34"></td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc" colspan="1">2</td>
+        <td class="column1 tdl why" colspan="4">¿Por qué?</td>
+        <td class="column1 tdc" colspan="30">&nbsp;</td>
+      </tr>
+      
+      <tr>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdl b1b" colspan="30"></td>
+        <td class="column1 tdc allb" colspan="4">Por lo tanto</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">3</td>
+        <td class="column1 tdl why" colspan="4">¿Por qué?</td>
+        <td class="column1 tdc" colspan="30">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdl b1b" colspan="30"></td>
+        <td class="column1 tdc allb" colspan="4">Por lo tanto</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">4</td>
+        <td class="column1 tdl why" colspan="4">¿Por qué?</td>
+        <td class="column1 tdc" colspan="30">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdl b1b" colspan="30"></td>
+        <td class="column1 tdc allb" colspan="4">Por lo tanto</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">5</td>
+        <td class="column1 tdl why" colspan="4">¿Por qué?</td>
+        <td class="column1 tdc" colspan="30">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="1">&nbsp;</td>
+        <td class="column1 tdl b1b" colspan="30"></td>
+        <td class="column1 tdc allb" colspan="4">Por lo tanto</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+      <tr>
+        <td class="column1 tdc" colspan="35">Determinación de la(s) causa(s) Raíz </td>
+      </tr>
+
+      <tr>
+        <td class="column1 tdc allb" colspan="35"> Determinación de la(s) causa(s) Raíz </td>
+      </tr>
+    </table>
+  </body>
+</html>

@@ -14,6 +14,9 @@ export class Banner {
   @Column({ type: 'text', nullable: true })
   link?: string;
 
+  @Column({ type: 'varchar', length: 200, nullable: true })
+  linkName?: string; // Nombre / texto visible para el enlace
+
 
   @Column({ type: 'text', nullable: true })
   imagePath?: string;

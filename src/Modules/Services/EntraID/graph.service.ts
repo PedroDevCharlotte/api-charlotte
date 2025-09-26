@@ -3,6 +3,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { EntraIdTokenService } from './entra-id-token.service';
 import { Response } from 'express';
+import * as path from 'path';
 
 @Injectable()
 export class GraphService {
@@ -54,8 +55,15 @@ export class GraphService {
   }
 
   // 3. Crear una carpeta
-  async createFolder(userId: string, folderName: string): Promise<any> {
-    const url = `${this.graphUrl}/users/${userId}/drive/root/children`;
+  /**
+   * Crear una carpeta. Si se proporciona parentPath, se crea como hijo de esa ruta.
+   * parentPath debe ser una ruta relativa a root sin slashes iniciales, ej: "FilesConectaCCI/Tickets"
+   */
+  async createFolder(userId: string, folderName: string, parentPath?: string): Promise<any> {
+    console.log('Creating folder:', folderName, 'for user:', userId, 'parentPath:', parentPath);
+    const url = parentPath
+      ? `${this.graphUrl}/users/${userId}/drive/root:/${parentPath}:/children`
+      : `${this.graphUrl}/users/${userId}/drive/root/children`;
     const headers = await this.getAuthHeaders();
     const body = {
       name: folderName,
@@ -63,13 +71,41 @@ export class GraphService {
       '@microsoft.graph.conflictBehavior': 'rename',
     };
     try {
-      const response = await firstValueFrom(
-        this.httpService.post(url, body, { headers }),
-      );
+      const response = await firstValueFrom(this.httpService.post(url, body, { headers }));
       return response.data;
     } catch (error) {
+      console.error('Error creating folder in Graph:', error?.response?.data || error);
       throw new InternalServerErrorException('Error al crear carpeta en Graph');
     }
+  }
+
+  /**
+   * Asegura que exista la ruta completa de carpetas indicada (relativa a root).
+   * Ejemplo: ensureFolderPath(userId, 'FilesConectaCCI/Tickets/SOP-2025-0011')
+   * Devuelve los metadatos de la última carpeta.
+   */
+  async ensureFolderPath(userId: string, folderPath: string): Promise<any> {
+    const clean = folderPath.replace(/^\/+|\/+$/g, '');
+    if (!clean) return null;
+    const parts = clean.split('/').filter(Boolean);
+    let currentPath = '';
+    let lastMetadata: any = null;
+
+    for (const part of parts) {
+      currentPath = currentPath ? `${currentPath}/${part}` : part;
+      // validar si existe
+      const exists = await this.validateFolder(userId, currentPath);
+      if (exists) {
+        lastMetadata = exists;
+        continue;
+      }
+
+      // crear en el parent (sin el segmento actual)
+      const parent = currentPath.includes('/') ? currentPath.substring(0, currentPath.lastIndexOf('/')) : undefined;
+      lastMetadata = await this.createFolder(userId, part, parent);
+    }
+
+    return lastMetadata;
   }
 
   // 4. Subir un archivo
@@ -78,17 +114,44 @@ export class GraphService {
     filePath: string,
     fileBuffer: Buffer,
   ): Promise<any> {
-    const url = `${this.graphUrl}/users/${userId}/drive/root:/${filePath}:/content`;
+    // Antes de subir, asegurarnos que la carpeta padre exista
+    const posixPath = filePath.split('\\').join('/');
+    const dir = path.posix.dirname(posixPath);
+    if (dir && dir !== '.') {
+      await this.ensureFolderPath(userId, dir);
+    }
+
+    const url = `${this.graphUrl}/users/${userId}/drive/root:/${posixPath}:/content`;
     const headers = await this.getAuthHeaders();
     headers['Content-Type'] = 'application/octet-stream';
     try {
-      const response = await firstValueFrom(
-        this.httpService.put(url, fileBuffer, { headers }),
-      );
+      const response = await firstValueFrom(this.httpService.put(url, fileBuffer, { headers }));
       return response.data;
     } catch (error) {
+      console.error('Error uploading file to Graph:', error?.response?.data || error);
       throw new InternalServerErrorException('Error al subir archivo en Graph');
     }
+  }
+
+  /**
+   * Helper para subir archivos dentro de la estructura FilesConectaCCI/{module}/{ticket?}/{filename}
+   * module: por ejemplo 'Banners' o 'Tickets'
+   * ticketNumber: opcional, por ejemplo 'SOP-2025-0011'
+   */
+  async uploadToModule(
+    userId: string,
+    moduleName: string,
+    fileName: string,
+    fileBuffer: Buffer,
+    ticketNumber?: string,
+  ): Promise<any> {
+    const base = 'FilesConectaCCI';
+    let folderPath = `${base}/${moduleName}`;
+    if (ticketNumber) folderPath = `${folderPath}/${ticketNumber}`;
+    // garantizar ruta
+    await this.ensureFolderPath(userId, folderPath);
+    const remotePath = `${folderPath}/${fileName}`;
+    return this.uploadFile(userId, remotePath, fileBuffer);
   }
 
   // 5. Obtener preview de un archivo

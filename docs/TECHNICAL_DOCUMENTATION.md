@@ -62,12 +62,17 @@ API pública / Endpoints relevantes
 - Endpoints CRUD para tickets (crear, actualizar, listar, ver).
 - Endpoint de asignación que consume `AssignTicketDto` en el body.
 
+Nuevos endpoints agregados
+- `PATCH /tickets/:id/reassign` — Reasigna un ticket a otro usuario. Body: `AssignTicketDto { assigneeId: number }`. Requiere autenticación y permisos de reasignación. Respuesta: `TicketResponseDto`.
+- `POST /tickets/:id/request-feedback` — Solicita que el creador del ticket conteste la encuesta. Envía un email al creador con un enlace directo a la encuesta del ticket. Requiere autenticación. Respuesta: `TicketResponseDto`.
+
 DTOs / Entidades principales
 - `AssignTicketDto { assigneeId: number }` — validaciones por `class-validator`.
 - `Ticket` entity — incluye `status` (enum: OPEN, IN_PROGRESS, FOLLOW_UP, COMPLETED, CLOSED, NON_CONFORMITY, CANCELLED), relaciones a usuarios, mensajes, etc.
 
 Flujos importantes
 - Asignación de ticket: valida usuario/ticket, actualiza asignación, añade participante y registra historial y mensaje del sistema.
+ - Solicitud de encuesta (request-feedback): endpoint que permite a un usuario autorizado solicitar (manualmente) al creador del ticket que responda la encuesta. El backend envía la notificación por email al creador usando el sistema de notificaciones (plantilla `ticket-closed.hbs` por defecto, o plantilla dedicada si existe).
 - Búsqueda de agentes por tipo: valida `TicketType` y devuelve usuarios activos paginados.
 
 Consideraciones

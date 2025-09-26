@@ -41,4 +41,14 @@ export class NonConformitiesController {
     await this.service.remove(id);
     return { success: true };
   }
+
+  @Post(':id/cancel')
+  @ApiResponse({ type: NonConformityResponseDto })
+  async cancel(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() body: { reason: string }
+  ) {
+    const nc = await this.service.cancel(id, body.reason);
+    return new NonConformityResponseDto(nc);
+  }
 }
