@@ -1,5 +1,6 @@
-import { Controller, Post, Body, Get, Param, Put, Delete, ParseIntPipe } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Put, Delete, ParseIntPipe, Res } from '@nestjs/common';
 import { ApiTags, ApiResponse } from '@nestjs/swagger';
+import { Response } from 'express';
 import { NonConformitiesService } from './non-conformities.service';
 import { CreateNonConformityDto, UpdateNonConformityDto, NonConformityResponseDto } from './dto/non-conformity.dto';
 
@@ -15,7 +16,7 @@ export class NonConformitiesController {
     return new NonConformityResponseDto(nc);
   }
 
-  @Get()
+  @Get() 
   @ApiResponse({ type: [NonConformityResponseDto] })
   async findAll() {
     const list = await this.service.findAll();
@@ -50,5 +51,24 @@ export class NonConformitiesController {
   ) {
     const nc = await this.service.cancel(id, body.reason);
     return new NonConformityResponseDto(nc);
+  }
+
+  @Get('next-number/:year')
+  async getNextConsecutiveNumber(@Param('year', ParseIntPipe) year: number) {
+    const nextNumber = await this.service.getNextConsecutiveNumber(year);
+    return { nextNumber };
+  } 
+
+  @Get(':id/pdf')
+  async generatePdf(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const pdfBuffer = await this.service.generatePdf(id);
+    
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="no-conformidad-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    
+    res.send(pdfBuffer);
   }
 }
