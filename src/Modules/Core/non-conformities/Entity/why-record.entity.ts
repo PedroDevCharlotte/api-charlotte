@@ -1,4 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { NonConformity } from './non-conformity.entity';
 
 export enum WhyType {
   WHY_HAD_PROBLEM = 'WHY_HAD_PROBLEM',
@@ -10,9 +11,9 @@ export class WhyRecord {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => require('./non-conformity.entity').NonConformity, (nc: any) => nc.whyRecords)
+  @ManyToOne(() => NonConformity, (nonConformity) => nonConformity.whyRecords)
   @JoinColumn({ name: 'nonConformityId' })
-  nonConformity: any;
+  nonConformity: NonConformity;
 
   @Column()
   nonConformityId: number;
@@ -20,8 +21,11 @@ export class WhyRecord {
   @Column('text')
   description: string;
 
+  @Column({ type: 'int', nullable: true })
+  questionNumber: number;
+
   @Column({ type: 'enum', enum: WhyType, nullable: true })
-  type: WhyType;
+  type: WhyType; 
 
   @CreateDateColumn()
   createdAt: Date;

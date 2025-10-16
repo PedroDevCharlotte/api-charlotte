@@ -1,7 +1,9 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn, CreateDateColumn, UpdateDateColumn, Index } from 'typeorm';
 import { User } from '../../users/Entity/user.entity';
 import { ListOption } from '../../general-lists/Entity/list-option.entity';
-// related entities are referenced dynamically below to avoid circular imports
+import { ActionPlan } from './action-plan.entity';
+import { FollowUp } from './follow-up.entity';
+import { WhyRecord } from './why-record.entity';
 
 export enum Classification {
   NC = 'NC',
@@ -59,11 +61,19 @@ export class NonConformity {
   @Column({ nullable: true })
   areaResponsibleId: number;
 
-  @Column({ type: 'enum', enum: Classification, nullable: true })
-  classification: Classification; // CLASIFICACION DE LA NO CONFORMIDAD
+  @ManyToOne(() => ListOption, { nullable: true, eager: true })
+  @JoinColumn({ name: 'classificationOptionId' })
+  classificationOption: ListOption;
 
-  @Column({ type: 'enum', enum: Category, nullable: true })
-  category: Category; // CATEGORIA DE LA NO CONFORMIDAD
+  @Column({ nullable: true })
+  classificationOptionId: number;
+
+  @ManyToOne(() => ListOption, { nullable: true, eager: true })
+  @JoinColumn({ name: 'categoryOptionId' })
+  categoryOption: ListOption;
+
+  @Column({ nullable: true })
+  categoryOptionId: number;
 
   // Motive -> reference to list option
   @ManyToOne(() => ListOption, { nullable: true, eager: true })
@@ -94,6 +104,19 @@ export class NonConformity {
   @Column('json', { nullable: true })
   participants: string[]; // PERSONAL PARTICIPANTE
 
+  
+  @Column({ length: 200, nullable: true })
+  otherResponsible: string; // OTRO RESPONSABLE ESPECIFICADO
+
+  @Column({ length: 200, nullable: true })
+  otherParticipant: string; // OTRO PARTICIPANTE ESPECIFICADO
+
+  @Column('json', { nullable: true })
+  fiveWhysParticipants: any[]; // PARTICIPANTES EN ANALISIS DE 5 PORQUES
+
+  @Column({ type: 'date', nullable: true })
+  fiveWhysDate: Date; // FECHA DEL ANALISIS DE 5 PORQUES
+
   @Column({ default: false })
   hasSimilarCases: boolean; // EXISTEN CASOS SIMILARES
 
@@ -103,14 +126,14 @@ export class NonConformity {
   @Column('text', { nullable: true })
   rootCauseDetermination: string; // DETERMINACION DE LA CAUSA RAIZ
 
-  @OneToMany(() => require('./action-plan.entity').ActionPlan, (plan: any) => plan.nonConformity, { cascade: true })
-  actionPlans: any[];
+  @OneToMany(() => ActionPlan, (plan) => plan.nonConformity, { cascade: true })
+  actionPlans: ActionPlan[];
 
-  @OneToMany(() => require('./follow-up.entity').FollowUp, (f: any) => f.nonConformity, { cascade: true })
-  followUps: any[];
+  @OneToMany(() => FollowUp, (followUp) => followUp.nonConformity, { cascade: true })
+  followUps: FollowUp[];
 
-  @OneToMany(() => require('./why-record.entity').WhyRecord, (w: any) => w.nonConformity, { cascade: true })
-  whyRecords: any[];
+  @OneToMany(() => WhyRecord, (whyRecord) => whyRecord.nonConformity, { cascade: true })
+  whyRecords: WhyRecord[];
 
   // Campos para manejo de estado y cancelación
   @Column({ length: 50, default: 'open' })

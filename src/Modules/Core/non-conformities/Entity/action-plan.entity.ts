@@ -1,7 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
-import { ListOption } from '../../general-lists/Entity/list-option.entity';
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, ManyToMany, JoinTable, JoinColumn, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { NonConformity } from './non-conformity.entity';
+import { User } from '../../users/Entity/user.entity';
 
 export enum ActionType {
+  PRINCIPAL = 'principal',
+  SECUNDARIA = 'secundaria',
   CONTAINMENT = 'CONTAINMENT',
   CORRECTIVE = 'CORRECTIVE',
   PREVENTIVE = 'PREVENTIVE',
@@ -12,28 +15,30 @@ export class ActionPlan {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => require('./non-conformity.entity').NonConformity, (nc: any) => nc.actionPlans)
+  @ManyToOne(() => NonConformity, (nonConformity) => nonConformity.actionPlans)
   @JoinColumn({ name: 'nonConformityId' })
-  nonConformity: any;
+  nonConformity: NonConformity;
 
   @Column()
   nonConformityId: number;
 
-  @Column({ type: 'enum', enum: ActionType, nullable: true })
-  type: ActionType; // TIPO DE ACCION
+  @Column({ type: 'varchar', length: 50, nullable: true })
+  type: string; // TIPO DE ACCION
 
   @Column('text')
   description: string; // DESCRIPCION DE LA ACCION
-
+ 
   @Column({ type: 'datetime', nullable: true })
-  commitmentDate: Date; // FECHA DE COMPROMISO
+  commitmentDate: Date | null; // FECHA DE COMPROMISO
 
-  @ManyToOne(() => ListOption, { nullable: true, eager: true })
-  @JoinColumn({ name: 'responsibleOptionId' })
-  responsibleOption: ListOption; // RESPUESTABLE (usuario o rol almacenado como option)
-
-  @Column({ nullable: true })
-  responsibleOptionId: number;
+  // Relación many-to-many directa con usuarios responsables
+  @ManyToMany(() => User, { cascade: true, eager: true })
+  @JoinTable({
+    name: 'action_plan_responsibles',
+    joinColumn: { name: 'actionPlanId', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' }
+  })
+  responsibles: User[];
 
   @CreateDateColumn()
   createdAt: Date;

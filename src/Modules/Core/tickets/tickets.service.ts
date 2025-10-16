@@ -1483,7 +1483,14 @@ export class TicketsService {
     const isCreator = ticket.createdBy === userId;
     const canAssign = participant?.canAssign || isCreator;
 
-    if (!canAssign) {
+    // Permitir si es administrador
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+    const isAdmin = user?.role?.name?.toLowerCase().includes('admin');
+
+    if (!canAssign && !isAdmin) {
       throw new ForbiddenException(
         'No tienes permisos para asignar este ticket',
       );

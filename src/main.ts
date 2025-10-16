@@ -39,12 +39,20 @@ async function bootstrap() {
     forbidNonWhitelisted: true, // Rechaza requests con propiedades no permitidas
     transform: true, // Transforma automáticamente los tipos
   }));
-
-  app.enableCors({
-    // origin: "http://localhost:3000",
-    origin: ['http://localhost:3000', 'https://conecta.charlottechemical.com'], // o '*' para permitir todos los orígenes (no recomendado en producción)
+  var conf = {
+    origin: "http://localhost:3000",
+    // origin: " https://conecta.charlottechemical.com",
+    // origin: ['http://localhost:3000', 'https://conecta.charlottechemical.com'], // o '*' para permitir todos los orígenes (no recomendado en producción)
     credentials: true
-  });
+  }
+  // app.enableCors({
+  //   origin: "http://localhost:3000",
+  //   // origin: " https://conecta.charlottechemical.com",
+  //   // origin: ['http://localhost:3000', 'https://conecta.charlottechemical.com'], // o '*' para permitir todos los orígenes (no recomendado en producción)
+  //   credentials: true
+  // });
+  app.enableCors(conf);
+  // app.enableCors();
   const port = AppModule.Port || 3006;
   await app.listen(port);
   // Log the actual port the app is listening on for easier debugging when started via npm
@@ -53,6 +61,8 @@ async function bootstrap() {
   // Example output: "Server listening on port: 3006"
   // Keep console.log intentionally (not logger) so it's visible in npm start piping.
   // eslint-disable-next-line no-console
-  console.log(`Server listening on port: ${port}`);
+  console.log("CORS Config", conf);
+
+  // console.log(`Server listening on port: ${port}`);
 }
 bootstrap();
