@@ -1,7 +1,8 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
+import { RolesModule } from '../roles/roles.module';
 import { AuditModule } from '../audit/audit.module';
 import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/Common/Auth/constants';
@@ -9,7 +10,8 @@ import { jwtConstants } from 'src/Common/Auth/constants';
 
 @Module({
   imports: [
-    UsersModule,
+  UsersModule,
+  forwardRef(() => RolesModule),
     AuditModule,
     JwtModule.register({
       global: true,
@@ -18,6 +20,7 @@ import { jwtConstants } from 'src/Common/Auth/constants';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService]
+  providers: [AuthService],
+  exports: [AuthService, forwardRef(() => RolesModule)],
 })
 export class AuthModule {}

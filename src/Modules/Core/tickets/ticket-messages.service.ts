@@ -104,17 +104,17 @@ export class TicketMessagesService {
       console.error('Error preparando notificación por comentario:', err);
     }
 
-    // Si el remitente es el asignado, marcar FOLLOW_UP; si es el creador, marcar IN_PROGRESS.
+    // Si el remitente es el asignado, marcar FOLLOW_UP solo cuando viene de IN_PROGRESS; si es el creador, marcar IN_PROGRESS solo si no ha habido seguimiento previo.
     try {
       if (ticket) {
         const assignedId = ticket.assignedTo && (typeof ticket.assignedTo === 'object' ? ticket.assignedTo.id : ticket.assignedTo);
         const creatorId = ticket.createdBy && (typeof ticket.createdBy === 'object' ? ticket.createdBy.id : ticket.createdBy);
 
-        // Si el remitente es el asignado -> FOLLOW_UP (prioritario)
-        if (assignedId && savedMessage.senderId === assignedId && ticket.status !== TicketStatus.FOLLOW_UP) {
+        // Si el remitente es el asignado y el ticket está EN PROCESO -> cambiar a SEGUIMIENTO (solo la primera vez)
+        if (assignedId && savedMessage.senderId === assignedId && ticket.status === TicketStatus.IN_PROGRESS) {
           await this.ticketsService.update(ticket.id, { status: TicketStatus.FOLLOW_UP } as UpdateTicketDto, currentUserId);
-        // Si el remitente es el creador -> IN_PROGRESS
-        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS) {
+        // Si el remitente es el creador y el ticket NO ha pasado por SEGUIMIENTO -> IN_PROGRESS
+        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS && ticket.status !== TicketStatus.FOLLOW_UP) {
           await this.ticketsService.update(ticket.id, { status: TicketStatus.IN_PROGRESS } as UpdateTicketDto, currentUserId);
         }
       }
@@ -209,15 +209,17 @@ export class TicketMessagesService {
     // 5. Marcar como leído por el remitente
     await this.markAsRead(savedMessage.id, currentUserId);
 
-    // Si el remitente es el asignado, marcar FOLLOW_UP; si es el creador, marcar IN_PROGRESS.
+    // Si el remitente es el asignado, marcar FOLLOW_UP solo cuando viene de IN_PROGRESS; si es el creador, marcar IN_PROGRESS solo si no ha habido seguimiento previo.
     try {
       if (ticket) {
         const assignedId = ticket.assignedTo && (typeof ticket.assignedTo === 'object' ? ticket.assignedTo.id : ticket.assignedTo);
         const creatorId = ticket.createdBy && (typeof ticket.createdBy === 'object' ? ticket.createdBy.id : ticket.createdBy);
 
-        if (assignedId && savedMessage.senderId === assignedId && ticket.status !== TicketStatus.FOLLOW_UP) {
+        // Si el remitente es el asignado y el ticket está EN PROCESO -> cambiar a SEGUIMIENTO (solo la primera vez)
+        if (assignedId && savedMessage.senderId === assignedId && ticket.status === TicketStatus.IN_PROGRESS) {
           await this.ticketsService.update(ticket.id, { status: TicketStatus.FOLLOW_UP } as UpdateTicketDto, currentUserId);
-        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS) {
+        // Si el remitente es el creador y el ticket NO ha pasado por SEGUIMIENTO -> IN_PROGRESS
+        } else if (creatorId && savedMessage.senderId === creatorId && ticket.status !== TicketStatus.IN_PROGRESS && ticket.status !== TicketStatus.FOLLOW_UP) {
           await this.ticketsService.update(ticket.id, { status: TicketStatus.IN_PROGRESS } as UpdateTicketDto, currentUserId);
         }
       }

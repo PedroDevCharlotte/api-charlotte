@@ -46,6 +46,11 @@ export class CreateBannerDto {
   @IsString()
   link?: string;
 
+  @ApiProperty({ required: false, example: 'Ir a promoción' })
+  @IsOptional()
+  @IsString()
+  linkName?: string;
+
   @ApiProperty({ required: false, description: 'Fecha de inicio ISO 8601', example: '2025-08-25T00:00:00Z' })
   @IsOptional()
   startDate?: string;
@@ -87,6 +92,11 @@ export class UpdateBannerDto {
   @IsOptional()
   @IsString()
   link?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  linkName?: string;
 
   @ApiProperty({ required: false })
   @IsOptional()

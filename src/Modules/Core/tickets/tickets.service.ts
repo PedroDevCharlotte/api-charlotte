@@ -80,8 +80,8 @@ export class TicketsService {
       .andWhere('ticket.closedAt BETWEEN :from AND :to', { from, to })
       .getMany();
 
-      console.log('Tickets encontrados para estadística:', tickets.length);
-      console.log('Informacion encontrados para estadística:', tickets);
+      // console.log('Tickets encontrados para estadística:', tickets.length);
+      // console.log('Informacion encontrados para estadística:', tickets);
 
     // Agrupar por usuario asignado
     const stats: Record<number, { user: any, total: number, sumHours: number }> = {};
@@ -193,6 +193,33 @@ export class TicketsService {
           action: 'cancelled',
           recipients: { to: [ticket.assignee.email] },
           customMessage: justification,
+        });
+      }
+
+      return ticket;
+    }
+
+    /**
+     * Solicita al creador del ticket que conteste la encuesta enviando un email con el enlace.
+     */
+    async requestFeedback(ticketId: number, currentUserId: number): Promise<Ticket> {
+      const ticket = await this.ticketRepository.findOne({
+        where: { id: ticketId },
+        relations: ['creator', 'assignee', 'participants']
+      });
+      if (!ticket) throw new NotFoundException('Ticket no encontrado');
+
+      // Verificar permisos: permitir a quien sea asignado o admin/creator según reglas existentes
+      await this.checkTicketAccess(ticket, currentUserId);
+
+      // Enviar email al creador usando TicketNotificationService.notifyTicketClosed (reuse template 'ticket-closed')
+      const creatorEmail = ticket.creator?.email;
+      if (creatorEmail) {
+        await this.ticketNotificationService.notifyTicketClosed({
+          ticket,
+          user: ticket.creator,
+          action: 'closed',
+          recipients: { to: [creatorEmail] }
         });
       }
 
@@ -1456,7 +1483,14 @@ export class TicketsService {
     const isCreator = ticket.createdBy === userId;
     const canAssign = participant?.canAssign || isCreator;
 
-    if (!canAssign) {
+    // Permitir si es administrador
+    const user = await this.userRepository.findOne({
+      where: { id: userId },
+      relations: ['role'],
+    });
+    const isAdmin = user?.role?.name?.toLowerCase().includes('admin');
+
+    if (!canAssign && !isAdmin) {
       throw new ForbiddenException(
         'No tienes permisos para asignar este ticket',
       );
@@ -1930,6 +1964,7 @@ export class TicketsService {
             fileName: attachmentDto.fileName,
             originalFileName: attachmentDto.originalFileName,
             filePath: attachmentDto.filePath,
+            oneDriveFileId: (attachmentDto as any).oneDriveFileId || null,
             mimeType: attachmentDto.mimeType,
             fileSize: attachmentDto.fileSize,
             description: attachmentDto.description,
@@ -2041,8 +2076,6 @@ export class TicketsService {
         const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
         if (!userEmail)
           throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
-        const rootFolder =
-          process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
         // 1. Buscar userId
         const userRes = await this.graphService.getUserByEmail(userEmail);
         console.log('User OneDrive encontrado:', userRes);
@@ -2054,28 +2087,12 @@ export class TicketsService {
           throw new BadRequestException(
             'No se encontró el usuario de OneDrive',
           );
-        // 2. Validar/crear carpeta raíz y subcarpetas para Tickets
-        const ticketsFolder = `${rootFolder}/Tickets`;
-        let folder = await this.graphService.validateFolder(userId, ticketsFolder);
-        if (!folder) {
-          folder = await this.graphService.createFolder(userId, ticketsFolder);
-        }
 
-        // 3. Crear subcarpeta por ticket (usa el ticketId si está disponible, si no, usa timestamp)
-        // Usar timestamp único para la carpeta del ticket
-        const ticketId = Date.now();
-        const ticketFolderName = `ticket_${ticketId}`;
-        const ticketFolderPath = `${ticketsFolder}/${ticketFolderName}`;
-        let ticketFolder = await this.graphService.validateFolder(
-          userId,
-          ticketFolderPath,
-        );
-        if (!ticketFolder) {
-          ticketFolder = await this.graphService.createFolder(
-            userId,
-            ticketFolderPath,
-          );
-        }
+        // Determinar el nombre de carpeta del ticket. Si createCompleteTicketDto tiene ticketNumber
+        // (por ejemplo una cadena como 'SOP-2025-0011'), úsalo; si no, usar timestamp temporal.
+        const ticketFolderName =
+          ((createCompleteTicketDto as any)?.ticketNumber && String((createCompleteTicketDto as any).ticketNumber).trim()) ||
+          `ticket_${Date.now()}`;
 
         for (const file of files) {
           const ext = file.originalname
@@ -2084,12 +2101,13 @@ export class TicketsService {
           // Usa el nombre original del archivo si lo deseas, o genera uno único:
           // const fileName = file.originalname;
           const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
-          const filePath = `${ticketFolderPath}/${fileName}`;
-          // Subir archivo a OneDrive
-          const uploadRes = await this.graphService.uploadFile(
+          // Subir archivo a FilesConectaCCI/Tickets/{ticketFolderName}/fileName
+          const uploadRes = await this.graphService.uploadToModule(
             userId,
-            filePath,
+            'Tickets',
+            fileName,
             file.buffer,
+            ticketFolderName,
           );
           console.log('Archivo subido a OneDrive:', uploadRes);
           // Obtener link de vista previa
@@ -2101,6 +2119,7 @@ export class TicketsService {
             fileName: fileName,
             originalFileName: file.originalname,
             filePath: previewRes?.link?.webUrl || '',
+            oneDriveFileId: uploadRes?.id || null,
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`,

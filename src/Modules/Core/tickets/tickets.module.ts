@@ -28,6 +28,7 @@ import { DepartmentsModule } from '../departments/departments.module';
 import { TicketTypesModule } from '../ticket-types/ticket-types.module';
 import { EmailModule } from '../email/email.module';
 import { EntraIdModule } from '../../Services/EntraID/entra-id.module';
+import { NonConformitiesModule } from '../non-conformities/non-conformities.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { EntraIdModule } from '../../Services/EntraID/entra-id.module';
   forwardRef(() => TicketTypesModule),
   forwardRef(() => EmailModule),
   forwardRef(() => EntraIdModule),
+  forwardRef(() => NonConformitiesModule),
   ],
   controllers: [
     TicketsController,

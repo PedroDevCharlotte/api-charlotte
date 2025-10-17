@@ -59,7 +59,7 @@
 
           <!-- Información del ticket -->
           <div style="background-color: white; border-radius: 8px; border: 1px solid #e9ecef; margin-bottom: 24px; overflow: hidden;">
-            <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 24px; color: white;">
+            <div style="background: linear-gradient(135deg, #007bff, #0056b3); padding: 24px; color: rgb(0, 0, 0);">
               <h1 style="margin: 0 0 8px 0; font-size: 20px; font-weight: 600;">{{ticket.title}}</h1>
               <div style="display: flex; gap: 16px; flex-wrap: wrap; align-items: center;">
                 <span style="background-color: rgba(255,255,255,0.2); padding: 4px 12px; border-radius: 16px; font-size: 12px; font-weight: 500;">#{{ticket.ticketNumber}}</span>
@@ -142,7 +142,7 @@
 
           <!-- Botón de acción principal -->
           <div style="text-align: center; margin: 32px 0;">
-            <a href="{{ticket.url}}" style="display: inline-block; background: linear-gradient(135deg, #007bff, #0056b3); color: white; text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); transition: all 0.2s;">🔍 Ver Ticket en el Sistema</a>
+            <a href="{{ticket.url}}" style="display: inline-block; background: linear-gradient(135deg, #007bff, #0056b3); color: rgb(0, 0, 0); text-decoration: none; padding: 16px 32px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3); transition: all 0.2s;">🔍 Ver Ticket en el Sistema</a>
           </div>
 
           {{#unless isCopy}}
@@ -157,12 +157,6 @@
           </div>
           {{/unless}}
 
-          <!-- Encuesta de satisfacción breve y profesional -->
-          <div style="background-color: #f5f7fb; border: 1px solid #e3e8ef; border-radius: 10px; padding: 18px; margin-top: 18px; text-align: center;">
-            <h4 style="margin: 0 0 8px 0; color: #232f3e; font-size: 15px;">Tu opinión impulsa nuestras decisiones</h4>
-            <p style="margin: 0 0 12px 0; color: #495057; font-size: 13px; line-height:1.4;">Dedícanos 60 segundos para decirnos cómo fue tu experiencia. Tus comentarios orientan nuestras mejoras estratégicas.</p>
-            <a href="{{systemInfo.frontendUrl}}/feedback/{{ticket.id}}" style="display:inline-block; background: linear-gradient(135deg,#232f3e,#0b1620); color: #fff; padding: 10px 16px; border-radius: 6px; text-decoration:none; font-weight:600;">Completar encuesta (60s)</a>
-          </div>
         </div>
 
         <div class="footer">

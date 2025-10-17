@@ -14,4 +14,8 @@ export class userDetails {
   roleId: number;
   email: string;
   departmentId: number;
+  // Lista de permisos (strings) que tiene el usuario vía rol
+  permissions?: string[];
+  // Lista única de modulePath tomada de los permisos para construir el menú
+  menus?: string[];
 }

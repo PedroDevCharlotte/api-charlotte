@@ -12,6 +12,7 @@ import { GeneralList, ListCategory } from './Modules/Core/general-lists/Entity/g
 import { ListOption } from './Modules/Core/general-lists/Entity/list-option.entity';
 import { EntityDefinition } from './Modules/Core/general-lists/Entity/entity.entity';
 import { FieldDefinition, FieldType } from './Modules/Core/general-lists/Entity/field-definition.entity';
+import { Permission } from './Modules/Core/permissions/Entity/permission.entity';
 import { UserHierarchySeederService } from './Modules/user-hierarchy-seeder.service';
 
 @Injectable()
@@ -39,6 +40,8 @@ export class DataSeederService implements OnModuleInit {
     private readonly entityDefinitionRepository: Repository<EntityDefinition>,
     @InjectRepository(FieldDefinition)
     private readonly fieldDefinitionRepository: Repository<FieldDefinition>,
+    @InjectRepository(Permission)
+    private readonly permissionRepository: Repository<Permission>,
     private readonly userHierarchySeederService: UserHierarchySeederService,
   ) {}
 
@@ -85,9 +88,32 @@ export class DataSeederService implements OnModuleInit {
       // // Actualizar usuarios existentes que no tengan roleId
       // await this.updateExistingUsers();
       
-      console.log('✅ Seeding completado exitosamente');
+  // Seed permissions for frontend modules
+  // await this.seedPermissions();
+
+  console.log('✅ Seeding completado exitosamente');
     } catch (error) {
       console.error('❌ Error durante el seeding:', error);
+    }
+  }
+
+  private async seedPermissions() {
+    console.log('🔐 Insertando permisos básicos (si no existen)...');
+    const modules = ['banners','kanban','non-conformities','profiles','role-types','ticket','user'];
+    const actions = ['create','read','update','delete'];
+
+    for (const mod of modules) {
+      for (const act of actions) {
+        const name = `${mod}.${act}`;
+        const existing = await this.permissionRepository.findOne({ where: { name } });
+        if (!existing) {
+          // infer modulePath as /apps/<mod>
+          const modulePath = `/apps/${mod}`;
+          const p = this.permissionRepository.create({ name, description: `${act} ${mod}`, isActive: true, modulePath });
+          await this.permissionRepository.save(p);
+          console.log(`  ✓ Permiso creado: ${name}`);
+        }
+      }
     }
   }
 
@@ -167,13 +193,19 @@ export class DataSeederService implements OnModuleInit {
     };
 
     for (const roleName of roles) {
-      const roleEntity = this.roleRepository.create({
+      const roleEntity: any = this.roleRepository.create({
         name: roleName,
         description: `Rol de ${roleName}`,
-        permissions: rolePermissions[roleName] || ['users.read'],
         isActive: true
       });
-      
+
+      // Si se definieron permisos en rolePermissions, mapearlos a entidades Permission
+      const permNames: string[] = rolePermissions[roleName] || ['users.read'];
+      const perms = await this.permissionRepository.find({ where: permNames.map((n) => ({ name: n })) });
+      if (perms && perms.length > 0) {
+        roleEntity.permissions = perms;
+      }
+
       await this.roleRepository.save(roleEntity);
       console.log(`  ✓ Rol creado: ${roleName}`);
     }
@@ -282,30 +314,37 @@ export class DataSeederService implements OnModuleInit {
       {
         name: 'Soporte',
         description: 'Tickets relacionados con soporte técnico y resolución de problemas',
-        code: 'SUPPORT',
+        code: 'SOP',
         color: '#FF5722',
         priority: 1
       },
       {
         name: 'Proyecto',
         description: 'Tickets relacionados con desarrollo de proyectos',
-        code: 'PROJECT',
+        code: 'PRO',
         color: '#2196F3',
         priority: 2
       },
       {
         name: 'Reporte',
         description: 'Tickets para solicitudes de reportes y análisis',
-        code: 'REPORT',
+        code: 'REP',
         color: '#4CAF50',
         priority: 3
       },
       {
         name: 'Marketing',
         description: 'Tickets relacionados con actividades de marketing',
-        code: 'MARKETING',
+        code: 'MKT',
         color: '#9C27B0',
         priority: 4
+      },
+      {
+        name: 'CRI',
+        description: 'Tickets relacionados con actividades de investigación y desarrollo',
+        code: 'CRI',
+        color: '#FFC107', 
+        priority: 5
       }
     ];
 

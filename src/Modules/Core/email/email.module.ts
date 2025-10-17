@@ -13,7 +13,16 @@ import { EmailTestController } from './email-test.controller';
     ConfigModule, // Asegurar que ConfigModule esté disponible
     MailerModule.forRootAsync({
       imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: async (configService: ConfigService) => {
+        const path = require('path');
+        const fs = require('fs');
+        // candidate locations in order of preference
+        const cand1 = path.join(process.cwd(), 'dist', 'src', 'Modules', 'Core', 'email', 'templates');
+        const cand2 = path.join(process.cwd(), 'dist', 'Modules', 'Core', 'email', 'templates');
+        const defaultDir = path.join(__dirname, 'templates');
+  const templateDir = fs.existsSync(cand1) ? cand1 : fs.existsSync(cand2) ? cand2 : defaultDir;
+  console.log(`Mailer templates directory resolved to: ${templateDir}`);
+        return {
         transport: {
           host: configService.get('MAIL_HOST') || 'smtp.gmail.com',
           port: parseInt(configService.get('MAIL_PORT') || '587'),
@@ -36,13 +45,15 @@ import { EmailTestController } from './email-test.controller';
           from: configService.get('MAIL_FROM') || configService.get('MAIL_USER'),
         },
         template: {
-          dir: join(__dirname, 'templates'),
+          // Use resolved templateDir (preferring dist paths) to avoid adapter path issues
+          dir: templateDir,
           adapter: new HandlebarsAdapter(),
           options: {
             strict: true,
           },
         },
-      }),
+      };
+    },
       inject: [ConfigService],
     }),
   ],

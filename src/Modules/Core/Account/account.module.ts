@@ -5,7 +5,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'src/Common/Auth/constants';
 import { AccountController } from './account.controller';
 import { AuthModule } from '../auth/auth.module';
-import { AuthService } from '../auth/auth.service';
+import { RolesModule } from '../roles/roles.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from '../users/Entity/user.entity';
 
@@ -13,11 +13,12 @@ import { User } from '../users/Entity/user.entity';
   imports: [
     TypeOrmModule.forFeature([User]),
     UsersModule, // Importar UsersModule en lugar de declarar UsersService
+    AuthModule,
+    RolesModule,
   ],
   controllers: [AccountController],
   providers: [
     AccountService,
-    AuthService
   ],
 })
 export class AccountModule {}

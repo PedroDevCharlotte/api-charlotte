@@ -58,8 +58,9 @@ Endpoints públicos (resumen)
 ## Comportamiento al crear mensajes
 -------------------------------
 - Cuando se crea un mensaje en un ticket:
-	- Si el remitente es el usuario asignado al ticket, el estado del ticket se actualiza a `FOLLOW_UP` (prioritario sobre la regla del creador).
-	- Si el remitente es el creador del ticket, el estado del ticket se actualiza a `IN_PROGRESS`.
+	- Si el remitente es el usuario asignado al ticket y el estado actual es `IN_PROGRESS`, el estado del ticket se actualiza a `FOLLOW_UP` (solo la primera vez).
+	- Si el remitente es el creador del ticket y el estado actual no es `IN_PROGRESS` ni `FOLLOW_UP`, el estado del ticket se actualiza a `IN_PROGRESS`.
+	- Una vez que un ticket ha pasado por el estado `FOLLOW_UP`, no volverá automáticamente a `IN_PROGRESS` por mensajes del creador.
 	- Ambos cambios de estado generan un mensaje del sistema y disparan notificaciones por correo a los participantes relevantes.
 
 ## Destinatarios de notificaciones por correo

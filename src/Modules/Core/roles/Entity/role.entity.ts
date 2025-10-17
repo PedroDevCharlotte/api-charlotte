@@ -5,8 +5,11 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
   OneToMany,
+  ManyToMany,
+  JoinTable,
 } from 'typeorm';
 import { User } from '../../users/Entity/user.entity';
+import { Permission } from '../../permissions/Entity/permission.entity';
 
 @Entity({ name: 'roles' })
 export class Role {
@@ -22,10 +25,10 @@ export class Role {
   @Column({ default: true })
   isActive: boolean;
 
-  // Almacenar permissions como simple-json (TEXT) para evitar límites de tamaño de fila en MySQL
-  // TypeORM serializa/deserializa automáticamente el array.
-  @Column('simple-json', { nullable: true })
-  permissions: string[]; // Array de permisos
+  // Relación many-to-many con la entidad Permission
+  @ManyToMany(() => Permission, (permission) => permission.roles, { cascade: true })
+  @JoinTable({ name: 'roles_permissions' })
+  permissions: Permission[];
 
   @CreateDateColumn({ name: 'createdAt' })
   createdAt: Date;

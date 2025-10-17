@@ -92,15 +92,17 @@ export class EmailService {
     // Helper para comprobar si un partial está registrado (útil para renderizar inline partials)
     Handlebars.registerHelper('partialExists', function (name: string) {
       try {
-        return Boolean((Handlebars as any).partials && (Handlebars as any).partials[name]);
+        return Boolean(
+          (Handlebars as any).partials && (Handlebars as any).partials[name],
+        );
       } catch (err) {
         return false;
       }
     });
 
-  // Note: templates are now standalone full HTML files. We no longer auto-register
-  // a 'base' partial here because templates should be self-contained and avoid
-  // relying on partial ordering or external composition.
+    // Note: templates are now standalone full HTML files. We no longer auto-register
+    // a 'base' partial here because templates should be self-contained and avoid
+    // relying on partial ordering or external composition.
   }
 
   /**
@@ -179,10 +181,10 @@ export class EmailService {
         context || {},
       );
       if (!safeContext.subject) safeContext.subject = subject;
-  // Provide common safe defaults used by many templates to avoid Handlebars missing-variable errors
-  if (safeContext.content === undefined) safeContext.content = '';
-  // Keep ticket minimal default; do not coerce caller primitives into objects here.
-  if (safeContext.ticket === undefined) safeContext.ticket = {};
+      // Provide common safe defaults used by many templates to avoid Handlebars missing-variable errors
+      if (safeContext.content === undefined) safeContext.content = '';
+      // Keep ticket minimal default; do not coerce caller primitives into objects here.
+      if (safeContext.ticket === undefined) safeContext.ticket = {};
       if (safeContext.user === undefined)
         safeContext.user = { id: null, firstName: '', lastName: '', email: '' };
       if (safeContext.attachments === undefined) safeContext.attachments = [];
@@ -213,8 +215,8 @@ export class EmailService {
           safeContext.systemInfo = this.getEmailBaseConfig();
       }
 
-  // Note: templates should use `user.firstName` and `user.lastName`.
-  // We intentionally avoid injecting or mutating a `user.fullName` property here.
+      // Note: templates should use `user.firstName` and `user.lastName`.
+      // We intentionally avoid injecting or mutating a `user.fullName` property here.
 
       // Ensure ticket.url exists for CTA links used by templates (fallback to frontend /apps/ticket/details/:id)
       try {
@@ -236,19 +238,26 @@ export class EmailService {
         );
       }
 
-  // Note: message fragment pre-rendering removed. Templates should include
-  // the message content via the `content` context property provided by callers.
+      // Note: message fragment pre-rendering removed. Templates should include
+      // the message content via the `content` context property provided by callers.
 
       // If logoData is not present, try to read the logo from public/images/logos and embed as data URI
       try {
         const fs = require('fs');
         const path = require('path');
-        if (safeContext.systemInfo && !safeContext.systemInfo.logoData && safeContext.systemInfo.logoUrl) {
+        if (
+          safeContext.systemInfo &&
+          !safeContext.systemInfo.logoData &&
+          safeContext.systemInfo.logoUrl
+        ) {
           const logoUrl: string = safeContext.systemInfo.logoUrl;
           let candidatePath: string | undefined;
           try {
             const maybeUrl = new URL(logoUrl);
-            if (maybeUrl.pathname && maybeUrl.pathname.indexOf('/images/') === 0) {
+            if (
+              maybeUrl.pathname &&
+              maybeUrl.pathname.indexOf('/images/') === 0
+            ) {
               candidatePath = path.join(process.cwd(), maybeUrl.pathname);
             }
           } catch (err) {
@@ -258,17 +267,36 @@ export class EmailService {
           }
           if (!candidatePath) {
             const fileName = path.basename(decodeURIComponent(logoUrl));
-            candidatePath = path.join(process.cwd(), 'public', 'images', 'logos', fileName);
+            candidatePath = path.join(
+              process.cwd(),
+              'public',
+              'images',
+              'logos',
+              fileName,
+            );
           }
           if (candidatePath && fs.existsSync(candidatePath)) {
             const buffer = fs.readFileSync(candidatePath);
-            const ext = path.extname(candidatePath).toLowerCase().replace('.', '');
-            const mime = ext === 'svg' ? 'image/svg+xml' : ext === 'png' ? 'image/png' : ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : 'application/octet-stream';
+            const ext = path
+              .extname(candidatePath)
+              .toLowerCase()
+              .replace('.', '');
+            const mime =
+              ext === 'svg'
+                ? 'image/svg+xml'
+                : ext === 'png'
+                  ? 'image/png'
+                  : ext === 'jpg' || ext === 'jpeg'
+                    ? 'image/jpeg'
+                    : 'application/octet-stream';
             safeContext.systemInfo.logoData = `data:${mime};base64,${buffer.toString('base64')}`;
           }
         }
       } catch (err) {
-        this.logger.debug('Could not embed logo as data URI:', err?.message || err);
+        this.logger.debug(
+          'Could not embed logo as data URI:',
+          err?.message || err,
+        );
       }
 
       // Helpful debug logging when template errors occurred previously
@@ -284,8 +312,8 @@ export class EmailService {
         context: safeContext,
       };
 
-  // Pre-render check removed: avoid mutating caller context at render-time.
-  // Let the mailer/Handlebars surface template/runtime errors upstream.
+      // Pre-render check removed: avoid mutating caller context at render-time.
+      // Let the mailer/Handlebars surface template/runtime errors upstream.
 
       try {
         const fs = require('fs');
@@ -311,11 +339,147 @@ export class EmailService {
         );
       }
 
-  // Final sanitization removed: avoid implicit coercions of primitives to objects here.
+      // Final sanitization removed: avoid implicit coercions of primitives to objects here.
 
-  // Send email using configured mailer service
-  // Debug rendering to disk has been removed; use the mailerService to actually send emails.
-      await this.mailerService.sendMail(mailOptions);
+      // Before sending, verify that template file exists and can be compiled by Handlebars.
+      // declare templateFile in parent scope so fallback rendering can access it
+      let templateFile: string | undefined;
+      try {
+        const fs = require('fs');
+        const path = require('path');
+
+        // Candidate locations where templates may live depending on runtime (dev vs build)
+        const candidates = [
+          path.join(__dirname, 'templates', `${template}.hbs`),
+          // When running from a built project the dist may contain compiled files — keep this candidate
+          path.join(
+            process.cwd(),
+            'dist',
+            'src',
+            'Modules',
+            'Core',
+            'email',
+            'templates',
+            `${template}.hbs`,
+          ),
+          // Source locations used during development
+          path.join(
+            process.cwd(),
+            'src',
+            'Modules',
+            'Core',
+            'email',
+            'templates',
+            `${template}.hbs`,
+          ),
+          path.join(
+            process.cwd(),
+            'src',
+            'modules',
+            'core',
+            'email',
+            'templates',
+            `${template}.hbs`,
+          ),
+        ];
+
+        for (const c of candidates) {
+          try {
+            if (fs.existsSync(c)) {
+              templateFile = c;
+              break;
+            }
+          } catch (e) {
+            // ignore and continue to next candidate
+          }
+        }
+
+        if (!templateFile) {
+          const msg = `Email template file not found. Tried: ${candidates.join('; ')}`;
+          this.logger.error(msg);
+          throw new Error(msg);
+        }
+
+        // Try reading and compiling the template to surface syntax errors early
+        try {
+          const raw = fs.readFileSync(templateFile, 'utf8');
+          // Handlebars.precompile returns a string; compile to check syntax
+          Handlebars.compile(raw);
+        } catch (compileErr) {
+          const msg = `Failed to compile email template '${template}' at ${templateFile}: ${compileErr?.message || compileErr}`;
+          this.logger.error(msg);
+          throw new Error(msg);
+        }
+      } catch (checkErr) {
+        // Re-throw so the outer catch reports a clear message
+        throw checkErr;
+      }
+
+      // Send email using configured mailer service
+      // Debug rendering to disk has been removed; use the mailerService to actually send emails.
+      try {
+        this.logger.debug(
+          `Attempting to send email with template file: ${templateFile}`,
+        );
+        await this.mailerService.sendMail(mailOptions);
+      } catch (mailerErr) {
+        // Some versions of the handlebars adapter return an unclear error when precompile fails
+        // (e.g. "Cannot destructure property 'templateName' of 'precompile(...)' as it is undefined.").
+        // If that happens, attempt a graceful fallback: render the template manually and send as html.
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          this.logger.warn(
+            'Mailer adapter failed, attempting manual template render fallback',
+            mailerErr?.message || mailerErr,
+          );
+          if (typeof templateFile === 'string' && fs.existsSync(templateFile)) {
+            const raw = fs.readFileSync(templateFile, 'utf8');
+            const compiled = Handlebars.compile(raw);
+            const rendered = compiled(safeContext);
+
+            const fallbackMail: any = {
+              to: (to || '').trim(),
+              subject,
+              html: rendered,
+            };
+            if (mailOptions.attachments)
+              fallbackMail.attachments = mailOptions.attachments;
+
+            await this.mailerService.sendMail(fallbackMail);
+            this.logger.log(
+              `Email sent using manual render fallback for template '${template}' to ${to}`,
+            );
+            return;
+          } else {
+            this.logger.error(
+              'Manual render fallback: template file not found at expected path',
+              templateFile,
+            );
+          }
+        } catch (fallbackErr) {
+          this.logger.error(
+            'Manual render fallback also failed:',
+            fallbackErr?.message || fallbackErr,
+          );
+          // fall through to throw original error below
+        }
+
+        this.logger.error(
+          'Error sending email with template:',
+          mailerErr?.message || mailerErr,
+        );
+
+        console.log(
+          'Error en el envío del email con template',
+          mailerErr?.message || mailerErr,
+        );
+        this.logger.error('Template send error full:', mailerErr);
+        // Rethrow with original message for better diagnostics upstream
+        throw new Error(
+          `Failed to send email with template '${template}' to '${to}': ${mailerErr?.message || mailerErr}`,
+        );
+      }
     } catch (error) {
       this.logger.error(
         'Error sending email with template:',

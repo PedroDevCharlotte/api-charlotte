@@ -55,6 +55,7 @@ export class BannersService {
       title: createDto.title,
       description: createDto.description,
       link: createDto.link,
+      linkName: (createDto as any).linkName || null,
       startDate: start,
       endDate: end,
       status: createDto.status || (computedActive ? 'active' : 'inactive'),
@@ -67,39 +68,19 @@ export class BannersService {
       const userEmail = process.env.ONEDRIVE_USER_EMAIL || '';
       if (!userEmail)
         throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
-      const rootFolder = process.env.ONEDRIVE_ROOT_FOLDER || 'FilesConectaCCI';
       // 1. Buscar userId
       const userRes = await this.graphService.getUserByEmail(userEmail);
       const userId =
         userRes.value && userRes.value.length > 0 ? userRes.value[0].id : null;
       if (!userId)
         throw new BadRequestException('No se encontró el usuario de OneDrive');
-
-      // 2. Validar/crear carpeta del módulo (Banners)
-      const moduleFolder = `${rootFolder}/Banners`;
-      let folder = await this.graphService.validateFolder(userId, moduleFolder);
-      if (!folder) {
-        folder = await this.graphService.createFolder(userId, moduleFolder);
-      }
-
-      // 3. Crear subcarpeta por banner (para banners nuevos, usa timestamp)
-      const bannerId = Date.now();
-      const bannerFolderName = `banner_${bannerId}`;
-      const bannerFolderPath = `${moduleFolder}/${bannerFolderName}`;
-      let bannerFolder = await this.graphService.validateFolder(userId, bannerFolderPath);
-      if (!bannerFolder) {
-        bannerFolder = await this.graphService.createFolder(userId, bannerFolderPath);
-      }
-
-      // 4. Subir archivo a la subcarpeta del banner
-      const ext = file.originalname
-        ? file.originalname.split('.').pop()
-        : 'jpg';
+      // Subir archivo dentro de FilesConectaCCI/Banners
+      const ext = file.originalname ? file.originalname.split('.').pop() : 'jpg';
       const fileName = `banner_${Date.now()}.${ext}`;
-      const filePath = `${bannerFolderPath}/${fileName}`;
-      const uploadRes = await this.graphService.uploadFile(
+      const uploadRes = await this.graphService.uploadToModule(
         userId,
-        filePath,
+        'Banners',
+        fileName,
         file.buffer,
       );
       // 5. Obtener link de vista previa
@@ -108,7 +89,7 @@ export class BannersService {
         uploadRes.id,
       );
       banner.oneDriveFileId = uploadRes.id;
-      banner.imagePath = previewRes?.getUrl || '';
+      banner.imagePath = previewRes?.link?.webUrl || '';
       banner.imageFileName = fileName;
     }
 
@@ -133,7 +114,7 @@ export class BannersService {
     for (const b of list) {
       const start = b.startDate ? new Date(b.startDate) : undefined;
       const end = b.endDate ? new Date(b.endDate) : undefined;
-
+      console.log('Banner:', b.id, 'Start:', start, 'End:', end, 'Now:', now);
       const computedActive = (() => {
         if (end && end < now) return false;
         if (start && start > now) return false;
@@ -240,6 +221,7 @@ export class BannersService {
     if (updateDto.description !== undefined)
       banner.description = updateDto.description;
     if (updateDto.link !== undefined) banner.link = updateDto.link;
+    if ((updateDto as any).linkName !== undefined) banner.linkName = (updateDto as any).linkName;
     if (updateDto.order !== undefined) banner.order = updateDto.order;
 
     // handle dates
@@ -307,6 +289,7 @@ export class BannersService {
         userId,
         uploadRes.id,
       );
+      banner.oneDriveFileId = uploadRes.id;
       banner.imagePath = previewRes?.link?.webUrl || '';
       banner.imageFileName = fileName;
     }
