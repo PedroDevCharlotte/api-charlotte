@@ -1968,7 +1968,7 @@ export class TicketsService {
             mimeType: attachmentDto.mimeType,
             fileSize: attachmentDto.fileSize,
             description: attachmentDto.description,
-            oneDriveFileId: attachmentDto.oneDriveFileId,
+            // oneDriveFileId: attachmentDto.oneDriveFileId,
           }),
         );
         attachmentsCreated.push(attachment);
@@ -2123,7 +2123,7 @@ export class TicketsService {
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`,
-            oneDriveFileId: uploadRes.id,
+            // oneDriveFileId: uploadRes.id,
           });
         }
         createCompleteTicketDto.attachments = attachments;
