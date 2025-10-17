@@ -2115,6 +2115,7 @@ export class TicketsService {
             userId,
             uploadRes.id,
           );
+          
           attachments.push({
             fileName: fileName,
             originalFileName: file.originalname,
