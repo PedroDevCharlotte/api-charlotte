@@ -17,8 +17,8 @@ export class AuthGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const token = this.extractTokenFromHeader(request);
 
-    console.log('Token extracted from header:', token);
-    console.log('Requested URL:', request.url);
+    // console.log('Token extracted from header:', token);
+    // console.log('Requested URL:', request.url);
     if (!token) {
       throw new UnauthorizedException();
     }
@@ -28,7 +28,7 @@ export class AuthGuard implements CanActivate {
         secret: jwtConstants.secret,
       });
 
-      console.log('Payload from token:', payload);
+      // console.log('Payload from token:', payload);
 
       // Verifica si el usuario pasó 2FA
       if (!payload.isTwoFactorAuthenticated) {

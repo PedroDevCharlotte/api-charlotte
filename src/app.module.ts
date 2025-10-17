@@ -73,8 +73,7 @@ import { PermissionsModule } from './Modules/Core/permissions/permissions.module
   NonConformity,
   ActionPlan,
   FollowUp,
-  WhyRecord
-  ,
+  WhyRecord,
   Permission
     ]),
     DatabaseModule,

@@ -31,7 +31,7 @@ export const ProviderDBService: DynamicModule = TypeOrmModule.forRootAsync({
       database: config.get('DB_NAME'),
       autoLoadEntities: true,
       // Por seguridad: sincronización automática solo si DB_SYNCHRONIZE='true'
-      synchronize:true,
+      synchronize:synchronize,
       migrations: ['dist/Modules/Database/Migrations/*.js'],
       entities: ['dist/**/*.Entity.js'],
       migrationsTableName: 'migrations',

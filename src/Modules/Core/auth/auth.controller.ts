@@ -22,7 +22,7 @@ import { AuditService } from '../audit/audit.service';
 import * as qrcode from 'qrcode';
 import { resolve, join } from 'path';
 import { JwtService } from '@nestjs/jwt';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 @ApiBearerAuth('Token')
 @Controller('auth')
 export class AuthController {

@@ -33,8 +33,23 @@ export class NonConformitiesController {
   @Put(':id')
   @ApiResponse({ type: NonConformityResponseDto })
   async update(@Param('id', ParseIntPipe) id: number, @Body() updateDto: UpdateNonConformityDto) {
+    console.log('🎯 CONTROLLER UPDATE - Request recibido');
+    console.log('📊 ID del parámetro:', id);
+    console.log('📤 Body recibido:', JSON.stringify(updateDto, null, 2));
+    console.log('🔍 typeOptionId en body:', updateDto.typeOptionId);
+    
     const nc = await this.service.update(id, updateDto);
-    return new NonConformityResponseDto(nc);
+    
+    console.log('💾 CONTROLLER UPDATE - Respuesta del servicio');
+    console.log('🔍 typeOptionId en respuesta:', nc.typeOptionId);
+    console.log('🔍 typeOption en respuesta:', nc.typeOption?.id);
+    
+    const response = new NonConformityResponseDto(nc);
+    console.log('📋 CONTROLLER UPDATE - DTO de respuesta creado');
+    console.log('🔍 typeOptionId en DTO respuesta:', response.typeOptionId);
+    console.log('🔍 typeOption en DTO respuesta:', response.typeOption?.id);
+    
+    return response;
   }
 
   @Delete(':id')
