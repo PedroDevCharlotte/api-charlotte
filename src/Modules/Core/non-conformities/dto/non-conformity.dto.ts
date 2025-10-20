@@ -139,6 +139,16 @@ export class CreateNonConformityDto {
   @IsDateString()
   fiveWhysDate?: string;
 
+  @ApiProperty({ required: false, type: [CreateActionPlanDto] })
+  @IsOptional()
+  @IsArray()
+  actionPlans?: CreateActionPlanDto[];
+
+  @ApiProperty({ required: false, type: [CreateFollowUpDto] })
+  @IsOptional()
+  @IsArray()
+  followUps?: CreateFollowUpDto[];
+
   @ApiProperty({ required: false })
   @IsOptional()
   @IsArray()

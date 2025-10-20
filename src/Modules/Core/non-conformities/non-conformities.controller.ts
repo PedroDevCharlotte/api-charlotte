@@ -86,4 +86,15 @@ export class NonConformitiesController {
     
     res.send(pdfBuffer);
   }
+  
+  @Get(':id/pdf2')
+  async generatePdfPdfkit(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const pdfBuffer = await this.service.generatePdfPdfkit(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="no-conformidad-pdfkit-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
+  }
 }

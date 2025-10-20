@@ -709,4 +709,40 @@ export class NonConformitiesService {
 
     return html;
   }
+  /**
+   * Genera un PDF de no conformidad usando PDFKit replicando la estructura de la plantilla HTML
+   */
+  async generatePdfPdfkit(id: number): Promise<Buffer> {
+    const PDFDocument = require('pdfkit');
+    const getStream = require('get-stream');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+
+    // Crear el documento PDF
+    const doc = new PDFDocument({ size: 'A4', margin: 30 });
+    const stream = doc.pipe(require('stream').PassThrough());
+
+    // Título principal
+    doc.fontSize(14).text('REPORTE DE NO CONFORMIDAD Y ACCIÓN CORRECTIVA', { align: 'center', underline: true });
+    doc.moveDown();
+
+    // Aquí se debe replicar la estructura de la plantilla HTML usando tablas y estilos de PDFKit
+    // Ejemplo de tabla básica (ajustar y expandir según la plantilla real)
+    doc.fontSize(10);
+    doc.text(`Código: FOR-CRI-08`, { continued: true }).text('   Versión: 11', { align: 'right' });
+    doc.text(`Fecha de Elaboración: ${nc.createdAt ? new Date(nc.createdAt).toLocaleDateString() : ''}`);
+  doc.text(`Área y/o Proceso: ${nc.areaOrProcess || ''}`);
+  doc.text(`Descripción del hallazgo: ${nc.findingDescription || ''}`);
+  const responsable = nc.areaResponsible ? `${nc.areaResponsible.firstName || ''} ${nc.areaResponsible.lastName || ''}`.trim() : '';
+  doc.text(`Responsable: ${responsable}`);
+  doc.text(`Fecha de cierre: ${nc.closedAt ? new Date(nc.closedAt).toLocaleDateString() : ''}`);
+
+    // ... (Agregar más secciones y tablas según la plantilla HTML)
+
+    doc.end();
+    // Convertir el stream a buffer
+    const buffer = await getStream.buffer(stream);
+    return buffer;
+  }
 }
