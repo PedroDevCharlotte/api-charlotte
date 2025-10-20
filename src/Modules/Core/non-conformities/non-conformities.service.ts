@@ -10,13 +10,6 @@ import {
   UpdateNonConformityDto,
 } from './dto/non-conformity.dto';
 import { User } from '../users/Entity/user.entity';
-import {
-  renderToStream,
-  Document,
-  Page,
-  Text,
-  StyleSheet,
-} from '@react-pdf/renderer';
 
 import * as fs from 'fs';
 import * as path from 'path';
@@ -467,103 +460,47 @@ export class NonConformitiesService {
       throw new NotFoundException('NonConformity not found');
     }
 
-    // Intentar leer el template HTML y reemplazar placeholders
+    // Leer el template HTML y reemplazar placeholders 
     const fs = require('fs');
     const path = require('path');
-    const React = require('react');
-    const {
-      Document,
-      Page,
-      Text,
-      View,
-      StyleSheet,
-      renderToStream,
-    } = require('@react-pdf/renderer');
+    const pdf = require('html-pdf');
 
     const templatePath = path.resolve(__dirname, 'templates', 'nonconformity.html');
     let filledHtml = '';
     try {
       const raw = await fs.promises.readFile(templatePath, 'utf8');
       filledHtml = this.replacePlaceholders(raw, nc);
+      console.log('✅ Template HTML leído y rellenado correctamente', filledHtml);
     } catch (err) {
-      // Si falla la lectura del template, seguir con fallback usando campos del NC
-      console.warn('⚠️ No se pudo leer template HTML, usando fallback react-pdf:', err && err.message);
+      // Si falla la lectura del template, usar fallback simple
+      console.warn('⚠️ No se pudo leer template HTML, usando fallback simple:', err && err.message);
+      filledHtml = `<h1>No Conformidad #${nc.number || ''}</h1><p>Fecha de creación: ${nc.createdAtDate ? new Date(nc.createdAtDate).toLocaleDateString('es-MX') : ''}</p><p>Área / Proceso: ${nc.areaOrProcess || ''}</p><p>Descripción del hallazgo: ${nc.findingDescription || ''}</p>`;
     }
 
-    // Si tenemos HTML rellenado, convertimos a texto plano conservando saltos para una representación
-    const htmlToPlain = (html: string) => {
-      if (!html) return '';
-      return html
-        .replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
-        .replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
-        .replace(/<\/tr>/gi, '\n')
-        .replace(/<\/t[dh]>/gi, '\t')
-        .replace(/<br\s*\/?>(\s*)/gi, '\n')
-        .replace(/<p[\s\S]*?>/gi, '\n')
-        .replace(/<[^>]+>/g, '')
-        .replace(/&nbsp;/gi, ' ')
-        .replace(/&amp;/gi, '&')
-        .replace(/&lt;/gi, '<')
-        .replace(/&gt;/gi, '>')
-        .replace(/\n{3,}/g, '\n\n')
-        .trim();
+    // Opciones para html-pdf
+    const options = {
+      format: 'A4',
+      border: {
+        top: '10mm',
+        right: '10mm',
+        bottom: '10mm',
+        left: '10mm',
+      },
+      type: 'pdf',
+      timeout: 30000,
     };
 
-    const styles = StyleSheet.create({
-      page: { padding: 12, fontSize: 8 },
-      header: { marginBottom: 8, fontSize: 12, fontWeight: 'bold' },
-      section: { marginBottom: 6 },
-      mono: { fontFamily: 'Times-Roman' as any },
+    // html-pdf solo soporta callbacks/promises, así que lo envolvemos en una promesa
+    return new Promise<Buffer>((resolve, reject) => {
+      pdf.create(filledHtml, options).toBuffer((err: any, buffer: Buffer) => {
+        if (err) {
+          console.error('❌ Error generando PDF:', err);
+          reject(new Error('Error generando PDF'));
+        } else {
+          resolve(buffer);
+        }
+      });
     });
-
-    if (filledHtml) {
-      const plain = htmlToPlain(filledHtml);
-      const doc = React.createElement(
-        Document,
-        null,
-        React.createElement(
-          Page,
-          { size: 'A4', style: styles.page },
-          React.createElement(Text, { style: styles.header }, `No Conformidad #${nc.number || ''}`),
-          React.createElement(Text, { style: styles.section }, `Fecha de creación: ${nc.createdAtDate ? new Date(nc.createdAtDate).toLocaleDateString('es-MX') : ''}`),
-          React.createElement(Text, { style: styles.section }, `Área / Proceso: ${nc.areaOrProcess || ''}`),
-          React.createElement(Text, { style: styles.section }, `Responsable: ${nc.areaResponsible ? `${nc.areaResponsible.firstName || ''} ${nc.areaResponsible.lastName || ''}`.trim() : ''}`),
-          React.createElement(View, { style: { marginTop: 6 } },
-            React.createElement(Text, { style: { fontSize: 9, marginBottom: 4, fontWeight: 'bold' } }, 'Contenido renderizado desde template'),
-            React.createElement(Text, { style: styles.mono }, plain),
-          ),
-        ),
-      );
-
-      const stream = await renderToStream(doc);
-      const chunks: Buffer[] = [];
-      for await (const chunk of stream) {
-        chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-      }
-      return Buffer.concat(chunks);
-    }
-
-    // FALLBACK: si no hay template, generar un documento sencillo con algunos campos clave
-    const fallbackDoc = React.createElement(
-      Document,
-      null,
-      React.createElement(
-        Page,
-        { size: 'A4', style: styles.page },
-        React.createElement(Text, { style: styles.header }, `No Conformidad #${nc.number || ''}`),
-        React.createElement(Text, { style: styles.section }, `Fecha de creación: ${nc.createdAtDate ? new Date(nc.createdAtDate).toLocaleDateString('es-MX') : ''}`),
-        React.createElement(Text, { style: styles.section }, `Área / Proceso: ${nc.areaOrProcess || ''}`),
-        React.createElement(Text, { style: styles.section }, `Descripción del hallazgo:`),
-        React.createElement(Text, { style: styles.mono }, nc.findingDescription || ''),
-      ),
-    );
-
-    const fallbackStream = await renderToStream(fallbackDoc);
-    const fallbackChunks: Buffer[] = [];
-    for await (const chunk of fallbackStream) {
-      fallbackChunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
-    }
-    return Buffer.concat(fallbackChunks);
   }
 
   private replacePlaceholders(template: string, nc: any): string {

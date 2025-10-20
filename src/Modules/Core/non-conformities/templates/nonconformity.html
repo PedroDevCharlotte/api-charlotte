@@ -19,6 +19,8 @@
         /* border: 1px solid black; */
         padding: 2px;
         text-align: left;
+        /* width: 8pt !important;
+        height: 8pt !important; */
       }
 
       .b1t {
@@ -34,7 +36,7 @@
         border-left: 1px solid black;
       }
       .allb {
-        border: 1px solid black;
+        border: 1px solid black !important;
       }
       .b2t {
         /* margin-top: 1em; */
@@ -98,47 +100,57 @@
         transform: rotate(180deg);
         white-space: nowrap;
       }
+
+      .option.selected {
+        background-color: #000;
+        color: #fff;
+        font-weight: bold;
+      }
+      .option{
+        width: 10pt !important; 
+        height: 10pt !important;
+      }
     </style>
   </head>
   <body>
     <table>
-      <!-- <tr>
-        <th class="column1">&nbsp;</th>
-        <th class="column2">&nbsp;</th>
-        <th class="column3">&nbsp;</th>
-        <th class="column4">&nbsp;</th>
-        <th class="column5">&nbsp;</th>
-        <th class="column6">&nbsp;</th>
-        <th class="column7">&nbsp;</th>
-        <th class="column8">&nbsp;</th>
-        <th class="column9">&nbsp;</th>
-        <th class="column10">&nbsp;</th>
-        <th class="column11">&nbsp;</th>
-        <th class="column12">&nbsp;</th>
-        <th class="column13">&nbsp;</th>
-        <th class="column14">&nbsp;</th>
-        <th class="column15">&nbsp;</th>
-        <th class="column16">&nbsp;</th>
-        <th class="column17">&nbsp;</th>
-        <th class="column18">&nbsp;</th>
-        <th class="column19">&nbsp;</th>
-        <th class="column20">&nbsp;</th>
-        <th class="column21">&nbsp;</th>
-        <th class="column22">&nbsp;</th>
-        <th class="column23">&nbsp;</th>
-        <th class="column24">&nbsp;</th>
-        <th class="column25">&nbsp;</th>
-        <th class="column26">&nbsp;</th>
-        <th class="column27">&nbsp;</th>
-        <th class="column28">&nbsp;</th>
-        <th class="column29">&nbsp;</th>
-        <th class="column30">&nbsp;</th>
-        <th class="column31">&nbsp;</th>
-        <th class="column32">&nbsp;</th>
-        <th class="column33">&nbsp;</th>
-        <th class="column34">&nbsp;</th>
-        <th class="column35">&nbsp;</th>
-      </tr> -->
+      <tr>
+        <th class="column1 allb">1</th>
+        <th class="column2 allb">2</th>
+        <th class="column3 allb">3</th>
+        <th class="column4 allb">4</th>
+        <th class="column5 allb">5</th>
+        <th class="column6 allb">6</th>
+        <th class="column7 allb">7</th>
+        <th class="column8 allb">8</th>
+        <th class="column9 allb">9</th>
+        <th class="column10 allb">10</th>
+        <th class="column11 allb">11</th>
+        <th class="column12 allb">12</th>
+        <th class="column13 allb">13</th>
+        <th class="column14 allb">14</th>
+        <th class="column15 allb">15</th>
+        <th class="column16 allb">16</th>
+        <th class="column17 allb">17</th>
+        <th class="column18 allb">18</th>
+        <th class="column19 allb">19</th>
+        <th class="column20 allb">20</th>
+        <th class="column21 allb">21</th>
+        <th class="column22 allb">22</th>
+        <th class="column23 allb">23</th>
+        <th class="column24 allb">24</th>
+        <th class="column25 allb">25</th>
+        <th class="column26 allb">26</th>
+        <th class="column27 allb">27</th>
+        <th class="column28 allb">28</th>
+        <th class="column29 allb">29</th>
+        <th class="column30 allb">30</th>
+        <th class="column31 allb">31</th>
+        <th class="column32 allb">32</th>
+        <th class="column33 allb">33</th>
+        <th class="column34 allb">34</th>
+        <th class="column35 allb">35</th>
+      </tr>
       <tr>
         <td class="column1 tdc allb" rowspan="5" colspan="8">A</td>
         <td class="column8 tdl b1l b1r b1t" rowspan="1" colspan="19">
@@ -187,8 +199,11 @@
         <td class="column9" colspan="8" rowspan="2">&nbsp;</td>
       </tr>
       <tr>
+        <td colspan="35" style="height: 1pt;"></td>
+      </tr>
+      <tr>
         <td class="column1 tdc b2l">&nbsp;</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option" >&nbsp;</td>
         <td class="column1 tdl b2r" colspan="7">SGC</td>
         <td class="column1 tdc b2r b2b" colspan="9" rowspan="2">19/06/2025</td>
         <td class="column9 tdc b2r b2b" colspan="9" rowspan="2">
@@ -201,7 +216,7 @@
       </tr>
       <tr>
         <td class="column1 tdc b2l">&nbsp;</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option" >&nbsp;</td>
         <td class="column1 tdl b2r" colspan="7">SARI</td>
         <td class="column9 tdc b2r" colspan="9">Fecha de Detección</td>
         <td class="column9 tdc b2r" colspan="9">
@@ -222,7 +237,7 @@
       </tr>
       <tr>
         <td class="column1 tdc b2l">&nbsp;</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="2">Otro</td>
         <td class="column1 tdl b2b" colspan="4"></td>
         <td class="column1 tdl b2r" colspan="1"></td>
@@ -244,11 +259,11 @@
       </tr>
       <tr>
         <td class="column1 tdc">&nbsp;</td>
-        <td class="column1 tdc allb" colspan="1"></td>
+        <td class="column1 tdc allb option" colspan="1"></td>
         <td class="column1 tdl" colspan="10">Queja</td>
         <td class="column1 tdc allb">&nbsp;</td>
         <td class="column1 tdl" colspan="11">Insp. Durante Almacenaje</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="10">Evento Ambiental</td>
       </tr>
       <tr>
@@ -256,13 +271,13 @@
       </tr>
       <tr>
         <td class="column1 tdc">&nbsp;</td>
-        <td class="column1 tdc allb" colspan="1"></td>
+        <td class="column1 tdc allb option" colspan="1"></td>
         <td class="column1 tdl" colspan="10">Indicador</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="11">
           Auditoría de Segunda Parte o Tercera
         </td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="10">Accidente</td>
       </tr>
       <tr>
@@ -270,11 +285,11 @@
       </tr>
       <tr>
         <td class="column1 tdc">&nbsp;</td>
-        <td class="column1 tdc allb" colspan="1"></td>
+        <td class="column1 tdc allb option" colspan="1"></td>
         <td class="column1 tdl" colspan="10">Auditoría Interna</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="11">Proveedor</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="10">Incidente, indique tipo</td>
       </tr>
 
@@ -283,11 +298,11 @@
       </tr>
       <tr>
         <td class="column1 tdc">&nbsp;</td>
-        <td class="column1 tdc allb" colspan="1"></td>
+        <td class="column1 tdc allb option" colspan="1"></td>
         <td class="column1 tdl" colspan="10">Servicio No Conforme</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" colspan="11">Parte Relacionada</td>
-        <td class="column1 tdc allb">&nbsp;</td>
+        <td class="column1 tdc allb option">&nbsp;</td>
         <td class="column1 tdl" style="width: 10px">Otro:</td>
         <td class="column1 tdl b2b" colspan="8"></td>
         <td class="column1 tdl" colspan="1"></td>

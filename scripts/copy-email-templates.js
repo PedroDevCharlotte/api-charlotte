@@ -29,6 +29,7 @@ function copyTemplates() {
 
   const files = fs.readdirSync(srcDir).filter((f) => f.toLowerCase().endsWith('.hbs'));
   const files2 = fs.readdirSync(srcDir2).filter((f) => f.toLowerCase().endsWith('.html'));
+  console.log("---------- files2 ----------", files2);
   for (const f of files) {
     const src = path.join(srcDir, f);
     const d1 = path.join(distDir1, f);
@@ -38,12 +39,16 @@ function copyTemplates() {
     console.log(`Copied ${f} -> ${d1}`);
     console.log(`Copied ${f} -> ${d2}`);
   }
-  for (const f of files2) {
-    const src = path.join(srcDir2, f);
-    const d3 = path.join(distDir3, f);
-    const d4 = path.join(distDir4, f);
+
+  for (const f2 of files2) {
+    const src = path.join(srcDir2, f2);
+    const d3 = path.join(distDir3, f2);
+    const d4 = path.join(distDir4, f2);
+  
     fs.copyFileSync(src, d3);
     fs.copyFileSync(src, d4);
+    console.log(`Copied ${f2} -> ${d3}`);
+    console.log(`Copied ${f2} -> ${d4}`);
   }
   console.log('Email templates copy completed.');
 }
