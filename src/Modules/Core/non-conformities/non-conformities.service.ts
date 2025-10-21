@@ -45,21 +45,7 @@ export class NonConformitiesService {
     }
   }
 
-  /**
-   * Función para manejar la asignación de múltiples responsables a un FollowUp
-   */
-  private async manageFollowUpResponsibles(
-    followUp: FollowUp,
-    userIds: number[],
-  ): Promise<void> {
-    if (userIds && userIds.length > 0) {
-      // Buscar los usuarios por sus IDs
-      const users = await this.userRepository.findByIds(userIds);
-      followUp.responsibles = users;
-    } else {
-      followUp.responsibles = [];
-    }
-  }
+  
 
   async create(createDto: CreateNonConformityDto): Promise<NonConformity> {
     const nc = this.ncRepository.create(
@@ -77,7 +63,6 @@ export class NonConformitiesService {
         'actionPlans',
         'actionPlans.responsibles',
         'followUps',
-        'followUps.responsibles',
       ],
       order: { createdAt: 'DESC' },
     });
@@ -90,7 +75,6 @@ export class NonConformitiesService {
         'actionPlans',
         'actionPlans.responsibles',
         'followUps',
-        'followUps.responsibles',
         'whyRecords',
       ],
     });
@@ -114,16 +98,19 @@ export class NonConformitiesService {
       updateDto as any;
 
     // Actualizar solo los campos directos de la entidad principal
-    console.log('🔄 Actualizando campos directos de NonConformity', directFields);
+    console.log(
+      '🔄 Actualizando campos directos de NonConformity',
+      directFields,
+    );
     Object.assign(nc, directFields);
     await this.ncRepository.save(nc);
     console.log('✅ Campos directos actualizados', nc);
-    
+
     console.log('✅ NonConformity whyRecords:', whyRecords);
     // 🔄 MANEJAR WHY RECORDS (si se proporcionan)
     await this.handleWhyRecords(nc, id, whyRecords);
     // 🔄 MANEJAR ACTION PLANS
-      // 🔄 MANEJAR ACTION PLANS
+    // 🔄 MANEJAR ACTION PLANS
     if (actionPlans && Array.isArray(actionPlans)) {
       console.log('🔄 Procesando actionPlans:', actionPlans.length, 'planes');
 
@@ -215,31 +202,41 @@ export class NonConformitiesService {
       console.log('🔄 Procesando followUps:', followUps.length, 'seguimientos');
 
       // Obtener followUps existentes
-      const existingFollowUps = await this.followUpRepository.find({ where: { nonConformityId: id } });
+      const existingFollowUps = await this.followUpRepository.find({
+        where: { nonConformityId: id },
+      });
       const processedIds: number[] = [];
 
       for (const fu of followUps) {
         // Si no hay contenido relevante, ignorar (por ejemplo formulario vacío)
-        const hasContent = (fu.date && fu.date.toString().trim() !== '') || (fu.justification && fu.justification.toString().trim() !== '') || (fu.verifiedBy !== undefined && fu.verifiedBy !== null) || (fu.verifiedByOther && fu.verifiedByOther.toString().trim() !== '');
+        const hasContent =
+          (fu.date && fu.date.toString().trim() !== '') ||
+          (fu.justification && fu.justification.toString().trim() !== '') ||
+          (fu.verifiedBy !== undefined && fu.verifiedBy !== null) ||
+          (fu.verifiedByOther && fu.verifiedByOther.toString().trim() !== '');
         if (!hasContent) {
           console.log('⚠️ FollowUp ignorado por contenido vacío');
           continue;
         }
 
-  // Normalizar valores
-  const dateVal = fu.date ? new Date(fu.date) : undefined;
-        const verifiedByVal = typeof fu.verifiedBy === 'number' && fu.verifiedBy > -1 ? fu.verifiedBy : null;
-        const verifiedByOtherVal = fu.verifiedBy === -1 ? (fu.verifiedByOther || null) : (fu.verifiedByOther || null);
+        // Normalizar valores
+        const dateVal = fu.date ? new Date(fu.date) : undefined;
+        const verifiedByVal =
+          typeof fu.verifiedBy === 'number' && fu.verifiedBy > -1
+            ? fu.verifiedBy
+            : null;
+        const verifiedByOtherVal =
+          fu.verifiedBy === -1
+            ? fu.verifiedByOther || null
+            : fu.verifiedByOther || null;
         const justificationVal = fu.justification || null;
         const isEffectiveVal = !!fu.isEffective;
 
-        // Convertir posibles campos legacy a userIds para responsables (opcional)
-        const userIds = fu.responsibleOptionIds || fu.userIds || [];
-        if (fu.responsibleOptionId && !userIds.includes(fu.responsibleOptionId)) userIds.push(fu.responsibleOptionId);
 
-        if (fu.id && existingFollowUps.find(e => e.id === fu.id)) {
+
+        if (fu.id && existingFollowUps.find((e) => e.id === fu.id)) {
           // ACTUALIZAR followUp existente
-          const existing = existingFollowUps.find(e => e.id === fu.id);
+          const existing = existingFollowUps.find((e) => e.id === fu.id);
           if (existing) {
             if (dateVal) existing.date = dateVal as Date;
             existing.verifiedBy = verifiedByVal;
@@ -247,11 +244,6 @@ export class NonConformitiesService {
             existing.justification = justificationVal as any;
             existing.isEffective = isEffectiveVal;
             existing.nonConformityId = id; // asegurar FK
-
-            // Manejar responsibles si vienen
-            if (userIds && userIds.length > 0) {
-              await this.manageFollowUpResponsibles(existing, userIds);
-            }
 
             await this.followUpRepository.save(existing as any);
             processedIds.push(existing.id);
@@ -267,12 +259,9 @@ export class NonConformitiesService {
             isEffective: isEffectiveVal,
           };
           if (dateVal) createPayload.date = dateVal;
-          const newFollowUp = this.followUpRepository.create(createPayload as any);
-
-          // Manejar responsibles si vienen
-          if (userIds && userIds.length > 0) {
-            await this.manageFollowUpResponsibles(newFollowUp as any, userIds);
-          }
+          const newFollowUp = this.followUpRepository.create(
+            createPayload as any,
+          );
 
           const saved = await this.followUpRepository.save(newFollowUp as any);
           processedIds.push(saved.id);
@@ -281,7 +270,9 @@ export class NonConformitiesService {
       }
 
       // ELIMINAR followUps que no están en el request
-      const toDelete = existingFollowUps.filter(ep => !processedIds.includes(ep.id));
+      const toDelete = existingFollowUps.filter(
+        (ep) => !processedIds.includes(ep.id),
+      );
       for (const del of toDelete) {
         await this.followUpRepository.delete(del.id);
         console.log('🗑️ FollowUp eliminado - ID:', del.id);
@@ -291,7 +282,6 @@ export class NonConformitiesService {
       console.log(`   - Procesados: ${processedIds.length}`);
       console.log(`   - Eliminados: ${toDelete.length}`);
     }
-
 
     // Recargar la entidad con todas las relaciones actualizadas
     const updatedNc = await this.findOne(id);
@@ -377,15 +367,13 @@ export class NonConformitiesService {
     console.log('📊 Resumen WhyRecords:', processedIds);
     console.log('📊 WhyRecords existentes:', existingWhyRecords);
     // 2. ELIMINAR WhyRecords que no están en el request
-    const toDelete = existingWhyRecords.filter(
-      (e) => {
-        console.log('❓ Evaluando eliminación de WhyRecord ID:', e.id);
-        console.log('❓ Evaluando eliminación de WhyRecord ID:', typeof e.id);
-        const aux = processedIds.indexOf(e.id) === -1;
-        console.log('❓ Debería eliminarse:', aux);
-        return aux;
-      }
-    );
+    const toDelete = existingWhyRecords.filter((e) => {
+      console.log('❓ Evaluando eliminación de WhyRecord ID:', e.id);
+      console.log('❓ Evaluando eliminación de WhyRecord ID:', typeof e.id);
+      const aux = processedIds.indexOf(e.id) === -1;
+      console.log('❓ Debería eliminarse:', aux);
+      return aux;
+    });
     console.log('📊 WhyRecords to delete:', toDelete);
     if (toDelete.length > 0) {
       for (const wr of toDelete) {
@@ -460,20 +448,30 @@ export class NonConformitiesService {
       throw new NotFoundException('NonConformity not found');
     }
 
-    // Leer el template HTML y reemplazar placeholders 
+    // Leer el template HTML y reemplazar placeholders
     const fs = require('fs');
     const path = require('path');
     const pdf = require('html-pdf');
 
-    const templatePath = path.resolve(__dirname, 'templates', 'nonconformity.html');
+    const templatePath = path.resolve(
+      __dirname,
+      'templates',
+      'nonconformity.html',
+    );
     let filledHtml = '';
     try {
       const raw = await fs.promises.readFile(templatePath, 'utf8');
       filledHtml = this.replacePlaceholders(raw, nc);
-      console.log('✅ Template HTML leído y rellenado correctamente', filledHtml);
+      console.log(
+        '✅ Template HTML leído y rellenado correctamente',
+        filledHtml,
+      );
     } catch (err) {
       // Si falla la lectura del template, usar fallback simple
-      console.warn('⚠️ No se pudo leer template HTML, usando fallback simple:', err && err.message);
+      console.warn(
+        '⚠️ No se pudo leer template HTML, usando fallback simple:',
+        err && err.message,
+      );
       filledHtml = `<h1>No Conformidad #${nc.number || ''}</h1><p>Fecha de creación: ${nc.createdAtDate ? new Date(nc.createdAtDate).toLocaleDateString('es-MX') : ''}</p><p>Área / Proceso: ${nc.areaOrProcess || ''}</p><p>Descripción del hallazgo: ${nc.findingDescription || ''}</p>`;
     }
 
@@ -513,7 +511,7 @@ export class NonConformitiesService {
 
     // Función para marcar checkboxes con contenido y estilo
     const checkMotive = (motiveName: string, checkName: string) => {
-      return nc.motiveOption?.name === motiveName ? '✓' : '';
+      return nc.motiveOption?.code === motiveName ? 'selected' : '';
     };
 
     // Función para generar clases CSS para checkboxes seleccionados
@@ -524,33 +522,39 @@ export class NonConformitiesService {
       return isSelected ? `${baseClass} selected-checkbox` : baseClass;
     };
 
+    console.log('datos de nc', nc);
     // Crear objeto con todos los reemplazos
+    let responsablesList = '';
+    if (nc.participants && Array.isArray(nc.participants)) {
+      responsablesList = nc.participants.map((p: any) => p.label).join(', ');
+    }
+
     const replacements = {
       // Información básica
       '{{number}}': nc.number || '',
       '{{createdDate}}': formatDate(nc.createdAtDate),
       '{{detectedDate}}': formatDate(nc.detectedAt),
       '{{areaOrProcess}}': nc.areaOrProcess || '',
-      '{{responsiblePerson}}': nc.areaResponsible?.name || '',
-      '{{classification}}': nc.classification || '',
-      '{{category}}': nc.category || '',
+      '{{responsiblePerson}}': responsablesList || '',
+      '{{classification}}': nc.classificationOption?.displayText || '',
+      '{{category}}': nc.categoryOption?.displayText || '',
 
       // Tipo - contenido y clases
-      '{{typeChecked}}': nc.typeOption?.name === 'SGC' ? '✓' : '',
+      '{{typeChecked}}': nc.typeOption?.code === 'SGC' ? 'selected' : '',
       '{{typeCheckboxClass}}': getCheckboxClass(
-        nc.typeOption?.name === 'SGC',
+        nc.typeOption?.code === 'SGC',
         'column1 tdc allb',
       ),
-      '{{typeText}}': nc.typeOption?.name || '',
+      '{{typeText}}': nc.typeOption?.code || '',
 
-      '{{otherTypeChecked}}': nc.typeOption?.name === 'SARI' ? '✓' : '',
+      '{{otherTypeChecked}}': nc.typeOption?.code === 'SARI' ? 'selected' : '',
       '{{otherTypeCheckboxClass}}': getCheckboxClass(
-        nc.typeOption?.name === 'SARI',
+        nc.typeOption?.code === 'SARI',
         'column1 tdc allb',
       ),
-      '{{otherTypeText}}': nc.typeOption?.name === 'SARI' ? 'SARI' : '',
+      '{{otherTypeText}}': nc.typeOption?.code === 'SARI' ? 'SARI' : '',
 
-      '{{otherTypeChecked2}}': nc.otherType ? '✓' : '',
+      '{{otherTypeChecked2}}': nc.otherType ? 'selected' : '',
       '{{otherType2CheckboxClass}}': getCheckboxClass(
         !!nc.otherType,
         'column1 tdc allb',
@@ -558,89 +562,27 @@ export class NonConformitiesService {
       '{{otherTypeDescription}}': nc.otherType || '',
 
       // Motivos (checkboxes) - contenido y clases
-      '{{motiveQueja}}': checkMotive('Queja', 'queja'),
-      '{{motiveQuejaClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Queja',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveIndicador}}': checkMotive('Indicador', 'indicador'),
-      '{{motiveIndicadorClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Indicador',
-        'column1 tdc allb',
-      ),
-
+      '{{motiveQueja}}': checkMotive('QUEJA', 'queja'),
+      '{{motiveIndicador}}': checkMotive('INDICADOR', 'indicador'),
       '{{motiveAuditoriaInterna}}': checkMotive(
-        'Auditoría Interna',
+        'AUDITORIA_INTERNA',
         'auditoria_interna',
       ),
-      '{{motiveAuditoriaInternaClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Auditoría Interna',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveServicio}}': checkMotive('Servicio No Conforme', 'servicio'),
-      '{{motiveServicioClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Servicio No Conforme',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveInspeccion}}': checkMotive(
-        'Inspección Durante Almacenaje',
-        'inspeccion',
-      ),
-      '{{motiveInspeccionClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Inspección Durante Almacenaje',
-        'column1 tdc allb',
-      ),
-
+      '{{motiveServicio}}': checkMotive('SERVICIO_NO_CONFORME', 'servicio'),
+      '{{motiveInspeccion}}': checkMotive('INSP_ALMACENAJE', 'inspeccion'),
       '{{motiveAuditoria2}}': checkMotive(
-        'Auditoría de Segunda Parte',
+        'AUDITORIA_SEGUNDA_TERCERA',
         'auditoria_2',
       ),
-      '{{motiveAuditoria2Class}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Auditoría de Segunda Parte',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveProveedor}}': checkMotive('Proveedor', 'proveedor'),
-      '{{motiveProveedorClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Proveedor',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveAmbiental}}': checkMotive('Evento Ambiental', 'ambiental'),
-      '{{motiveAmbientalClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Evento Ambiental',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveAccidente}}': checkMotive('Accidente', 'accidente'),
-      '{{motiveAccidenteClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Accidente',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveIncidente}}': checkMotive('Incidente', 'incidente'),
-      '{{motiveIncidenteClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Incidente',
-        'column1 tdc allb',
-      ),
-
+      '{{motiveProveedor}}': checkMotive('PROVEEDOR', 'proveedor'),
+      '{{motiveAmbiental}}': checkMotive('EVENTO_AMBIENTAL', 'ambiental'),
+      '{{motiveAccidente}}': checkMotive('ACCIDENTE', 'accidente'),
+      '{{motiveIncidente}}': checkMotive('INCIDENTE', 'incidente'),
       '{{motiveParteRelacionada}}': checkMotive(
-        'Parte Relacionada',
+        'PARTE_RELACIONADA',
         'parte_relacionada',
       ),
-      '{{motiveParteRelacionadaClass}}': getCheckboxClass(
-        nc.motiveOption?.name === 'Parte Relacionada',
-        'column1 tdc allb',
-      ),
-
-      '{{motiveOtro}}': nc.otherMotive ? '✓' : '',
-      '{{motiveOtroClass}}': getCheckboxClass(
-        !!nc.otherMotive,
-        'column1 tdc allb',
-      ),
+      '{{motiveOtro}}': nc.otherMotive ? 'selected' : '',
       '{{otherMotive}}': nc.otherMotive || '',
 
       // Contenido
@@ -650,54 +592,77 @@ export class NonConformitiesService {
       '{{observations}}': nc.observations || '',
 
       // Planes de acción
-      '{{actionPlan1}}': nc.actionPlans?.[0]?.action || '',
-      '{{actionDate1}}': formatDate(nc.actionPlans?.[0]?.dueDate),
-      '{{actionResponsible1}}': nc.actionPlans?.[0]?.responsibleArea || '',
-      '{{actionPlan2}}': nc.actionPlans?.[1]?.action || '',
-      '{{actionDate2}}': formatDate(nc.actionPlans?.[1]?.dueDate),
-      '{{actionResponsible2}}': nc.actionPlans?.[1]?.responsibleArea || '',
-
+      '{{firstActionPlanRow}}': `
+        <tr>
+          <!--  ACCION PRINCIPAL -->
+          <td class="column1 tdc b2l" colspan="1">1</td>
+          <td class="column2 b2r" colspan="25"> ${nc.actionPlans?.[0]?.description || ''}</td>
+          <td class="column3 tdc b2r" colspan="4">${formatDate(nc.actionPlans?.[0]?.commitmentDate)}</td>
+          <td class="column4 tdc b2r" colspan="5">${this.getNamesResponsibles(nc.actionPlans?.[0]?.responsibles) || ''}</td>
+        </tr>
+      `,
+      '{{otherActionPlanRows}}': () => {
+        if (nc.actionPlans?.length > 1) {
+          return nc.actionPlans.slice(1).map(
+            (plan: ActionPlan, index: number) => `
+            <tr>
+              <!--  ACCION ${index + 2} -->
+              <td class="column1 tdc b2l b2b" colspan="1">${index + 2}</td>
+              <td class="column2 b2r b2b" colspan="25">${plan.description || ''}</td>
+              <td class="column3 tdc b2r b2b" colspan="4">${formatDate(plan.commitmentDate || '')}</td>
+              <td class="column4 tdc b2r b2b" colspan="5">${this.getNamesResponsibles(plan.responsibles || '') || ''}</td>
+            </tr>
+          `,
+          );
+        } else {
+          return `<tr>
+              <!--  ACCION 2 -->
+              <td class="column1 b2l b2b" colspan="1">2</td>
+              <td class="column2 b2r b2b" colspan="25"></td>
+              <td class="column3 b2r b2b" colspan="4"></td>
+              <td class="column4 b2r b2b" colspan="5"></td>
+            </tr>`;
+        }
+      },
       // Seguimientos
-      '{{followUpDate1}}': nc.followUps?.[0]
-        ? formatDate(nc.followUps[0].date)
-        : '',
-      '{{followUpVerifier1}}': nc.followUps?.[0]?.verifiedByUser?.name || '',
-      '{{followUpJustification1}}': nc.followUps?.[0]?.justification || '',
-      '{{followUpEffective1Yes}}': nc.followUps?.[0]?.isEffective ? '✓' : '',
-      '{{followUpEffective1No}}':
-        nc.followUps?.[0]?.isEffective === false ? '✓' : '',
 
-      '{{followUpDate2}}': nc.followUps?.[1]
-        ? formatDate(nc.followUps[1].date)
-        : '',
-      '{{followUpVerifier2}}': nc.followUps?.[1]?.verifiedByUser?.name || '',
-      '{{followUpJustification2}}': nc.followUps?.[1]?.justification || '',
-      '{{followUpEffective2Yes}}': nc.followUps?.[1]?.isEffective ? '✓' : '',
-      '{{followUpEffective2No}}':
-        nc.followUps?.[1]?.isEffective === false ? '✓' : '',
-
-      '{{followUpDate3}}': nc.followUps?.[2]
-        ? formatDate(nc.followUps[2].date)
-        : '',
-      '{{followUpVerifier3}}': nc.followUps?.[2]?.verifiedByUser?.name || '',
-      '{{followUpJustification3}}': nc.followUps?.[2]?.justification || '',
-      '{{followUpEffective3Yes}}': nc.followUps?.[2]?.isEffective ? '✓' : '',
-      '{{followUpEffective3No}}':
-        nc.followUps?.[2]?.isEffective === false ? '✓' : '',
-
-      '{{followUpDate4}}': nc.followUps?.[3]
-        ? formatDate(nc.followUps[3].date)
-        : '',
-      '{{followUpVerifier4}}': nc.followUps?.[3]?.verifiedByUser?.name || '',
-      '{{followUpJustification4}}': nc.followUps?.[3]?.justification || '',
-      '{{followUpEffective4Yes}}': nc.followUps?.[3]?.isEffective ? '✓' : '',
-      '{{followUpEffective4No}}':
-        nc.followUps?.[3]?.isEffective === false ? '✓' : '',
-
+      '{{followUpRows}}': () => {
+        if (nc.followUps && nc.followUps.length > 0) {
+          return nc.followUps.map(
+            (fu: FollowUp, index: number) => `
+            <tr>
+              <!--  SEGUIMIENTO ${index + 1} -->
+              <td class="column1 tdc allb2" colspan="1">${index + 1}</td>
+              <td class="column1 tdc allb2" colspan="4">${formatDate(fu.date)}</td>
+              <td class="column1 tdc allb2" colspan="5">${fu.verifiedByUser ? fu.verifiedByUser?.firstName + ' ' + fu.verifiedByUser?.lastName : fu.verifiedByOther || ''}</td>
+              <td class="column1 tdc allb2" colspan="18">${fu.justification || ''}</td>
+              <td class="column1 tdc allb2 option ${fu.isEffective ? 'selected' : ''}" colspan="2"></td>
+              <td class="column1 tdc allb2 option ${fu.isEffective === false ? 'selected' : ''}" colspan="2"></td>
+            </tr>
+          `,
+          );
+        } else {
+          return `<tr>
+              <!--  SEGUIMIENTO 1 -->
+              <td class="column1 b2l b2b" colspan="1">1</td>
+              <td class="column2 b2r b2b" colspan="6"></td>
+              <td class="column3 b2r b2b" colspan="7"></td>
+              <td class="column4 b2r b2b" colspan="12"></td>
+              <td class="column5 tdc b2r b2b" colspan="2"></td>
+              <td class="column6 tdc b2r b2b" colspan="2"></td>
+            </tr>
+          `;
+        }
+      },
+      
       // Fecha de cierre
       '{{closedDate}}': formatDate(nc.closedAt),
     };
 
+    console.log(
+      '🔄 Reemplazando placeholders en la plantilla HTML',
+      replacements,
+    );
     // Aplicar todos los reemplazos
     let html = template;
     Object.entries(replacements).forEach(([placeholder, value]) => {
@@ -724,19 +689,30 @@ export class NonConformitiesService {
     const stream = doc.pipe(require('stream').PassThrough());
 
     // Título principal
-    doc.fontSize(14).text('REPORTE DE NO CONFORMIDAD Y ACCIÓN CORRECTIVA', { align: 'center', underline: true });
+    doc.fontSize(14).text('REPORTE DE NO CONFORMIDAD Y ACCIÓN CORRECTIVA', {
+      align: 'center',
+      underline: true,
+    });
     doc.moveDown();
 
     // Aquí se debe replicar la estructura de la plantilla HTML usando tablas y estilos de PDFKit
     // Ejemplo de tabla básica (ajustar y expandir según la plantilla real)
     doc.fontSize(10);
-    doc.text(`Código: FOR-CRI-08`, { continued: true }).text('   Versión: 11', { align: 'right' });
-    doc.text(`Fecha de Elaboración: ${nc.createdAt ? new Date(nc.createdAt).toLocaleDateString() : ''}`);
-  doc.text(`Área y/o Proceso: ${nc.areaOrProcess || ''}`);
-  doc.text(`Descripción del hallazgo: ${nc.findingDescription || ''}`);
-  const responsable = nc.areaResponsible ? `${nc.areaResponsible.firstName || ''} ${nc.areaResponsible.lastName || ''}`.trim() : '';
-  doc.text(`Responsable: ${responsable}`);
-  doc.text(`Fecha de cierre: ${nc.closedAt ? new Date(nc.closedAt).toLocaleDateString() : ''}`);
+    doc
+      .text(`Código: FOR-CRI-08`, { continued: true })
+      .text('   Versión: 11', { align: 'right' });
+    doc.text(
+      `Fecha de Elaboración: ${nc.createdAt ? new Date(nc.createdAt).toLocaleDateString() : ''}`,
+    );
+    doc.text(`Área y/o Proceso: ${nc.areaOrProcess || ''}`);
+    doc.text(`Descripción del hallazgo: ${nc.findingDescription || ''}`);
+    const responsable = nc.areaResponsible
+      ? `${nc.areaResponsible.firstName || ''} ${nc.areaResponsible.lastName || ''}`.trim()
+      : '';
+    doc.text(`Responsable: ${responsable}`);
+    doc.text(
+      `Fecha de cierre: ${nc.closedAt ? new Date(nc.closedAt).toLocaleDateString() : ''}`,
+    );
 
     // ... (Agregar más secciones y tablas según la plantilla HTML)
 
@@ -744,5 +720,65 @@ export class NonConformitiesService {
     // Convertir el stream a buffer
     const buffer = await getStream.buffer(stream);
     return buffer;
+  }
+
+  getNamesResponsibles(responsibles: User[]): string {
+    let names = '';
+    if (responsibles && responsibles.length > 0) {
+      names = responsibles
+        .map((user) => user.firstName + ' ' + user.lastName)
+        .join(' / ');
+    }
+
+    return names;
+  }
+  /**
+   * Genera un PDF usando Puppeteer y la plantilla HTML de no conformidades
+   */
+  async generatePdfWithHtmlTemplate(id: number): Promise<Buffer> {
+    const puppeteer = require('puppeteer');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+    // Leer la plantilla HTML
+    const templatePath = path.join(
+      __dirname,
+      'templates',
+      'nonconformity.html',
+    );
+    let html = fs.readFileSync(templatePath, 'utf8');
+    // Aquí puedes agregar lógica para reemplazar placeholders en la plantilla con datos de nc
+    // Ejemplo: html = html.replace('{{areaOrProcess}}', nc.areaOrProcess || '');
+    html = this.replacePlaceholders(html, nc);
+
+    // Renderizar el PDF con Puppeteer
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+    return pdfBuffer;
+  }
+
+  /**
+   * Genera un PDF usando Puppeteer y la plantilla HTML de fiveWhy
+   */
+  async generatePdfWithFiveWhyTemplate(id: number): Promise<Buffer> {
+    const puppeteer = require('puppeteer');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+    // Leer la plantilla HTML
+    const templatePath = path.join(__dirname, 'templates', 'fiveWhy.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+    // Aquí puedes agregar lógica para reemplazar placeholders en la plantilla con datos de nc
+    // Ejemplo: html = html.replace('{{areaOrProcess}}', nc.areaOrProcess || '');
+    // Renderizar el PDF con Puppeteer
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+    return pdfBuffer;
   }
 }

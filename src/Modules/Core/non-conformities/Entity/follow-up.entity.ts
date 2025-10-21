@@ -33,14 +33,14 @@ export class FollowUp {
   @Column({ default: false })
   isEffective: boolean; // ES EFECTIVO
 
-  // Relación many-to-many directa con usuarios responsables
-  @ManyToMany(() => User, { cascade: true, eager: true })
-  @JoinTable({
-    name: 'follow_up_responsibles',
-    joinColumn: { name: 'followUpId', referencedColumnName: 'id' },
-    inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' }
-  })
-  responsibles: User[];
+  // // Relación many-to-many directa con usuarios responsables
+  // @ManyToMany(() => User, { cascade: true, eager: true })
+  // @JoinTable({
+  //   name: 'follow_up_responsibles',
+  //   joinColumn: { name: 'followUpId', referencedColumnName: 'id' },
+  //   inverseJoinColumn: { name: 'userId', referencedColumnName: 'id' }
+  // })
+  // responsibles: User[];
 
   @CreateDateColumn()
   createdAt: Date;

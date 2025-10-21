@@ -19,7 +19,8 @@
         /* border: 1px solid black; */
         padding: 2px;
         text-align: left;
-        
+        width: 8pt !important;
+        height: 8pt !important;
       }
 
       .b1t {
@@ -185,9 +186,7 @@
         <td class="column27 tdc allb" rowspan="1" colspan="4">VALIDO HASTA:</td>
         <td class="column36 tdc allb" rowspan="1" colspan="4">mar-28</td>
       </tr>
-    </table>
-    <br />
-    <table>
+
       <tr>
         <td class="column1 b2b ">&nbsp;</td>
         <td class="column1 b2b" colspan="3">&nbsp;</td>
@@ -263,9 +262,7 @@
         <td class="column1 tdc b2l b2r b2b" colspan="9">&nbsp;</td>
         <td class="column9 b2b b2r" colspan="8" rowspan="1">&nbsp;</td>
       </tr>
-    </table>
-    <br />
-    <table>
+
       <tr>
         <td class="column1 tdc">&nbsp;</td>
         <td class="column1 tdc" colspan="5">Motivo de la NC</td>
@@ -328,9 +325,10 @@
       <tr>
         <td class="column1s" colspan="35" style="height: 1px"></td>
       </tr>
-    </table>
-    <br />
-    <table>
+      <tr>
+        <td class="column1 tdc" colspan="35">&nbsp;</td>
+      </tr>
+
       <tr>
         <th class="column1 tdc b2t b1r b1l b3b" colspan="35">
           Descripción del Hallazgo
@@ -340,12 +338,13 @@
       <tr>
         <td class="column1 tdc allb2" colspan="35">{{findingDescription}}</td>
       </tr>
-    </table>
-    <br />
-    <table>
+
       <tr>
-        <th class="column1 tdc b2t b3r b1l" style="width: 70%;" colspan="27">CAUSA</th>
-        <th class="column1 tdc b2t b3r" style="width: 30%;" colspan="8">
+        <td class="column1" colspan="35"></td>
+      </tr>
+      <tr>
+        <th class="column1 tdc b2t b3r b1l" colspan="27">CAUSA</th>
+        <th class="column1 tdc b2t b3r" colspan="8">
           Referencia de investigación:
         </th>
       </tr>
@@ -357,9 +356,10 @@
       <tr>
         <td class="column1 tdc b2b b2l b2r" colspan="35">{{cause}}</td>
       </tr>
-    </table>
-    <br />
-    <table> 
+      <tr>
+        <td class="column1" colspan="35"></td>
+      </tr>
+
       <tr>
         <th class="column1 tdc b3t b2r b2l" colspan="35">Plan de Acción</th>
       </tr>
@@ -381,37 +381,38 @@
       <!--  OTRAS ACCIONES -->
      {{otherActionPlanRows}}
 
-    </table>
-    <br />
-    <table>
+      <tr>
+        <td class="column1" colspan="35"></td>
+      </tr>
+
       <tr>
         <th class="column1 tdc b2r b2l b3b" colspan="35">Observaciones</th>
       </tr>
       <tr>
         <td class="column1 tdc allb2" colspan="35">{{observations}}</td>
       </tr>
-    </table>
-    <br />
-    <table>
+      <tr>
+        <td class="column1" colspan="35"></td>
+      </tr>
       <tr>
         <th class="column1 tdc b1r b1l b3b b2t" colspan="35">
           Seguimientos y Análisis de Efectividad
         </th>
       </tr>
       <tr>
-        <td class="column1 tdc allb2" style="width: 5%;" colspan="1" rowspan="2">No.</td>
-        <td class="column1 tdc allb2" style="width: 10%;" colspan="4" rowspan="2">Fecha</td>
-        <td class="column1 tdc allb2" style="width: 20%;" colspan="5" rowspan="2">
+        <td class="column1 tdc allb2" colspan="1" rowspan="2">No.</td>
+        <td class="column1 tdc allb2" colspan="4" rowspan="2">Fecha</td>
+        <td class="column1 tdc allb2" colspan="5" rowspan="2">
           Verificado por Auditor / Otro
         </td>
-        <td class="column1 tdc allb2" style="width: 35%;" colspan="18" rowspan="2">
+        <td class="column1 tdc allb2" colspan="18" rowspan="2">
           Justificación
         </td>
-        <td class="column1 tdc allb2" style="width: 10%;" colspan="4">¿Fue efectiva la acción?</td>
-        <td class="column1 vertical-up allb2" style="width: 5%;" colspan="1" rowspan="6">
+        <td class="column1 tdc allb2" colspan="4">¿Fue efectiva la acción?</td>
+        <td class="column1 vertical-up allb2" colspan="1" rowspan="6">
           Fecha de Cierre de la NC
         </td>
-        <td class="column1 vertical-up allb2" style="width: 15%;" colspan="2" rowspan="6">
+        <td class="column1 vertical-up allb2" colspan="2" rowspan="6">
           {{closedDate}}
         </td>
       </tr>

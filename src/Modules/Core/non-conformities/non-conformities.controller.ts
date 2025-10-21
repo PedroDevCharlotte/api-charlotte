@@ -97,4 +97,26 @@ export class NonConformitiesController {
     });
     res.send(pdfBuffer);
   }
+
+  @Get(':id/pdf-puppeteer')
+  async generatePdfWithHtmlTemplate(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const pdfBuffer = await this.service.generatePdfWithHtmlTemplate(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="no-conformidad-puppeteer-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
+  }
+
+  @Get(':id/pdf-fivewhy')
+  async generatePdfWithFiveWhyTemplate(@Param('id', ParseIntPipe) id: number, @Res() res: Response) {
+    const pdfBuffer = await this.service.generatePdfWithFiveWhyTemplate(id);
+    res.set({
+      'Content-Type': 'application/pdf',
+      'Content-Disposition': `inline; filename="fivewhy-puppeteer-${id}.pdf"`,
+      'Content-Length': pdfBuffer.length,
+    });
+    res.send(pdfBuffer);
+  }
 }
