@@ -576,7 +576,7 @@ export class NonConformitiesService {
 
     // Función para marcar checkboxes con contenido y estilo
     const checkMotive = (motiveName: string, checkName: string) => {
-      return nc.motiveOption?.name === motiveName ? '✓' : '';
+      return nc.motiveOption?.code === motiveName ? 'selected' : '';
     };
 
     // Función para generar clases CSS para checkboxes seleccionados
@@ -587,7 +587,13 @@ export class NonConformitiesService {
       return isSelected ? `${baseClass} selected-checkbox` : baseClass;
     };
 
+    console.log('datos de nc', nc);
     // Crear objeto con todos los reemplazos
+    let responsablesList = '';
+    if (nc.participants && Array.isArray(nc.participants)) {
+      responsablesList = nc.participants.map((p: any) => p.label).join(', ');
+    }
+
     const replacements = {
       // Información básica
       '{{number}}': nc.number || '',
@@ -761,6 +767,10 @@ export class NonConformitiesService {
       '{{closedDate}}': formatDate(nc.closedAt),
     };
 
+    console.log(
+      '🔄 Reemplazando placeholders en la plantilla HTML',
+      replacements,
+    );
     // Aplicar todos los reemplazos
     let html = template;
     Object.entries(replacements).forEach(([placeholder, value]) => {
@@ -771,5 +781,112 @@ export class NonConformitiesService {
     });
 
     return html;
+  }
+  /**
+   * Genera un PDF de no conformidad usando PDFKit replicando la estructura de la plantilla HTML
+   */
+  async generatePdfPdfkit(id: number): Promise<Buffer> {
+    const PDFDocument = require('pdfkit');
+    const getStream = require('get-stream');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+
+    // Crear el documento PDF
+    const doc = new PDFDocument({ size: 'A4', margin: 30 });
+    const stream = doc.pipe(require('stream').PassThrough());
+
+    // Título principal
+    doc.fontSize(14).text('REPORTE DE NO CONFORMIDAD Y ACCIÓN CORRECTIVA', {
+      align: 'center',
+      underline: true,
+    });
+    doc.moveDown();
+
+    // Aquí se debe replicar la estructura de la plantilla HTML usando tablas y estilos de PDFKit
+    // Ejemplo de tabla básica (ajustar y expandir según la plantilla real)
+    doc.fontSize(10);
+    doc
+      .text(`Código: FOR-CRI-08`, { continued: true })
+      .text('   Versión: 11', { align: 'right' });
+    doc.text(
+      `Fecha de Elaboración: ${nc.createdAt ? new Date(nc.createdAt).toLocaleDateString() : ''}`,
+    );
+    doc.text(`Área y/o Proceso: ${nc.areaOrProcess || ''}`);
+    doc.text(`Descripción del hallazgo: ${nc.findingDescription || ''}`);
+    const responsable = nc.areaResponsible
+      ? `${nc.areaResponsible.firstName || ''} ${nc.areaResponsible.lastName || ''}`.trim()
+      : '';
+    doc.text(`Responsable: ${responsable}`);
+    doc.text(
+      `Fecha de cierre: ${nc.closedAt ? new Date(nc.closedAt).toLocaleDateString() : ''}`,
+    );
+
+    // ... (Agregar más secciones y tablas según la plantilla HTML)
+
+    doc.end();
+    // Convertir el stream a buffer
+    const buffer = await getStream.buffer(stream);
+    return buffer;
+  }
+
+  getNamesResponsibles(responsibles: User[]): string {
+    let names = '';
+    if (responsibles && responsibles.length > 0) {
+      names = responsibles
+        .map((user) => user.firstName + ' ' + user.lastName)
+        .join(' / ');
+    }
+
+    return names;
+  }
+  /**
+   * Genera un PDF usando Puppeteer y la plantilla HTML de no conformidades
+   */
+  async generatePdfWithHtmlTemplate(id: number): Promise<Buffer> {
+    const puppeteer = require('puppeteer');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+    // Leer la plantilla HTML
+    const templatePath = path.join(
+      __dirname,
+      'templates',
+      'nonconformity.html',
+    );
+    let html = fs.readFileSync(templatePath, 'utf8');
+    // Aquí puedes agregar lógica para reemplazar placeholders en la plantilla con datos de nc
+    // Ejemplo: html = html.replace('{{areaOrProcess}}', nc.areaOrProcess || '');
+    html = this.replacePlaceholders(html, nc);
+
+    // Renderizar el PDF con Puppeteer
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+    return pdfBuffer;
+  }
+
+  /**
+   * Genera un PDF usando Puppeteer y la plantilla HTML de fiveWhy
+   */
+  async generatePdfWithFiveWhyTemplate(id: number): Promise<Buffer> {
+    const puppeteer = require('puppeteer');
+    // Obtener los datos de la no conformidad
+    const nc = await this.findOne(id);
+    if (!nc) throw new Error('No conformidad no encontrada');
+    // Leer la plantilla HTML
+    const templatePath = path.join(__dirname, 'templates', 'fiveWhy.html');
+    let html = fs.readFileSync(templatePath, 'utf8');
+    // Aquí puedes agregar lógica para reemplazar placeholders en la plantilla con datos de nc
+    // Ejemplo: html = html.replace('{{areaOrProcess}}', nc.areaOrProcess || '');
+    // Renderizar el PDF con Puppeteer
+    const browser = await puppeteer.launch({ headless: 'new' });
+    const page = await browser.newPage();
+    await page.setContent(html, { waitUntil: 'networkidle0' });
+    const pdfBuffer = await page.pdf({ format: 'A4', printBackground: true });
+    await browser.close();
+    return pdfBuffer;
   }
 }
