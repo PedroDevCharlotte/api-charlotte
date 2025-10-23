@@ -136,8 +136,8 @@ export class TicketsService {
     @InjectRepository(TicketType)
     private ticketTypeRepository: Repository<TicketType>,
     private ticketNotificationService: TicketNotificationService,
-    @Inject(forwardRef(() => GraphService))
-    private readonly graphService: GraphService,
+  @Inject(forwardRef(() => GraphService))
+  public readonly graphService: GraphService,
   ) {}
 
     /**
@@ -1968,6 +1968,7 @@ export class TicketsService {
             mimeType: attachmentDto.mimeType,
             fileSize: attachmentDto.fileSize,
             description: attachmentDto.description,
+            // oneDriveFileId: attachmentDto.oneDriveFileId,
           }),
         );
         attachmentsCreated.push(attachment);
@@ -2077,6 +2078,7 @@ export class TicketsService {
           throw new BadRequestException('No se configuró ONEDRIVE_USER_EMAIL');
         // 1. Buscar userId
         const userRes = await this.graphService.getUserByEmail(userEmail);
+        console.log('User OneDrive encontrado:', userRes);
         const userId =
           userRes.value && userRes.value.length > 0
             ? userRes.value[0].id
@@ -2096,6 +2098,8 @@ export class TicketsService {
           const ext = file.originalname
             ? file.originalname.split('.').pop()
             : 'dat';
+          // Usa el nombre original del archivo si lo deseas, o genera uno único:
+          // const fileName = file.originalname;
           const fileName = `attachment_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
           // Subir archivo a FilesConectaCCI/Tickets/{ticketFolderName}/fileName
           const uploadRes = await this.graphService.uploadToModule(
@@ -2105,11 +2109,13 @@ export class TicketsService {
             file.buffer,
             ticketFolderName,
           );
+          console.log('Archivo subido a OneDrive:', uploadRes);
           // Obtener link de vista previa
           const previewRes = await this.graphService.getFilePreview(
             userId,
             uploadRes.id,
           );
+          
           attachments.push({
             fileName: fileName,
             originalFileName: file.originalname,
@@ -2118,6 +2124,7 @@ export class TicketsService {
             mimeType: file.mimetype,
             fileSize: file.size,
             description: `Archivo adjunto: ${file.originalname}`,
+            // oneDriveFileId: uploadRes.id,
           });
         }
         createCompleteTicketDto.attachments = attachments;

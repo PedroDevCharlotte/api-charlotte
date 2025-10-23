@@ -141,7 +141,7 @@ export class TicketNotificationService implements OnModuleInit {
     } catch (err) {
       // ignore
     }
-    return {
+  return {
       ticket: {
         ...context.ticket,
         url: this.getTicketUrl(context.ticket.id),
@@ -179,6 +179,8 @@ export class TicketNotificationService implements OnModuleInit {
       content: escapeHtml(
         context.message?.content || context.customMessage || context.ticket.description || '',
       ),
+      // rawCustomMessage: solo para plantillas que permiten HTML seguro (ej. cierre)
+      rawCustomMessage: context.customMessage || '',
       previousValues: context.previousValues,
       attachments: context.attachments || [],
       customMessage: context.customMessage,

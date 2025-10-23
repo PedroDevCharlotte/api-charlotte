@@ -1,4 +1,3 @@
-
 import {
   Controller,
   Get,
@@ -91,6 +90,7 @@ export class TicketsController {
     @Res() res,
   ) {
     const attachment = await this.ticketsService.getAttachmentById(id);
+    console.log("Descargando archivo adjunto:", attachment);
     if (!attachment) {
       return res.status(404).json({ message: 'Archivo adjunto no encontrado' });
     }

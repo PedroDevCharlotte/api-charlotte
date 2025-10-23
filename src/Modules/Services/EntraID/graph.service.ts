@@ -16,6 +16,8 @@ export class GraphService {
 
   private async getAuthHeaders(): Promise<{ Authorization: string }> {
     const token = await this.entraIdTokenService.getToken();
+    // console.log('Getting Entra ID token...', token );
+
     return { Authorization: `Bearer ${token}` };
   }
 
@@ -43,6 +45,10 @@ export class GraphService {
       const response = await firstValueFrom(
         this.httpService.get(url, { headers }),
       );
+
+            // console.log("Error al validar carpeta en Graph:", response);
+
+
       return response.data;
     } catch (error) {
       if (error.response && error.response.status === 404) {

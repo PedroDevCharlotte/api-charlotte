@@ -30,6 +30,7 @@ export class EntraIdTokenService {
   }
 
   async getToken(): Promise<string> {
+    // console.log('Getting Entra ID token...', this.token );
     if (this.isTokenValid()) {
       return this.token!;
     }

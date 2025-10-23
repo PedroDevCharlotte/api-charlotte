@@ -12,7 +12,7 @@
     .content{padding:28px}
     .footer{padding:18px;text-align:center;background:#f8f9fa;color:#6c757d;font-size:12px}
     /* Estilos para el botón de encuesta: más visible y responsive */
-    .survey-btn{display:inline-block;background:linear-gradient(135deg,#28a745,#1e7e34);color:#ffffff;padding:14px 22px;border-radius:8px;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(40,167,69,0.18);font-size:16px;line-height:1.2;letter-spacing:0.2px;border:1px solid rgba(0,0,0,0.04)}
+    .survey-btn{display:inline-block;background:linear-gradient(135deg,#28a745,#1e7e34);color:#06159e;padding:14px 22px;border-radius:8px;text-decoration:none;font-weight:700;box-shadow:0 6px 18px rgba(40,167,69,0.18);font-size:16px;line-height:1.2;letter-spacing:0.2px;border:1px solid rgba(0,0,0,0.04)}
     @media only screen and (max-width:480px){
       .content{padding:16px}
       .survey-btn{display:block;width:100%;box-sizing:border-box}
@@ -46,7 +46,12 @@
           <div style="color:#6c757d;font-size:13px">{{user.email}}</div>
         </div>
 
-        {{#if content}}
+        {{#if rawCustomMessage}}
+          <div style="margin-top:12px">
+            <div style="font-weight:600;color:#155724;margin-bottom:6px">Detalles</div>
+            <div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{{rawCustomMessage}}}</div>
+          </div>
+        {{else if content}}
           <div style="margin-top:12px">
             <div style="font-weight:600;color:#155724;margin-bottom:6px">Detalles</div>
             <div style="background:#e7f3ff;padding:12px;border-radius:6px;margin-bottom:12px">{{breaklines content}}</div>
